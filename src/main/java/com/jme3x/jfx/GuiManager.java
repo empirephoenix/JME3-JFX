@@ -97,4 +97,19 @@ public class GuiManager {
 	public List<AbstractHud> getAttachedHuds() {
 		return Collections.unmodifiableList(this.attachedHuds);
 	}
+
+	public void detachHudAsync(final AbstractHud hud) {
+		if (Platform.isFxApplicationThread()) {
+			GuiManager.this.highLevelGroup.getChildren().remove(hud.getNode());
+			this.attachedHuds.remove(hud);
+		} else {
+			Platform.runLater(new Runnable() {
+				@Override
+				public void run() {
+					GuiManager.this.attachedHuds.remove(hud);
+					GuiManager.this.highLevelGroup.getChildren().remove(hud.getNode());
+				}
+			});
+		}
+	}
 }

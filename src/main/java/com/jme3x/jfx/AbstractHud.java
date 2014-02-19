@@ -59,8 +59,13 @@ public abstract class AbstractHud {
 				@Override
 				public void changed(final ObservableValue<? extends Scene> observable, final Scene oldValue,
 						final Scene newValue) {
-					AbstractHud.this.node.prefWidthProperty().bind(newValue.widthProperty());
-					AbstractHud.this.node.prefHeightProperty().bind(newValue.heightProperty());
+					if (newValue == null) {
+						AbstractHud.this.node.prefWidthProperty().unbind();
+						AbstractHud.this.node.prefHeightProperty().unbind();
+					} else {
+						AbstractHud.this.node.prefWidthProperty().bind(newValue.widthProperty());
+						AbstractHud.this.node.prefHeightProperty().bind(newValue.heightProperty());
+					}
 				}
 			});
 			AbstractHud.this.initialized = true;
