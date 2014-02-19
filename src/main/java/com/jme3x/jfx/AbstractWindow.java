@@ -14,7 +14,7 @@ public abstract class AbstractWindow extends AbstractHud {
 	private WindowController	windowController;
 
 	public void setInner(final Region content) {
-		this.windowLayout.setCenter(this.windowLayout);
+		this.windowLayout.setCenter(content);
 	}
 
 	public Region getWindowContent() {

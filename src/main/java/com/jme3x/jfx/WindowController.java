@@ -13,21 +13,23 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 
 public class WindowController {
+	private double	dragX;
+	private double	dragY;
 
 	@FXML
-	ScrollPane	contentPane;
+	ScrollPane		contentPane;
 	@FXML
-	Button		minimize;
+	Button			minimize;
 	@FXML
-	Button		maximize;
+	Button			maximize;
 	@FXML
-	Button		close;
+	Button			close;
 	@FXML
-	HBox		buttonHolder;
+	HBox			buttonHolder;
 	@FXML
-	Label		title;
+	Label			title;
 	@FXML
-	Region		windowRoot;
+	Region			windowRoot;
 
 	@FXML
 	private void initialize() {
@@ -40,13 +42,34 @@ public class WindowController {
 			}
 		});
 
-		final Delta dragDelta = new Delta();
+		this.setupHeaderDragMove();
+
+		this.windowRoot.setOnMouseMoved(new EventHandler<MouseEvent>() {
+			@Override
+			public void handle(final MouseEvent mouseEvent) {
+				System.out.println(mouseEvent);
+				WindowController.this.buttonHolder.setCursor(Cursor.N_RESIZE);
+			}
+		});
+
+		this.windowRoot.setOnMousePressed(new EventHandler<MouseEvent>() {
+			@Override
+			public void handle(final MouseEvent mouseEvent) {
+				System.out.println(mouseEvent);
+				WindowController.this.buttonHolder.setCursor(Cursor.N_RESIZE);
+			}
+		});
+	}
+
+	private void setupHeaderDragMove() {
 		this.buttonHolder.setOnMousePressed(new EventHandler<MouseEvent>() {
 			@Override
 			public void handle(final MouseEvent mouseEvent) {
 				// record a delta distance for the drag and drop operation.
-				dragDelta.x = WindowController.this.buttonHolder.getLayoutX() - mouseEvent.getScreenX();
-				dragDelta.y = WindowController.this.buttonHolder.getLayoutY() - mouseEvent.getSceneY();
+				WindowController.this.dragX = WindowController.this.windowRoot.getTranslateX()
+						- mouseEvent.getScreenX();
+				WindowController.this.dragY = WindowController.this.windowRoot.getTranslateY()
+						- mouseEvent.getScreenY();
 				WindowController.this.buttonHolder.setCursor(Cursor.MOVE);
 			}
 		});
@@ -54,13 +77,15 @@ public class WindowController {
 			@Override
 			public void handle(final MouseEvent mouseEvent) {
 				WindowController.this.buttonHolder.setCursor(Cursor.HAND);
+				WindowController.this.dragX = 0;
+				WindowController.this.dragY = 0;
 			}
 		});
 		this.buttonHolder.setOnMouseDragged(new EventHandler<MouseEvent>() {
 			@Override
 			public void handle(final MouseEvent mouseEvent) {
-				WindowController.this.windowRoot.setTranslateX(mouseEvent.getScreenX() + dragDelta.x);
-				WindowController.this.windowRoot.setTranslateY(mouseEvent.getSceneY() + dragDelta.y);
+				WindowController.this.windowRoot.setTranslateX(mouseEvent.getScreenX() + WindowController.this.dragX);
+				WindowController.this.windowRoot.setTranslateY(mouseEvent.getScreenY() + WindowController.this.dragY);
 			}
 		});
 		this.buttonHolder.setOnMouseEntered(new EventHandler<MouseEvent>() {
