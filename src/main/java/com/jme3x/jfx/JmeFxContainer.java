@@ -176,7 +176,12 @@ public class JmeFxContainer implements RawInputListener {
 
 			this.pWidth = Display.getWidth();
 			this.pHeight = Display.getHeight();
-
+			if (this.pWidth < 64) {
+				this.pWidth = 64;
+			}
+			if (this.pHeight < 64) {
+				this.pHeight = 64;
+			}
 			this.picture.setWidth(this.pWidth);
 			this.picture.setHeight(this.pHeight);
 			this.jmeData = BufferUtils.createByteBuffer(this.pWidth * this.pHeight * 4);
