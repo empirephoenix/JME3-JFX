@@ -28,13 +28,13 @@ public abstract class AbstractHud {
 		assert !this.initialized : "Duplicate init";
 
 		if (Platform.isFxApplicationThread()) {
-			this.doInit();
+			this.node = this.doInit();
 		} else {
 			final Semaphore waitForInit = new Semaphore(0);
 			Platform.runLater(new Runnable() {
 				@Override
 				public void run() {
-					AbstractHud.this.doInit();
+					AbstractHud.this.node = AbstractHud.this.doInit();
 					waitForInit.release();
 				}
 			});
@@ -43,34 +43,36 @@ public abstract class AbstractHud {
 		/**
 		 * redirect inner error
 		 */
-		if (this.innerError != null) {
-			throw new RuntimeException("Error init hud", this.innerError);
+		if (this.getInnerError() != null) {
+			throw new RuntimeException("Error init hud", this.getInnerError());
 		}
+		AbstractHud.this.initialized = true;
 	}
 
 	public Node getNode() {
 		return this.node;
 	}
 
-	private void doInit() {
+	protected Region doInit() {
 		try {
-			AbstractHud.this.node = AbstractHud.this.innerInit();
-			AbstractHud.this.node.sceneProperty().addListener(new ChangeListener<Scene>() {
+			final Region node = AbstractHud.this.innerInit();
+			node.sceneProperty().addListener(new ChangeListener<Scene>() {
 				@Override
 				public void changed(final ObservableValue<? extends Scene> observable, final Scene oldValue,
 						final Scene newValue) {
 					if (newValue == null) {
-						AbstractHud.this.node.prefWidthProperty().unbind();
-						AbstractHud.this.node.prefHeightProperty().unbind();
+						node.prefWidthProperty().unbind();
+						node.prefHeightProperty().unbind();
 					} else {
-						AbstractHud.this.node.prefWidthProperty().bind(newValue.widthProperty());
-						AbstractHud.this.node.prefHeightProperty().bind(newValue.heightProperty());
+						node.prefWidthProperty().bind(newValue.widthProperty());
+						node.prefHeightProperty().bind(newValue.heightProperty());
 					}
 				}
 			});
-			AbstractHud.this.initialized = true;
+			return node;
 		} catch (final Throwable t) {
-			AbstractHud.this.innerError = t;
+			AbstractHud.this.setInnerError(t);
+			return null;
 		}
 	}
 
@@ -83,5 +85,13 @@ public abstract class AbstractHud {
 
 	public boolean isInitialized() {
 		return this.initialized;
+	}
+
+	public Throwable getInnerError() {
+		return this.innerError;
+	}
+
+	protected void setInnerError(final Throwable innerError) {
+		this.innerError = innerError;
 	}
 }

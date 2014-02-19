@@ -1,4 +1,3 @@
 dependencies{
 	compile project(':libs-jme3')
-	compile group: 'org.jfxtras', name: 'jfxtras-labs', version:'latest.release'
 }

@@ -25,7 +25,13 @@ public class Test extends SimpleApplication {
 		this.inputManager.addRawInputListener(testguiManager.getInputRedirector());
 
 		final TestHud testhud = new TestHud();
+		testhud.initialize();
 		testguiManager.attachHudAsync(testhud);
+
+		final TestWindow testwindow = new TestWindow();
+		testwindow.initialize();
+		testwindow.setTitleAsync("TestTitle");
+		testguiManager.attachHudAsync(testwindow);
 
 		Display.setResizable(true);
 	}
