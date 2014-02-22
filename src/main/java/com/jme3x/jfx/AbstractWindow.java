@@ -12,6 +12,7 @@ public abstract class AbstractWindow extends AbstractHud {
 	private Region		inner;
 	private Window		window;
 	final ScrollPane	innerScroll	= new ScrollPane();
+	private boolean		init;
 
 	public Region getWindowContent() {
 		return this.inner;
@@ -20,12 +21,11 @@ public abstract class AbstractWindow extends AbstractHud {
 	@Override
 	protected Region doInit() {
 		try {
-			this.inner = this.innerInit();
 
+			this.inner = this.innerInit();
 			this.window = new Window("My Window");
+
 			this.window.setResizableWindow(true);
-			this.window.maxWidthProperty().bind(this.inner.maxWidthProperty());
-			this.window.maxHeightProperty().bind(this.inner.maxHeightProperty());
 			// prefent layouting errors
 			this.window.setResizableBorderWidth(3);
 
@@ -35,12 +35,56 @@ public abstract class AbstractWindow extends AbstractHud {
 			this.innerScroll.setContent(this.inner);
 			this.window.getContentPane().getChildren().add(this.innerScroll);
 
-			this.innerScroll.setHbarPolicy(ScrollBarPolicy.AS_NEEDED);
+			this.innerScroll.setFitToHeight(true);
+			this.innerScroll.setFitToWidth(true);
 
+			this.init = true;
+			this.afterInit();
 			return this.window;
 		} catch (final Throwable t) {
 			this.setInnerError(t);
 			return null;
+		}
+	}
+
+	/**
+	 * custom init code, eg for setting the enforced settings
+	 */
+	protected abstract void afterInit();
+
+	/**
+	 * JFX Thread only prevents resizing of the window to a smaller value than the content specifies as min, -> no scrollbars will appear
+	 * 
+	 * @param minimumEnforced
+	 */
+	public void setEnforceMinimumSize(final boolean minimumEnforced) {
+		assert this.init : "Window is not init yet";
+		if (minimumEnforced) {
+			this.innerScroll.setHbarPolicy(ScrollBarPolicy.NEVER);
+			this.innerScroll.setVbarPolicy(ScrollBarPolicy.NEVER);
+			this.window.minWidthProperty().bind(this.inner.minWidthProperty());
+			this.window.minHeightProperty().bind(this.inner.minHeightProperty());
+		} else {
+			this.innerScroll.setHbarPolicy(ScrollBarPolicy.AS_NEEDED);
+			this.innerScroll.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
+			this.window.minHeightProperty().unbind();
+			this.window.minWidthProperty().unbind();
+		}
+	}
+
+	/**
+	 * JFX Thread only prevents resizing of the window to a larger value than the content specifies as max(eg if your content cannot be enlarged for technical reasons)
+	 * 
+	 * @param minimumEnforced
+	 */
+	public void setEnforceMaximumSize(final boolean maximumEnforced) {
+		assert this.init : "Window is not init yet";
+		if (maximumEnforced) {
+			this.window.maxWidthProperty().bind(this.inner.maxWidthProperty());
+			this.window.maxHeightProperty().bind(this.inner.maxHeightProperty());
+		} else {
+			this.window.maxWidthProperty().unbind();
+			this.window.maxHeightProperty().unbind();
 		}
 	}
 
