@@ -464,12 +464,12 @@ public class JmeFxContainer implements RawInputListener {
 
 	@Override
 	public void onJoyAxisEvent(final JoyAxisEvent evt) {
-
+		System.out.println(evt);
 	}
 
 	@Override
 	public void onJoyButtonEvent(final JoyButtonEvent evt) {
-
+		System.out.println(evt);
 	}
 
 	@Override
