@@ -64,10 +64,21 @@ public abstract class AbstractWindow extends AbstractHud {
 	}
 
 	/**
-	 * JFX Thread
+	 * Any Thread
 	 */
 	public void setSize(final int width, final int height) {
-		this.window.setPrefSize(width, height);
+		assert this.init : "Not init";
+		if (Platform.isFxApplicationThread()) {
+			this.window.setPrefSize(width, height);
+		} else {
+			Platform.runLater(new Runnable() {
+				@Override
+				public void run() {
+					AbstractWindow.this.window.setPrefSize(width, height);
+				}
+			});
+		}
+
 	}
 
 	/**

@@ -19,7 +19,7 @@ import javafx.scene.layout.Region;
 public abstract class AbstractHud {
 	private Throwable	innerError	= null;
 	protected Region	node;
-	protected boolean	initialized;
+	private boolean		initialized;
 
 	/**
 	 * initializes the hud, should load all ressources, fxml parsing ect. Allowed to be called from any thread
