@@ -116,7 +116,7 @@ public class JmeFxContainer implements RawInputListener {
             }
         });
 
-        this.hostContainer = new JmeFXHostContainerImpl(this);
+        this.hostContainer = new JmeFXHostInterfaceImpl(this);
         this.picture = new Picture("JavaFXContainer", true) {
             @Override
             public void updateLogicalState(final float tpf) {
