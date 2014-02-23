@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.layout.AnchorPane?>
+
+<AnchorPane layoutX="0.0" layoutY="0.0" prefHeight="300.0" prefWidth="600.0" xmlns:fx="http://javafx.com/fxml" fx:controller="com.jme3x.jfx.TestFxController">
+  <!-- TODO Add Nodes -->
+  <children>
+    <SplitPane dividerPositions="0.4331103678929766" focusTraversable="true" prefHeight="300.0" prefWidth="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+      <items>
+        <AnchorPane id="" minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+          <children>
+            <TableView fx:id="testTable" prefHeight="298.0" prefWidth="256.0" tableMenuButtonVisible="false" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
+              <columns>
+                <TableColumn editable="false" prefWidth="40.0" text="ID" fx:id="testIdColumn" />
+                <TableColumn editable="false" maxWidth="5000.0" minWidth="10.0" prefWidth="120.0" text="Test Details" fx:id="testNameColumn" />
+                <TableColumn editable="false" maxWidth="5000.0" minWidth="10.0" prefWidth="80.0" text="Length" fx:id="testLengthColumn" />
+              </columns>
+            </TableView>
+          </children>
+        </AnchorPane>
+        <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+          <children>
+            <TableView fx:id="testTable2" editable="false" prefHeight="234.0" prefWidth="308.0" tableMenuButtonVisible="false" AnchorPane.bottomAnchor="50.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="30.0">
+              <columns>
+                <TableColumn editable="false" maxWidth="5000.0" minWidth="10.0" prefWidth="128.0" text="Property Name" fx:id="test2NameCol" />
+                <TableColumn editable="false" maxWidth="5000.0" minWidth="10.0" prefWidth="174.0" text="Property Value" fx:id="test2ValueCol" />
+              </columns>
+            </TableView>
+            <Label layoutX="0.0" layoutY="6.0" text="Test Details" />
+            <Button id="myButton" fx:id="testButton" mnemonicParsing="false" onAction="#handleTestButton" text="Open New FX Window" AnchorPane.bottomAnchor="10.0" AnchorPane.rightAnchor="10.0" />
+            <TextField fx:id="saveFileField" alignment="BASELINE_CENTER" layoutY="6.0" prefWidth="-1.0" AnchorPane.leftAnchor="86.0" AnchorPane.rightAnchor="14.0" />
+            <Button id="myButton" fx:id="testButton2" mnemonicParsing="false" onAction="#handleTestButton2" text="TestButton2" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" />
+          </children>
+        </AnchorPane>
+      </items>
+    </SplitPane>
+  </children>
+</AnchorPane>
