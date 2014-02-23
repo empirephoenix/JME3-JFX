@@ -4,5 +4,5 @@ repositories {
 
 dependencies{
 	compile project(':libs-jme3')
-	compile group: 'org.jfxtras', name: 'jfxtras-labs', version:'8.0-r1-SNAPSHOT'
+	compile group: 'org.jfxtras', name: 'jfxtras-labs', version:'latest.release'
 }
