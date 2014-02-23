@@ -22,6 +22,8 @@ public class TestWindow extends AbstractWindow {
 	protected void afterInit() {
 		this.setEnforceMinimumSize(true);
 		this.setEnforceMaximumSize(true);
+		this.setSize(600, 300);
+
 	}
 
 }

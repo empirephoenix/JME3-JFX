@@ -1,11 +1,12 @@
 package com.jme3x.jfx;
 
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.layout.Region;
 import jfxtras.labs.scene.control.window.CloseIcon;
-import jfxtras.labs.scene.control.window.MinimizeIcon;
 import jfxtras.labs.scene.control.window.Window;
 
 public abstract class AbstractWindow extends AbstractHud {
@@ -13,6 +14,8 @@ public abstract class AbstractWindow extends AbstractHud {
 	private Window		window;
 	final ScrollPane	innerScroll	= new ScrollPane();
 	private boolean		init;
+	private boolean		maximumEnforced;
+	private boolean		minimumEnforced;
 
 	public Region getWindowContent() {
 		return this.inner;
@@ -29,14 +32,27 @@ public abstract class AbstractWindow extends AbstractHud {
 			// prefent layouting errors
 			this.window.setResizableBorderWidth(3);
 
-			this.window.setPrefSize(500, 500);
-			this.window.getRightIcons().add(new MinimizeIcon(this.window));
+			this.window.getRightIcons().add(new AdjustedMinimizeIcon(this.window));
 			this.window.getRightIcons().add(new CloseIcon(this.window));
 			this.innerScroll.setContent(this.inner);
 			this.window.getContentPane().getChildren().add(this.innerScroll);
 
 			this.innerScroll.setFitToHeight(true);
 			this.innerScroll.setFitToWidth(true);
+
+			this.window.minimizedProperty().addListener(new ChangeListener<Boolean>() {
+
+				@Override
+				public void changed(final ObservableValue<? extends Boolean> observable, final Boolean oldValue,
+						final Boolean newValue) {
+					if (!newValue) {
+						// restore states
+						AbstractWindow.this.window.getContentPane().getChildren().add(AbstractWindow.this.innerScroll);
+						AbstractWindow.this.applyEnforcedMaximumSize();
+						AbstractWindow.this.applyEnforcedMinimumSize();
+					}
+				}
+			});
 
 			this.init = true;
 			this.afterInit();
@@ -45,6 +61,13 @@ public abstract class AbstractWindow extends AbstractHud {
 			this.setInnerError(t);
 			return null;
 		}
+	}
+
+	/**
+	 * JFX Thread
+	 */
+	public void setSize(final int width, final int height) {
+		this.window.setPrefSize(width, height);
 	}
 
 	/**
@@ -59,7 +82,12 @@ public abstract class AbstractWindow extends AbstractHud {
 	 */
 	public void setEnforceMinimumSize(final boolean minimumEnforced) {
 		assert this.init : "Window is not init yet";
-		if (minimumEnforced) {
+		this.minimumEnforced = minimumEnforced;
+		this.applyEnforcedMinimumSize();
+	}
+
+	private void applyEnforcedMinimumSize() {
+		if (this.minimumEnforced) {
 			this.innerScroll.setHbarPolicy(ScrollBarPolicy.NEVER);
 			this.innerScroll.setVbarPolicy(ScrollBarPolicy.NEVER);
 			this.window.minWidthProperty().bind(this.inner.minWidthProperty());
@@ -79,7 +107,12 @@ public abstract class AbstractWindow extends AbstractHud {
 	 */
 	public void setEnforceMaximumSize(final boolean maximumEnforced) {
 		assert this.init : "Window is not init yet";
-		if (maximumEnforced) {
+		this.maximumEnforced = maximumEnforced;
+		this.applyEnforcedMaximumSize();
+	}
+
+	private void applyEnforcedMaximumSize() {
+		if (this.maximumEnforced) {
 			this.window.maxWidthProperty().bind(this.inner.maxWidthProperty());
 			this.window.maxHeightProperty().bind(this.inner.maxHeightProperty());
 		} else {
