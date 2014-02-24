@@ -22,9 +22,10 @@ public abstract class AbstractHud {
 	private boolean		initialized;
 
 	/**
-	 * initializes the hud, should load all ressources, fxml parsing ect. Allowed to be called from any thread
+	 * initializes the hud, should load all ressources, fxml parsing ect. Allowed to be called from any thread,<br>
+	 * blocks till jfx thread is finished with work
 	 */
-	public final void initialize() {
+	public final void precache() {
 		assert !this.initialized : "Duplicate init";
 
 		if (Platform.isFxApplicationThread()) {

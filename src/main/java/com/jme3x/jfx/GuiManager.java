@@ -76,7 +76,7 @@ public class GuiManager {
 		if (!hud.isInitialized()) {
 			System.err.println("Late init of " + hud.getClass().getName()
 					+ " call initialize early to prevent microlags");
-			hud.initialize();
+			hud.precache();
 			// TODO logger
 		}
 

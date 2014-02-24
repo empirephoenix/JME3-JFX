@@ -24,12 +24,12 @@ public class Test extends SimpleApplication {
 		 */
 		this.inputManager.addRawInputListener(testguiManager.getInputRedirector());
 
-		final TestHud testhud = new TestHud();
-		testhud.initialize();
+		final FXMLHud testhud = new FXMLHud("com/jme3x/jfx/loading_screen.fxml");
+		testhud.precache();
 		testguiManager.attachHudAsync(testhud);
 
-		final TestWindow testwindow = new TestWindow();
-		testwindow.initialize();
+		final FXMLWindow testwindow = new FXMLWindow("com/jme3x/jfx/loading_screen.fxml");
+		testwindow.precache();
 		testwindow.setTitleAsync("TestTitle");
 		testguiManager.attachHudAsync(testwindow);
 
