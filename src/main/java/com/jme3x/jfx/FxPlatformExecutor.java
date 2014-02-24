@@ -1,13 +1,10 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.jme3x.jfx;
 
 import javafx.application.Platform;
 
 /**
- *
+ * TODO This Class should be replaced by some Workmanager implemntation
+ * in the future
  * @author Heist
  */
 public class FxPlatformExecutor {

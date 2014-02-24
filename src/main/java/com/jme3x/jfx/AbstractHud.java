@@ -49,7 +49,7 @@ public abstract class AbstractHud {
 		AbstractHud.this.initialized = true;
 	}
 
-	public Node getNode() {
+	public Region getNode() {
 		return this.node;
 	}
 

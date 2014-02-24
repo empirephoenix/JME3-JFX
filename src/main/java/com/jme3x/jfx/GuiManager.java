@@ -27,7 +27,7 @@ public class GuiManager {
      * a list of all attached huds, using copyonwrite to allow reading from
      * other threads in a save way
      */
-    private List<AbstractHud> attachedHuds = new CopyOnWriteArrayList<AbstractHud>();
+    private List<AbstractHud> attachedHuds = new CopyOnWriteArrayList<>();
 
     public Group getRootGroup() {
         return highLevelGroup;
@@ -93,7 +93,7 @@ public class GuiManager {
      * @return
      */
     public RawInputListener getInputRedirector() {
-        return this.jmefx;
+        return this.jmefx.inputListener;
     }
 
     /**

@@ -64,12 +64,13 @@ import com.sun.javafx.stage.EmbeddedWindow;
  *
  * @author abies / Artur Biesiadowski
  */
-public class JmeFxContainer implements RawInputListener {
+public class JmeFxContainer {
 
     EmbeddedStageInterface stagePeer;
     EmbeddedSceneInterface scenePeer;
     volatile EmbeddedWindow stage;
     HostInterface hostContainer;
+    JmeFXInputListener inputListener;
     int pWidth;
     int pHeight;
     volatile Scene scene;
@@ -92,7 +93,8 @@ public class JmeFxContainer implements RawInputListener {
         final JmeFxContainer ctr = new JmeFxContainer(app.getAssetManager(), app, fullScreenSupport,
                 cursorDisplayProvider);
         guiNode.attachChild(ctr.getJmeNode());
-        app.getInputManager().addRawInputListener(ctr);
+        ctr.inputListener = new JmeFXInputListener(ctr);
+        app.getInputManager().addRawInputListener(ctr.inputListener);
 
         if (fullScreenSupport) {
             ctr.installSceneAccessorHack();
@@ -348,124 +350,9 @@ public class JmeFxContainer implements RawInputListener {
 
     }
 
-    @Override
-    public void beginInput() {
-    }
-
-    @Override
-    public void endInput() {
-    }
-
-    @Override
-    public void onJoyAxisEvent(final JoyAxisEvent evt) {
-    }
-
-    @Override
-    public void onJoyButtonEvent(final JoyButtonEvent evt) {
-    }
-
-    @Override
-    public void onMouseMotionEvent(final MouseMotionEvent evt) {
-
-        if (this.scenePeer == null) {
-            return;
-        }
-
-        final int x = evt.getX();
-        final int y = this.pHeight - evt.getY();
-
-        final boolean covered = this.isCovered(x, y);
-        if (covered) {
-            evt.setConsumed();
-        }
-
-        // not sure if should be grabbing focus on mouse motion event
-        // grabFocus();
-
-        int type = AbstractEvents.MOUSEEVENT_MOVED;
-        int button = AbstractEvents.MOUSEEVENT_NONE_BUTTON;
-
-        final int wheelRotation = (int) Math.round(evt.getDeltaWheel() / -120.0);
-
-        if (wheelRotation != 0) {
-            type = AbstractEvents.MOUSEEVENT_WHEEL;
-            button = AbstractEvents.MOUSEEVENT_NONE_BUTTON;
-        } else if (this.mouseButtonState[0]) {
-            type = AbstractEvents.MOUSEEVENT_DRAGGED;
-            button = AbstractEvents.MOUSEEVENT_PRIMARY_BUTTON;
-        } else if (this.mouseButtonState[1]) {
-            type = AbstractEvents.MOUSEEVENT_DRAGGED;
-            button = AbstractEvents.MOUSEEVENT_SECONDARY_BUTTON;
-        } else if (this.mouseButtonState[2]) {
-            type = AbstractEvents.MOUSEEVENT_DRAGGED;
-            button = AbstractEvents.MOUSEEVENT_MIDDLE_BUTTON;
-        }
-
-        this.scenePeer.mouseEvent(type, button, this.mouseButtonState[0], this.mouseButtonState[1],
-                this.mouseButtonState[2], x, y, Display.getX() + x, Display.getY() + y,
-                this.keyStateSet.get(KeyEvent.VK_SHIFT), this.keyStateSet.get(KeyEvent.VK_CONTROL),
-                this.keyStateSet.get(KeyEvent.VK_ALT), this.keyStateSet.get(KeyEvent.VK_META), wheelRotation, false);
-    }
     boolean[] mouseButtonState = new boolean[3];
 
-    @Override
-    public void onMouseButtonEvent(final MouseButtonEvent evt) {
-
-        // TODO: Process events in separate thread ?
-        if (this.scenePeer == null) {
-            return;
-        }
-
-        final int x = evt.getX();
-        final int y = this.pHeight - evt.getY();
-
-        int button;
-
-        switch (evt.getButtonIndex()) {
-            case 0:
-                button = AbstractEvents.MOUSEEVENT_PRIMARY_BUTTON;
-                break;
-            case 1:
-                button = AbstractEvents.MOUSEEVENT_SECONDARY_BUTTON;
-                break;
-            case 2:
-                button = AbstractEvents.MOUSEEVENT_MIDDLE_BUTTON;
-                break;
-            default:
-                return;
-        }
-
-        this.mouseButtonState[evt.getButtonIndex()] = evt.isPressed();
-
-        // seems that generating mouse release without corresponding mouse pressed is causing problems in Scene.ClickGenerator
-
-        final boolean covered = this.isCovered(x, y);
-        if (!covered) {
-            this.loseFocus();
-        } else {
-            evt.setConsumed();
-            this.grabFocus();
-        }
-
-        int type;
-        if (evt.isPressed()) {
-            type = AbstractEvents.MOUSEEVENT_PRESSED;
-        } else if (evt.isReleased()) {
-            type = AbstractEvents.MOUSEEVENT_RELEASED;
-            // and clicked ??
-        } else {
-            return;
-        }
-
-        this.scenePeer.mouseEvent(type, button, this.mouseButtonState[0], this.mouseButtonState[1],
-                this.mouseButtonState[2], x, y, Display.getX() + x, Display.getY() + y,
-                this.keyStateSet.get(KeyEvent.VK_SHIFT), this.keyStateSet.get(KeyEvent.VK_CONTROL),
-                this.keyStateSet.get(KeyEvent.VK_ALT), this.keyStateSet.get(KeyEvent.VK_META), 0,
-                button == AbstractEvents.MOUSEEVENT_SECONDARY_BUTTON);
-
-    }
-
-    private boolean isCovered(final int x, final int y) {
+    public boolean isCovered(final int x, final int y) {
         if (x < 0 || x >= this.pWidth) {
             return false;
         }
@@ -516,187 +403,8 @@ public class JmeFxContainer implements RawInputListener {
         return embedModifiers;
     }
 
-    @Override
-    public void onKeyEvent(final KeyInputEvent evt) {
-
-        if (this.scenePeer == null) {
-            return;
-        }
-
-        final char keyChar = evt.getKeyChar();
-
-        int fxKeycode = AwtKeyInput.convertJmeCode(evt.getKeyCode());
-
-        final int keyState = this.retrieveKeyState();
-        if (fxKeycode > this.keyCharSet.length) {
-            switch (keyChar) {
-                case '\\':
-                    fxKeycode = java.awt.event.KeyEvent.VK_BACK_SLASH;
-                    break;
-                default:
-                    return;
-            }
-        }
-
-        if (this.focus) {
-            evt.setConsumed();
-        }
-
-        if (evt.isRepeating()) {
-            final char x = this.keyCharSet[fxKeycode];
-
-            if (this.focus) {
-                this.scenePeer.keyEvent(AbstractEvents.KEYEVENT_TYPED, fxKeycode, new char[]{x}, keyState);
-            }
-        } else if (evt.isPressed()) {
-            this.keyCharSet[fxKeycode] = keyChar;
-            this.keyStateSet.set(fxKeycode);
-            if (this.focus) {
-                this.scenePeer.keyEvent(AbstractEvents.KEYEVENT_PRESSED, fxKeycode, new char[]{keyChar}, keyState);
-                this.scenePeer.keyEvent(AbstractEvents.KEYEVENT_TYPED, fxKeycode, new char[]{keyChar}, keyState);
-            }
-        } else {
-            final char x = this.keyCharSet[fxKeycode];
-            this.keyStateSet.clear(fxKeycode);
-            if (this.focus) {
-                this.scenePeer.keyEvent(AbstractEvents.KEYEVENT_RELEASED, fxKeycode, new char[]{x}, keyState);
-            }
-        }
-
-    }
-
-    @Override
-    public void onTouchEvent(final TouchEvent evt) {
-    }
     Map<Window, PopupSnapper> snappers = new IdentityHashMap<>();
     List<PopupSnapper> activeSnappers = new CopyOnWriteArrayList<>();
-
-    class PopupSnapper {
-
-        private Window window;
-        private Scene scene;
-        WritableImage img;
-        boolean ignoreRepaint;
-
-        public PopupSnapper(final Window window, final Scene scene) {
-            this.window = window;
-            this.scene = scene;
-        }
-
-        public void paint(final IntBuffer buf, final int pWidth, final int pHeight) {
-
-            // fixme to preserve proper colors
-
-            try {
-
-                final WritableImage img = this.img;
-                if (img == null) {
-                    return;
-                }
-                synchronized (this) {
-                    final PixelReader pr = img.getPixelReader();
-
-                    final int w = (int) img.getWidth();
-                    final int h = (int) img.getHeight();
-
-                    final byte[] pixels = new byte[w * h * 4];
-                    pr.getPixels(0, 0, w, h, PixelFormat.getByteBgraPreInstance(), pixels, 0, w * 4);
-
-                    final int xoff = (int) this.window.getX() - JmeFxContainer.this.oldX;
-                    final int yoff = (int) this.window.getY() - JmeFxContainer.this.oldY;
-
-                    for (int x = 0; x < w; x++) {
-                        for (int y = 0; y < h; y++) {
-                            final int offset = x + xoff + (y + yoff) * pWidth;
-                            final int old = buf.get(offset);
-                            final int boff = 4 * (x + y * w);
-                            final int toMerge = pixels[boff] | pixels[boff + 1] << 8 | pixels[boff + 2] << 16
-                                    | pixels[boff + 3] << 24;
-
-                            final int merge = JmeFxContainer.mergeBgra(old, toMerge);
-                            buf.put(offset, merge);
-                        }
-                    }
-                }
-            } catch (final Exception exc) {
-                exc.printStackTrace();
-            }
-
-        }
-
-        public void repaint() {
-            try {
-                if (!Color.TRANSPARENT.equals(this.scene.getFill())) {
-                    this.scene.setFill(Color.TRANSPARENT);
-                }
-
-                if (this.img != null) {
-                    if (this.img.getWidth() != this.scene.getWidth() || this.img.getHeight() != this.scene.getHeight()) {
-                        this.img = null;
-                    }
-                }
-                synchronized (this) {
-                    this.img = this.scene.snapshot(this.img);
-                }
-                JmeFxContainer.this.paintComponent();
-            } catch (final Exception exc) {
-                exc.printStackTrace();
-            }
-        }
-
-        public void start() {
-
-            try {
-                final Field trackerField = Scene.class.getDeclaredField("tracker");
-                trackerField.setAccessible(true);
-                trackerField.set(this.scene, new PerformanceTracker() {
-                    @Override
-                    public void frameRendered() {
-                        super.frameRendered();
-                        if (PopupSnapper.this.ignoreRepaint) {
-                            PopupSnapper.this.ignoreRepaint = false;
-                            return;
-                        }
-                        Platform.runLater(new Runnable() {
-                            @Override
-                            public void run() {
-                                PopupSnapper.this.ignoreRepaint = true;
-                                PopupSnapper.this.repaint();
-                            }
-                        });
-
-                    }
-
-                    @Override
-                    public void pulse() {
-                        super.pulse();
-                    }
-
-                    @Override
-                    protected long nanoTime() {
-                        return System.nanoTime();
-                    }
-
-                    @Override
-                    public void doOutputLog() {
-                    }
-
-                    @Override
-                    public void doLogEvent(final String s) {
-                    }
-                });
-            } catch (final Exception exc) {
-                exc.printStackTrace();
-            }
-
-            JmeFxContainer.this.activeSnappers.add(this);
-
-        }
-
-        public void stop() {
-            JmeFxContainer.this.activeSnappers.remove(this);
-        }
-    }
 
     private void installSceneAccessorHack() {
 
@@ -732,7 +440,7 @@ public class JmeFxContainer implements RawInputListener {
                                 @Override
                                 public void handle(final WindowEvent event) {
                                     if (Display.isFullscreen()) {
-                                        final PopupSnapper ps = new PopupSnapper(window, scene);
+                                        final PopupSnapper ps = new PopupSnapper(JmeFxContainer.this, window, scene);
                                         JmeFxContainer.this.snappers.put(window, ps);
                                         ps.start();
                                     }
@@ -772,60 +480,4 @@ public class JmeFxContainer implements RawInputListener {
             exc.printStackTrace();
         }
     }
-
-    static int mergeArgb(final int bg, final int src) {
-
-        final int sa = src >>> 24;
-
-        if (sa == 0) {
-            return bg;
-        }
-
-        final int ba = bg >>> 24;
-
-        final int rb = (src & 0x00ff00ff) * sa + (bg & 0x00ff00ff) * (0xff - sa) & 0xff00ff00;
-        final int g = (src & 0x0000ff00) * sa + (bg & 0x0000ff00) * (0xff - sa) & 0x00ff0000;
-        final int a = sa + (ba * (0xff - sa) >> 8);
-
-        return a << 24 | (rb | g) >>> 8;
-    }
-
-    static int mergeBgra(final int bg, final int src) {
-
-        final int sa = src & 0xff;
-
-        if (sa == 0) {
-            return bg;
-        }
-
-        final int ba = bg & 0xff;
-
-        final int a = sa + (ba * (0xff - sa) >> 8);
-
-        final int b = ((src & 0xff000000) >> 24) * sa + ((bg & 0xff000000) >> 24) * ba >> 8;
-        final int g = ((src & 0xff0000) >> 16) * sa + ((bg & 0xff0000) >> 16) * ba >> 8;
-        final int r = ((src & 0xff00) >> 8) * sa + ((bg & 0xff00) >> 8) * ba >> 8;
-
-        return b << 24 | g << 16 | r << 8 | a;
-        // return 0xffff0000;
-    }
-
-    /*
-     * public static javafx.scene.image.Image load(Image jmeImage) { Format format = jmeImage.getFormat(); int width = jmeImage.getWidth(); int height = jmeImage.getHeight(); ByteBuffer data = jmeImage.getData(0);
-     * 
-     * WritableImage wi = new WritableImage(width,height);
-     * 
-     * PixelWriter pw = wi.getPixelWriter();
-     * 
-     * 
-     * 
-     * 
-     * PixelFormat<ByteBuffer> pf;
-     * 
-     * switch (format) { case RGB8: pf = PixelFormat.getByteRgbInstance(); break; case BGRA8: pf = PixelFormat.getByteBgra(); break; default: return null; }
-     * 
-     * pw.setPixels(0,0,width,height,pf,data,format.getBitsPerPixel()/8);
-     * 
-     * return wi; }
-     */
 }

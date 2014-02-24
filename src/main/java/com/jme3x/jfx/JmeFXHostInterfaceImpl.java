@@ -15,8 +15,6 @@ import javafx.scene.input.TransferMode;
 
 
 public class JmeFXHostInterfaceImpl implements HostInterface {
-    JmeFxContainer fxContainer;
-    
     private final JmeFxContainer jmeFxContainer;
     
     public JmeFXHostInterfaceImpl (JmeFxContainer jmeFxContainer) {
