@@ -1,21 +1,21 @@
 package com.jme3x.jfx;
 
-import java.net.URL;
-
 import javafx.application.Platform;
-import javafx.fxml.FXMLLoader;
-import javafx.fxml.JavaFXBuilderFactory;
-import javafx.scene.layout.BorderPane;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.layout.Region;
+import jfxtras.labs.scene.control.window.CloseIcon;
+import jfxtras.labs.scene.control.window.Window;
 
 public abstract class AbstractWindow extends AbstractHud {
-	private BorderPane			windowLayout;
-	private Region				inner;
-	private WindowController	windowController;
-
-	public void setInner(final Region content) {
-		this.windowLayout.setCenter(content);
-	}
+	private Region		inner;
+	private Window		window;
+	final ScrollPane	innerScroll	= new ScrollPane();
+	private boolean		init;
+	private boolean		maximumEnforced;
+	private boolean		minimumEnforced;
 
 	public Region getWindowContent() {
 		return this.inner;
@@ -24,23 +24,148 @@ public abstract class AbstractWindow extends AbstractHud {
 	@Override
 	protected Region doInit() {
 		try {
+
 			this.inner = this.innerInit();
-			final FXMLLoader fxmlLoader = new FXMLLoader();
-			final URL location = this.getClass().getResource("window.fxml");
-			fxmlLoader.setLocation(location);
-			fxmlLoader.setBuilderFactory(new JavaFXBuilderFactory());
-			this.windowLayout = fxmlLoader.load(location.openStream());
-			this.windowController = fxmlLoader.getController();
-			this.setContent(this.inner);
-			return this.windowLayout;
+			this.window = new Window("My Window");
+
+			this.window.setResizableWindow(true);
+			// prefent layouting errors
+			this.window.setResizableBorderWidth(3);
+
+			this.window.getRightIcons().add(new AdjustedMinimizeIcon(this.window));
+			this.window.getRightIcons().add(new CloseIcon(this.window));
+			this.innerScroll.setContent(this.inner);
+			this.window.getContentPane().getChildren().add(this.innerScroll);
+
+			this.innerScroll.setFitToHeight(true);
+			this.innerScroll.setFitToWidth(true);
+
+			this.window.minimizedProperty().addListener(new ChangeListener<Boolean>() {
+
+				@Override
+				public void changed(final ObservableValue<? extends Boolean> observable, final Boolean oldValue,
+						final Boolean newValue) {
+					if (!newValue) {
+						// restore states
+						AbstractWindow.this.window.getContentPane().getChildren().add(AbstractWindow.this.innerScroll);
+						AbstractWindow.this.applyEnforcedMaximumSize();
+						AbstractWindow.this.applyEnforcedMinimumSize();
+					}
+				}
+			});
+
+			this.init = true;
+			this.afterInit();
+			return this.window;
 		} catch (final Throwable t) {
 			this.setInnerError(t);
 			return null;
 		}
 	}
 
-	public void setContent(final Region content) {
-		this.windowController.setContent(content);
+	/**
+	 * Any Thread
+	 */
+	public void setSize(final int width, final int height) {
+		assert this.init : "Not init";
+		if (Platform.isFxApplicationThread()) {
+			this.window.setPrefSize(width, height);
+		} else {
+			Platform.runLater(new Runnable() {
+				@Override
+				public void run() {
+					AbstractWindow.this.window.setPrefSize(width, height);
+				}
+			});
+		}
+
+	}
+
+	/**
+	 * custom init code, eg for setting the enforced settings
+	 */
+	protected abstract void afterInit();
+
+	/**
+	 * JFX Thread only prevents resizing of the window to a smaller value than the content specifies as min, -> no scrollbars will appear
+	 * 
+	 * @param minimumEnforced
+	 */
+	public void setEnforceMinimumSize(final boolean minimumEnforced) {
+		assert this.init : "Window is not init yet";
+		this.minimumEnforced = minimumEnforced;
+		this.applyEnforcedMinimumSize();
+	}
+
+	private void applyEnforcedMinimumSize() {
+		if (this.minimumEnforced) {
+			this.innerScroll.setHbarPolicy(ScrollBarPolicy.NEVER);
+			this.innerScroll.setVbarPolicy(ScrollBarPolicy.NEVER);
+			this.window.minWidthProperty().bind(this.inner.minWidthProperty());
+			this.window.minHeightProperty().bind(this.inner.minHeightProperty());
+		} else {
+			this.innerScroll.setHbarPolicy(ScrollBarPolicy.AS_NEEDED);
+			this.innerScroll.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
+			this.window.minHeightProperty().unbind();
+			this.window.minWidthProperty().unbind();
+		}
+	}
+
+	/**
+	 * JFX Thread only prevents resizing of the window to a larger value than the content specifies as max(eg if your content cannot be enlarged for technical reasons)
+	 * 
+	 * @param minimumEnforced
+	 */
+	public void setEnforceMaximumSize(final boolean maximumEnforced) {
+		assert this.init : "Window is not init yet";
+		this.maximumEnforced = maximumEnforced;
+		this.applyEnforcedMaximumSize();
+	}
+
+	private void applyEnforcedMaximumSize() {
+		if (this.maximumEnforced) {
+			this.window.maxWidthProperty().bind(this.inner.maxWidthProperty());
+			this.window.maxHeightProperty().bind(this.inner.maxHeightProperty());
+		} else {
+			this.window.maxWidthProperty().unbind();
+			this.window.maxHeightProperty().unbind();
+		}
+	}
+
+	/**
+	 * can be called from any Thread, if not jfx thread is async
+	 * 
+	 * @param title
+	 */
+	public void setLayoutX(final int x) {
+		if (Platform.isFxApplicationThread()) {
+			this.window.setLayoutX(x);
+		} else {
+			Platform.runLater(new Runnable() {
+				@Override
+				public void run() {
+					AbstractWindow.this.window.setLayoutX(x);
+				}
+			});
+		}
+	}
+
+	/**
+	 * can be called from any Thread, if not jfx thread is async
+	 * 
+	 * @param title
+	 */
+	public void setLayoutY(final int y) {
+		if (Platform.isFxApplicationThread()) {
+			this.window.setLayoutY(y);
+		} else {
+			Platform.runLater(new Runnable() {
+				@Override
+				public void run() {
+					AbstractWindow.this.window.setLayoutY(y);
+				}
+			});
+		}
 	}
 
 	/**
@@ -50,12 +175,12 @@ public abstract class AbstractWindow extends AbstractHud {
 	 */
 	public void setTitleAsync(final String title) {
 		if (Platform.isFxApplicationThread()) {
-			this.windowController.setTitle(title);
+			this.window.setTitle(title);
 		} else {
 			Platform.runLater(new Runnable() {
 				@Override
 				public void run() {
-					AbstractWindow.this.windowController.setTitle(title);
+					AbstractWindow.this.window.setTitle(title);
 				}
 			});
 		}

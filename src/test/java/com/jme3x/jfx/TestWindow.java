@@ -14,7 +14,16 @@ public class TestWindow extends AbstractWindow {
 		final URL location = this.getClass().getResource("loading_screen.fxml");
 		fxmlLoader.setLocation(location);
 		fxmlLoader.setBuilderFactory(new JavaFXBuilderFactory());
+
 		return fxmlLoader.load(location.openStream());
+	}
+
+	@Override
+	protected void afterInit() {
+		this.setEnforceMinimumSize(true);
+		this.setEnforceMaximumSize(true);
+		this.setSize(600, 300);
+
 	}
 
 }
