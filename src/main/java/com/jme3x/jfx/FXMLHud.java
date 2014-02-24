@@ -9,6 +9,7 @@ import javafx.scene.layout.Region;
 public class FXMLHud extends AbstractHud {
 
 	private String	fxml;
+	private Object	controller;
 
 	public FXMLHud(final String fxml) {
 		this.fxml = fxml;
@@ -20,7 +21,13 @@ public class FXMLHud extends AbstractHud {
 		final URL location = Thread.currentThread().getContextClassLoader().getResource(this.fxml);
 		fxmlLoader.setLocation(location);
 		fxmlLoader.setBuilderFactory(new JavaFXBuilderFactory());
-		return fxmlLoader.load(location.openStream());
+		final Region rv = fxmlLoader.load(location.openStream());
+		this.controller = fxmlLoader.getController();
+		return rv;
+	}
+
+	public Object getController() {
+		return this.controller;
 	}
 
 }
