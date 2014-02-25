@@ -61,6 +61,7 @@ public class ProtonCursorProvider implements ICursorDisplayProvider {
 		case CLOSED_HAND:
 			break;
 		case CROSSHAIR:
+			loaded = (JmeCursor) this.assetManager.loadAsset("com/jme3x/jfx/cursor/proton/aero_cross.cur");
 			break;
 		case DEFAULT:
 			loaded = (JmeCursor) this.assetManager.loadAsset("com/jme3x/jfx/cursor/proton/aero_arrow.cur");
@@ -74,6 +75,7 @@ public class ProtonCursorProvider implements ICursorDisplayProvider {
 			loaded = (JmeCursor) this.assetManager.loadAsset("com/jme3x/jfx/cursor/proton/aero_link.cur");
 			break;
 		case H_RESIZE:
+			loaded = (JmeCursor) this.assetManager.loadAsset("com/jme3x/jfx/cursor/proton/aero_ew.cur");
 			break;
 		case IMAGE:
 			break;
@@ -106,6 +108,7 @@ public class ProtonCursorProvider implements ICursorDisplayProvider {
 			loaded = (JmeCursor) this.assetManager.loadAsset("com/jme3x/jfx/cursor/proton/aero_text.cur");
 			break;
 		case V_RESIZE:
+			loaded = (JmeCursor) this.assetManager.loadAsset("com/jme3x/jfx/cursor/proton/aero_ns.cur");
 			break;
 		case WAIT:
 			loaded = (JmeCursor) this.assetManager.loadAsset("com/jme3x/jfx/cursor/proton/aero_busy.ani");
