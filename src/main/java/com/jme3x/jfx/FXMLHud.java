@@ -6,10 +6,10 @@ import javafx.fxml.FXMLLoader;
 import javafx.fxml.JavaFXBuilderFactory;
 import javafx.scene.layout.Region;
 
-public class FXMLHud extends AbstractHud {
+public class FXMLHud<ControllerType> extends AbstractHud {
 
-	private String	fxml;
-	private Object	controller;
+	private String			fxml;
+	private ControllerType	controller;
 
 	public FXMLHud(final String fxml) {
 		this.fxml = fxml;
@@ -26,7 +26,7 @@ public class FXMLHud extends AbstractHud {
 		return rv;
 	}
 
-	public Object getController() {
+	public ControllerType getController() {
 		return this.controller;
 	}
 

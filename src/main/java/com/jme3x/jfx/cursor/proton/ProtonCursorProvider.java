@@ -1,4 +1,4 @@
-package com.jme3x.jfx;
+package com.jme3x.jfx.cursor.proton;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
@@ -13,19 +13,20 @@ import com.sun.javafx.cursor.CursorFrame;
 import com.sun.javafx.cursor.CursorType;
 
 /**
+ * http://www.rw-designer.com/cursor-set/proton by juanello <br>
  * A cursorProvider that simulates the native JFX one and tries to behave similar,<br>
  * using native cursors and 2D surface logic.
  * 
  * @author empire
  * 
  */
-public class ExampleCursorProvider implements ICursorDisplayProvider {
+public class ProtonCursorProvider implements ICursorDisplayProvider {
 	private ConcurrentHashMap<CursorType, JmeCursor>	cache	= new ConcurrentHashMap<CursorType, JmeCursor>();
 	private AssetManager								assetManager;
 	private InputManager								inputManager;
 	private Application									app;
 
-	public ExampleCursorProvider(final Application app, final AssetManager assetManager, final InputManager inputManager) {
+	public ProtonCursorProvider(final Application app, final AssetManager assetManager, final InputManager inputManager) {
 		this.assetManager = assetManager;
 		this.inputManager = inputManager;
 		this.app = app;
@@ -34,14 +35,19 @@ public class ExampleCursorProvider implements ICursorDisplayProvider {
 
 	@Override
 	public void showCursor(final CursorFrame cursorFrame) {
-		final CursorType cursorType = cursorFrame.getCursorType();
-		System.out.println("Show Cursor " + cursorType);
+		CursorType cursorType = cursorFrame.getCursorType();
+		if (this.cache.get(cursorType) == null) {
+			System.out.println("Unkown Cursor! " + cursorType);
+			cursorType = CursorType.DEFAULT;
+		}
+
 		final JmeCursor toDisplay = this.cache.get(cursorType);
+
 		if (toDisplay != null) {
 			this.app.enqueue(new Callable<Void>() {
 				@Override
 				public Void call() throws Exception {
-					ExampleCursorProvider.this.inputManager.setMouseCursor(toDisplay);
+					ProtonCursorProvider.this.inputManager.setMouseCursor(toDisplay);
 					return null;
 				}
 			});
@@ -57,53 +63,59 @@ public class ExampleCursorProvider implements ICursorDisplayProvider {
 		case CROSSHAIR:
 			break;
 		case DEFAULT:
+			loaded = (JmeCursor) this.assetManager.loadAsset("com/jme3x/jfx/cursor/proton/aero_arrow.cur");
 			break;
 		case DISAPPEAR:
 			break;
 		case E_RESIZE:
+			loaded = (JmeCursor) this.assetManager.loadAsset("com/jme3x/jfx/cursor/proton/aero_ew.cur");
 			break;
 		case HAND:
+			loaded = (JmeCursor) this.assetManager.loadAsset("com/jme3x/jfx/cursor/proton/aero_link.cur");
 			break;
 		case H_RESIZE:
 			break;
 		case IMAGE:
 			break;
 		case MOVE:
+			loaded = (JmeCursor) this.assetManager.loadAsset("com/jme3x/jfx/cursor/proton/aero_move.cur");
 			break;
 		case NE_RESIZE:
+			loaded = (JmeCursor) this.assetManager.loadAsset("com/jme3x/jfx/cursor/proton/aero_nesw.cur");
 			break;
 		case NONE:
 			break;
 		case NW_RESIZE:
+			loaded = (JmeCursor) this.assetManager.loadAsset("com/jme3x/jfx/cursor/proton/aero_nwse.cur");
 			break;
 		case N_RESIZE:
+			loaded = (JmeCursor) this.assetManager.loadAsset("com/jme3x/jfx/cursor/proton/aero_ns.cur");
 			break;
 		case OPEN_HAND:
 			break;
 		case SE_RESIZE:
+			loaded = (JmeCursor) this.assetManager.loadAsset("com/jme3x/jfx/cursor/proton/aero_nwse.cur");
 			break;
 		case SW_RESIZE:
+			loaded = (JmeCursor) this.assetManager.loadAsset("com/jme3x/jfx/cursor/proton/aero_nesw.cur");
 			break;
 		case S_RESIZE:
+			loaded = (JmeCursor) this.assetManager.loadAsset("com/jme3x/jfx/cursor/proton/aero_ns.cur");
 			break;
 		case TEXT:
-			loaded = (JmeCursor) this.assetManager.loadAsset("com/jme3x/jfx/cursor-text.cur");
+			loaded = (JmeCursor) this.assetManager.loadAsset("com/jme3x/jfx/cursor/proton/aero_text.cur");
 			break;
 		case V_RESIZE:
 			break;
 		case WAIT:
+			loaded = (JmeCursor) this.assetManager.loadAsset("com/jme3x/jfx/cursor/proton/aero_busy.ani");
 			break;
 		case W_RESIZE:
+			loaded = (JmeCursor) this.assetManager.loadAsset("com/jme3x/jfx/cursor/proton/aero_ew.cur");
 			break;
-		default:
-			break;
-
 		}
-
-		if (loaded == null) {
-			System.err.println("No cursor provided for " + ctyp);
-			loaded = (JmeCursor) this.assetManager.loadAsset("com/jme3x/jfx/cursor-standard.cur");
+		if (loaded != null) {
+			this.cache.put(ctyp, loaded);
 		}
-		this.cache.put(ctyp, loaded);
 	}
 }

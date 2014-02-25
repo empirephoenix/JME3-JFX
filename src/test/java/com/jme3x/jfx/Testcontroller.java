@@ -13,6 +13,6 @@ public class Testcontroller {
 
 	@FXML
 	public void initialize() {
-		this.website.getEngine().load("https://twitter.com/jmonkeyengine");
+		this.website.getEngine().load("http://acid3.acidtests.org/");
 	}
 }

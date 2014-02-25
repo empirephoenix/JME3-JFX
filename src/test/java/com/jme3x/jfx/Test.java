@@ -4,6 +4,7 @@ import org.lwjgl.opengl.Display;
 
 import com.jme3.app.SimpleApplication;
 import com.jme3.math.ColorRGBA;
+import com.jme3x.jfx.cursor.proton.ProtonCursorProvider;
 
 public class Test extends SimpleApplication {
 
@@ -18,7 +19,7 @@ public class Test extends SimpleApplication {
 		this.viewPort.setBackgroundColor(ColorRGBA.Red);
 
 		final GuiManager testguiManager = new GuiManager(this.guiNode, this.assetManager, this, false,
-				new ExampleCursorProvider(this, this.assetManager, this.inputManager));
+				new ProtonCursorProvider(this, this.assetManager, this.inputManager));
 		/**
 		 * 2d gui, use the default input provider
 		 */
