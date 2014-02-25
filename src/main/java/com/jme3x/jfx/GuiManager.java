@@ -18,13 +18,23 @@ import com.jme3x.jfx.cursor.ICursorDisplayProvider;
 import com.sun.javafx.cursor.CursorType;
 
 public class GuiManager {
+
 	private JmeFxContainer		jmefx;
 	private Group				highLevelGroup;
 	private Scene				mainScene;
 	/**
 	 * a list of all attached huds, using copyonwrite to allow reading from other threads in a save way
 	 */
-	private List<AbstractHud>	attachedHuds	= new CopyOnWriteArrayList<AbstractHud>();
+	private List<AbstractHud>	attachedHuds	= new CopyOnWriteArrayList<>();
+
+	public Group getRootGroup() {
+		return this.highLevelGroup;
+	}
+
+	public JmeFxContainer getjmeFXContainer() {
+		return this.jmefx;
+
+	}
 
 	/**
 	 * creates a new JMEFX container, this is a rather expensive operation and should only be done one time fr the 2d fullscreengui. Additionals should only be necessary for 3d guis, should be called from JME thread
@@ -43,7 +53,17 @@ public class GuiManager {
 		for (final CursorType type : CursorType.values()) {
 			cursorDisplayProvider.setup(type);
 		}
+		this.initRootGroup();
 
+	}
+
+	private void initRootGroup() {
+		/*
+		 * 
+		 * Group baseHighLevelGroup = new Group(); Scene baseScene = new Scene(baseHighLevelGroup); baseScene.setFill(new Color(0, 0, 0, 0)); switchRootGroup(baseHighLevelGroup); }
+		 * 
+		 * private void switchRootGroup(Group newRootGroup) {
+		 */
 		final Semaphore waitForInit = new Semaphore(0);
 		Platform.runLater(new Runnable() {
 			@Override
@@ -64,7 +84,7 @@ public class GuiManager {
 	 * @return
 	 */
 	public RawInputListener getInputRedirector() {
-		return this.jmefx;
+		return this.jmefx.inputListener;
 	}
 
 	/**

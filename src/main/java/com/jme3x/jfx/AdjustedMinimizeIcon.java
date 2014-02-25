@@ -7,6 +7,12 @@ import jfxtras.labs.scene.control.window.Window;
 import jfxtras.labs.scene.control.window.WindowIcon;
 import jfxtras.labs.util.WindowUtil;
 
+/**
+ * extends the default minimize button with a few hacks to ignore minSize values when minimizing
+ * 
+ * @author empire
+ * 
+ */
 public class AdjustedMinimizeIcon extends WindowIcon {
 
 	public static final String	DEFAULT_STYLE_CLASS	= "window-minimize-icon";
