@@ -37,7 +37,7 @@ public class AdjustedMinimizeIcon extends WindowIcon {
 					w.minHeightProperty().unbind();
 					w.minWidthProperty().unbind();
 					w.minHeightProperty().set(0);
-					w.minHeightProperty().set(0);
+					w.minWidthProperty().set(0);
 				}
 
 				if (w.isSelected()) {
