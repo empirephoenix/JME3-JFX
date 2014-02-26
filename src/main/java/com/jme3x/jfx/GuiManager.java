@@ -1,11 +1,13 @@
 package com.jme3x.jfx;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Semaphore;
 
 import javafx.application.Platform;
+import javafx.collections.ObservableList;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.paint.Color;
@@ -44,8 +46,7 @@ public class GuiManager {
 	 * @param application
 	 * @param fullscreen
 	 */
-	public GuiManager(final Node guiParent, final AssetManager assetManager, final Application application,
-			final boolean fullscreen, final ICursorDisplayProvider cursorDisplayProvider) {
+	public GuiManager(final Node guiParent, final AssetManager assetManager, final Application application, final boolean fullscreen, final ICursorDisplayProvider cursorDisplayProvider) {
 
 		this.jmefx = JmeFxContainer.install(application, guiParent, fullscreen, cursorDisplayProvider);
 		guiParent.attachChild(this.jmefx.getJmeNode());
@@ -94,23 +95,53 @@ public class GuiManager {
 	 */
 	public void attachHudAsync(final AbstractHud hud) {
 		if (!hud.isInitialized()) {
-			System.err.println("Late init of " + hud.getClass().getName()
-					+ " call initialize early to prevent microlags");
+			System.err.println("Late init of " + hud.getClass().getName() + " call initialize early to prevent microlags");
 			hud.precache();
 			// TODO logger
 		}
 
-		if (Platform.isFxApplicationThread()) {
-			GuiManager.this.highLevelGroup.getChildren().add(hud.getNode());
-			this.attachedHuds.add(hud);
-		} else {
-			Platform.runLater(new Runnable() {
-				@Override
-				public void run() {
-					GuiManager.this.attachedHuds.add(hud);
-					GuiManager.this.highLevelGroup.getChildren().add(hud.getNode());
+		final Runnable attachTask = new Runnable() {
+			@Override
+			public void run() {
+				GuiManager.this.attachedHuds.add(hud);
+				GuiManager.this.highLevelGroup.getChildren().add(hud.getNode());
+
+				GuiManager.this.sortWindowsBeforeHuds(GuiManager.this.attachedHuds, GuiManager.this.highLevelGroup.getChildren());
+			}
+		};
+		FxPlatformExecutor.runOnFxApplication(attachTask);
+	}
+
+	/**
+	 * expected bahaviour, if a window is attached, move it to front <br>
+	 * if a hud is attached move it behind all windows, but before already existing huds <br>
+	 * dont change order of windows or order of huds.
+	 **/
+	private void sortWindowsBeforeHuds(final List<AbstractHud> attachedHuds, final ObservableList<javafx.scene.Node> currentOrder) {
+		// TODO efficiency
+
+		// read current order and split by windows and huds
+		final ArrayList<AbstractWindow> orderedWindows = new ArrayList<>();
+		final ArrayList<AbstractHud> orderdHuds = new ArrayList<>();
+		for (final javafx.scene.Node n : currentOrder) {
+			for (final AbstractHud hud : attachedHuds) {
+				if (hud.getNode() == n) {
+					if (hud instanceof AbstractWindow) {
+						orderedWindows.add((AbstractWindow) hud);
+					} else {
+						orderdHuds.add(hud);
+					}
 				}
-			});
+			}
+		}
+
+		// clean current list, add huds first then windows
+		currentOrder.clear();
+		for (final AbstractHud hud : orderdHuds) {
+			currentOrder.add(hud.getNode());
+		}
+		for (final AbstractWindow window : orderedWindows) {
+			currentOrder.add(window.getNode());
 		}
 	}
 
