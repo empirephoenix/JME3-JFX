@@ -12,10 +12,16 @@ import jfxtras.labs.scene.control.window.Window;
 public abstract class AbstractWindow extends AbstractHud {
 	private Region		inner;
 	private Window		window;
-	final ScrollPane	innerScroll	= new ScrollPane();
+	final ScrollPane	innerScroll		= new ScrollPane();
 	private boolean		init;
 	private boolean		maximumEnforced;
 	private boolean		minimumEnforced;
+	private boolean		minimizeVisible	= true;
+
+	public void setMinimizeVisible(final boolean visible) {
+		assert !this.init : "Cannot change this after window is precached";
+		this.minimizeVisible = visible;
+	}
 
 	public Region getWindowContent() {
 		return this.inner;
@@ -32,7 +38,9 @@ public abstract class AbstractWindow extends AbstractHud {
 			// prefent layouting errors
 			this.window.setResizableBorderWidth(3);
 
-			this.window.getRightIcons().add(new AdjustedMinimizeIcon(this.window));
+			if (this.minimizeVisible) {
+				this.window.getRightIcons().add(new AdjustedMinimizeIcon(this.window));
+			}
 			this.window.getRightIcons().add(new CloseIcon(this.window));
 			this.innerScroll.setContent(this.inner);
 			this.window.getContentPane().getChildren().add(this.innerScroll);
