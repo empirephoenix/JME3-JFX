@@ -7,6 +7,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Semaphore;
 
 import javafx.application.Platform;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.scene.Group;
 import javafx.scene.Scene;
@@ -46,7 +47,8 @@ public class GuiManager {
 	 * @param application
 	 * @param fullscreen
 	 */
-	public GuiManager(final Node guiParent, final AssetManager assetManager, final Application application, final boolean fullscreen, final ICursorDisplayProvider cursorDisplayProvider) {
+	public GuiManager(final Node guiParent, final AssetManager assetManager, final Application application,
+			final boolean fullscreen, final ICursorDisplayProvider cursorDisplayProvider) {
 
 		this.jmefx = JmeFxContainer.install(application, guiParent, fullscreen, cursorDisplayProvider);
 		guiParent.attachChild(this.jmefx.getJmeNode());
@@ -70,6 +72,34 @@ public class GuiManager {
 			@Override
 			public void run() {
 				GuiManager.this.highLevelGroup = new Group();
+
+				// ensure that on every focues change between windows/huds modality is preserved!
+
+				GuiManager.this.highLevelGroup.getChildren().addListener(new ListChangeListener<Object>() {
+					boolean	ignoreEvents	= false;
+
+					@Override
+					public void onChanged(final Change<?> c) {
+						// ensure it is not triggerd by the events it produces
+						if (this.ignoreEvents) {
+							return;
+						}
+						this.ignoreEvents = true;
+						System.out.println("do new sorting due to " + c);
+						Platform.runLater(new Runnable() {
+
+							@Override
+							public void run() {
+								GuiManager.this.sortWindowsBeforeHudsAndEnforceModality();
+								ignoreEvents = false;
+							}
+
+						});
+
+					}
+
+				});
+
 				GuiManager.this.mainScene = new Scene(GuiManager.this.highLevelGroup);
 				GuiManager.this.mainScene.setFill(new Color(0, 0, 0, 0));
 				GuiManager.this.jmefx.setScene(GuiManager.this.mainScene);
@@ -95,7 +125,8 @@ public class GuiManager {
 	 */
 	public void attachHudAsync(final AbstractHud hud) {
 		if (!hud.isInitialized()) {
-			System.err.println("Late init of " + hud.getClass().getName() + " call initialize early to prevent microlags");
+			System.err.println("Late init of " + hud.getClass().getName()
+					+ " call initialize early to prevent microlags");
 			hud.precache();
 			// TODO logger
 		}
@@ -105,8 +136,6 @@ public class GuiManager {
 			public void run() {
 				GuiManager.this.attachedHuds.add(hud);
 				GuiManager.this.highLevelGroup.getChildren().add(hud.getNode());
-
-				GuiManager.this.sortWindowsBeforeHuds(GuiManager.this.attachedHuds, GuiManager.this.highLevelGroup.getChildren());
 			}
 		};
 		FxPlatformExecutor.runOnFxApplication(attachTask);
@@ -117,17 +146,29 @@ public class GuiManager {
 	 * if a hud is attached move it behind all windows, but before already existing huds <br>
 	 * dont change order of windows or order of huds.
 	 **/
-	private void sortWindowsBeforeHuds(final List<AbstractHud> attachedHuds, final ObservableList<javafx.scene.Node> currentOrder) {
+	private void sortWindowsBeforeHudsAndEnforceModality() {
 		// TODO efficiency
+
+		final ObservableList<javafx.scene.Node> currentOrder = this.highLevelGroup.getChildren();
 
 		// read current order and split by windows and huds
 		final ArrayList<AbstractWindow> orderedWindows = new ArrayList<>();
+		final ArrayList<AbstractWindow> orderedModalWindows = new ArrayList<>();
 		final ArrayList<AbstractHud> orderdHuds = new ArrayList<>();
+		boolean switchToModal = false;
 		for (final javafx.scene.Node n : currentOrder) {
-			for (final AbstractHud hud : attachedHuds) {
+			for (final AbstractHud hud : this.attachedHuds) {
 				if (hud.getNode() == n) {
 					if (hud instanceof AbstractWindow) {
-						orderedWindows.add((AbstractWindow) hud);
+						final AbstractWindow casted = (AbstractWindow) hud;
+						if (casted.isModal()) {
+							if (currentOrder.get(0) == casted.getNode()) {
+								switchToModal = true;
+							}
+							orderedModalWindows.add((AbstractWindow) hud);
+						} else {
+							orderedWindows.add((AbstractWindow) hud);
+						}
 					} else {
 						orderdHuds.add(hud);
 					}
@@ -136,12 +177,28 @@ public class GuiManager {
 		}
 
 		// clean current list, add huds first then windows
+
 		currentOrder.clear();
 		for (final AbstractHud hud : orderdHuds) {
+			System.out.println("adding sort hud");
+			// disable them if a modal window exist(till a better solution is found for input interception)
+			hud.getNode().disableProperty().set(orderedModalWindows.size() > 0);
 			currentOrder.add(hud.getNode());
 		}
 		for (final AbstractWindow window : orderedWindows) {
+			System.out.println("adding sort window");
+			// disable them if a modal window exist(till a better solution is found for input interception)
+			window.getNode().disableProperty().set(orderedModalWindows.size() > 0);
 			currentOrder.add(window.getNode());
+		}
+		for (final AbstractWindow modalWindow : orderedModalWindows) {
+			System.out.println("adding sort modal window");
+			currentOrder.add(modalWindow.getNode());
+			modalWindow.getNode().requestFocus();
+		}
+		if (!switchToModal) {
+			// TODO focuse notification
+			System.out.println("TODO FocusDenied sound/visual representation");
 		}
 	}
 

@@ -1,6 +1,7 @@
 package com.jme3x.jfx;
 
 import java.net.URL;
+import java.util.ResourceBundle;
 
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.JavaFXBuilderFactory;
@@ -24,17 +25,29 @@ public class FXMLWindow<ControllerType> extends AbstractWindow {
 		final FXMLLoader fxmlLoader = new FXMLLoader();
 		final URL location = Thread.currentThread().getContextClassLoader().getResource(this.fxml);
 		fxmlLoader.setLocation(location);
+		final ResourceBundle ressources = fxmlLoader.getResources();
+		fxmlLoader.setResources(this.addCustomRessources(ressources));
 		fxmlLoader.setBuilderFactory(new JavaFXBuilderFactory());
 		final Region rv = fxmlLoader.load(location.openStream());
 		this.controller = fxmlLoader.getController();
 		return rv;
 	}
 
+	/**
+	 * Hook to add own Resourcebundles if necessary
+	 * 
+	 * @param ressources
+	 *            the currently set value
+	 * @return
+	 */
+	protected ResourceBundle addCustomRessources(final ResourceBundle ressources) {
+		return ressources;
+	}
+
 	@Override
 	protected void afterInit() {
 		this.setEnforceMinimumSize(true);
 		this.setEnforceMaximumSize(true);
-		this.setSize(600, 300);
 	}
 
 }

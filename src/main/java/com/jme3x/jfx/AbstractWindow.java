@@ -17,10 +17,23 @@ public abstract class AbstractWindow extends AbstractHud {
 	private boolean		maximumEnforced;
 	private boolean		minimumEnforced;
 	private boolean		minimizeVisible	= true;
+	private boolean		modal			= false;
 
 	public void setMinimizeVisible(final boolean visible) {
 		assert !this.init : "Cannot change this after window is precached";
 		this.minimizeVisible = visible;
+	}
+
+	/**
+	 * makes this window modal -> eg before every other window and makes sure it cannot loose focus
+	 */
+	public void setModal(final boolean value) {
+		assert !this.init : "modality must be set before init";
+		this.modal = value;
+	}
+
+	public boolean isModal() {
+		return this.modal;
 	}
 
 	public Region getWindowContent() {
@@ -87,6 +100,10 @@ public abstract class AbstractWindow extends AbstractHud {
 			});
 		}
 
+	}
+
+	public void close() {
+		this.window.close();
 	}
 
 	/**
