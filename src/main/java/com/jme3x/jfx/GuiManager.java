@@ -85,19 +85,14 @@ public class GuiManager {
 							return;
 						}
 						this.ignoreEvents = true;
-						System.out.println("do new sorting due to " + c);
 						Platform.runLater(new Runnable() {
-
 							@Override
 							public void run() {
 								GuiManager.this.sortWindowsBeforeHudsAndEnforceModality();
 								ignoreEvents = false;
 							}
-
 						});
-
 					}
-
 				});
 
 				GuiManager.this.mainScene = new Scene(GuiManager.this.highLevelGroup);
@@ -119,23 +114,49 @@ public class GuiManager {
 	}
 
 	/**
+	 * removes a hud, if this is not called in the jfx thread this is done async, else it is done instantly
+	 * 
+	 * @param hud
+	 */
+	public void detachHudAsync(final AbstractHud hud) {
+		final Runnable attachTask = new Runnable() {
+			@Override
+			public void run() {
+				if (!hud.isAttached()) {
+					return;
+				}
+				System.out.println("Detaching " + hud);
+				GuiManager.this.attachedHuds.remove(hud);
+				GuiManager.this.highLevelGroup.getChildren().remove(hud.getNode());
+				hud.setAttached(false, null);
+			}
+		};
+		FxPlatformExecutor.runOnFxApplication(attachTask);
+	}
+
+	/**
 	 * adds a hud, if this is not called in the jfx thread this is done async, else it is done instantly
 	 * 
 	 * @param hud
 	 */
 	public void attachHudAsync(final AbstractHud hud) {
-		if (!hud.isInitialized()) {
-			System.err.println("Late init of " + hud.getClass().getName()
-					+ " call initialize early to prevent microlags");
-			hud.precache();
-			// TODO logger
-		}
-
 		final Runnable attachTask = new Runnable() {
 			@Override
 			public void run() {
+				if (hud.isAttached()) {
+					return;
+				}
+				System.out.println("Attaching " + hud);
+				assert !GuiManager.this.attachedHuds.contains(hud) : "Duplicated attach of " + hud
+						+ " isAttached state error?";
+				if (!hud.isInitialized()) {
+					System.err.println("Late init of " + hud.getClass().getName()
+							+ " call initialize early to prevent microlags");
+					hud.precache();
+				}
 				GuiManager.this.attachedHuds.add(hud);
 				GuiManager.this.highLevelGroup.getChildren().add(hud.getNode());
+				hud.setAttached(true, GuiManager.this);
 			}
 		};
 		FxPlatformExecutor.runOnFxApplication(attachTask);
@@ -180,23 +201,20 @@ public class GuiManager {
 
 		currentOrder.clear();
 		for (final AbstractHud hud : orderdHuds) {
-			System.out.println("adding sort hud");
 			// disable them if a modal window exist(till a better solution is found for input interception)
 			hud.getNode().disableProperty().set(orderedModalWindows.size() > 0);
 			currentOrder.add(hud.getNode());
 		}
 		for (final AbstractWindow window : orderedWindows) {
-			System.out.println("adding sort window");
 			// disable them if a modal window exist(till a better solution is found for input interception)
 			window.getNode().disableProperty().set(orderedModalWindows.size() > 0);
 			currentOrder.add(window.getNode());
 		}
 		for (final AbstractWindow modalWindow : orderedModalWindows) {
-			System.out.println("adding sort modal window");
 			currentOrder.add(modalWindow.getNode());
 			modalWindow.getNode().requestFocus();
 		}
-		if (!switchToModal) {
+		if (!switchToModal && orderedModalWindows.size() > 0) {
 			// TODO focuse notification
 			System.out.println("TODO FocusDenied sound/visual representation");
 		}
@@ -204,21 +222,6 @@ public class GuiManager {
 
 	public List<AbstractHud> getAttachedHuds() {
 		return Collections.unmodifiableList(this.attachedHuds);
-	}
-
-	public void detachHudAsync(final AbstractHud hud) {
-		if (Platform.isFxApplicationThread()) {
-			GuiManager.this.highLevelGroup.getChildren().remove(hud.getNode());
-			this.attachedHuds.remove(hud);
-		} else {
-			Platform.runLater(new Runnable() {
-				@Override
-				public void run() {
-					GuiManager.this.attachedHuds.remove(hud);
-					GuiManager.this.highLevelGroup.getChildren().remove(hud.getNode());
-				}
-			});
-		}
 	}
 
 	/**

@@ -20,6 +20,33 @@ public abstract class AbstractHud {
 	private Throwable	innerError	= null;
 	protected Region	node;
 	private boolean		initialized;
+	private boolean		attached;
+	private GuiManager	responsibleGuiManager;
+
+	/**
+	 * Internal call, for guimanager statemanagement, do not call
+	 * 
+	 * @param value
+	 * @param guiManager
+	 */
+	public void setAttached(final boolean value, final GuiManager guiManager) {
+		assert Platform.isFxApplicationThread() : "parent change outside of JFX thread?";
+		this.attached = value;
+		this.responsibleGuiManager = guiManager;
+	}
+
+	/**
+	 * returns the GuiManager this is attached to or null;
+	 * 
+	 * @return
+	 */
+	public GuiManager getResponsibleGuiManager() {
+		return this.responsibleGuiManager;
+	}
+
+	public boolean isAttached() {
+		return this.attached;
+	}
 
 	/**
 	 * initializes the hud, should load all ressources, fxml parsing ect. Allowed to be called from any thread,<br>

@@ -3,10 +3,10 @@ package com.jme3x.jfx;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.event.ActionEvent;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.layout.Region;
-import jfxtras.labs.scene.control.window.CloseIcon;
 import jfxtras.labs.scene.control.window.Window;
 
 public abstract class AbstractWindow extends AbstractHud {
@@ -72,9 +72,9 @@ public abstract class AbstractWindow extends AbstractHud {
 			this.window.setResizableBorderWidth(3);
 
 			if (this.minimizeVisible) {
-				this.window.getRightIcons().add(new AdjustedMinimizeIcon(this.window));
+				this.window.getRightIcons().add(new AdjustedMinimizeIcon(this));
 			}
-			this.window.getRightIcons().add(new CloseIcon(this.window));
+			this.window.getRightIcons().add(new AdjustedCloseIcon(this));
 			this.innerScroll.setContent(this.inner);
 			this.window.getContentPane().getChildren().add(this.innerScroll);
 
@@ -123,7 +123,19 @@ public abstract class AbstractWindow extends AbstractHud {
 	}
 
 	public void close() {
-		this.window.close();
+		if (!this.isAttached()) {
+			return;
+		}
+		// Override close transition, as it would fuck up the window scales and sizes, making windows reusable impossible <br>
+		// TODO create a fixed working transition
+
+		if (this.window.getOnCloseAction() != null) {
+			this.window.getOnCloseAction().handle(new ActionEvent(this, this.window));
+		}
+		this.getResponsibleGuiManager().detachHudAsync(this);
+		if (this.window.getOnClosedAction() != null) {
+			this.window.getOnClosedAction().handle(new ActionEvent(this, this.window));
+		}
 	}
 
 	/**
@@ -229,5 +241,9 @@ public abstract class AbstractWindow extends AbstractHud {
 				}
 			});
 		}
+	}
+
+	public Window getInnerWindow() {
+		return this.window;
 	}
 }
