@@ -26,34 +26,49 @@ import com.sun.javafx.embed.AbstractEvents;
  */
 public class JmeFXInputListener implements RawInputListener {
 
-	JmeFxContainer	jmeFxContainer;
-	private BitSet	keyStateSet	= new BitSet(0xFF);
-	private char[]	keyCharSet	= new char[0xFF];
+	JmeFxContainer				jmeFxContainer;
+	private BitSet				keyStateSet			= new BitSet(0xFF);
+	private char[]				keyCharSet			= new char[0xFF];
+	boolean[]					mouseButtonState	= new boolean[3];
+	private RawInputListener	everListeningInputListenerAdapter;
 
 	public JmeFXInputListener(final JmeFxContainer listensOnContainer) {
 		this.jmeFxContainer = listensOnContainer;
 	}
 
-	;
-
 	@Override
 	public void beginInput() {
+		if (this.everListeningInputListenerAdapter != null) {
+			this.everListeningInputListenerAdapter.beginInput();
+		}
 	}
 
 	@Override
 	public void endInput() {
+		if (this.everListeningInputListenerAdapter != null) {
+			this.everListeningInputListenerAdapter.endInput();
+		}
 	}
 
 	@Override
 	public void onJoyAxisEvent(final JoyAxisEvent evt) {
+		if (this.everListeningInputListenerAdapter != null) {
+			this.everListeningInputListenerAdapter.onJoyAxisEvent(evt);
+		}
 	}
 
 	@Override
 	public void onJoyButtonEvent(final JoyButtonEvent evt) {
+		if (this.everListeningInputListenerAdapter != null) {
+			this.everListeningInputListenerAdapter.onJoyButtonEvent(evt);
+		}
 	}
 
 	@Override
 	public void onMouseMotionEvent(final MouseMotionEvent evt) {
+		if (this.everListeningInputListenerAdapter != null) {
+			this.everListeningInputListenerAdapter.onMouseMotionEvent(evt);
+		}
 
 		if (this.jmeFxContainer.scenePeer == null) {
 			return;
@@ -95,10 +110,12 @@ public class JmeFXInputListener implements RawInputListener {
 				this.keyStateSet.get(KeyEvent.VK_ALT), this.keyStateSet.get(KeyEvent.VK_META), wheelRotation, false);
 	}
 
-	boolean[]	mouseButtonState	= new boolean[3];
-
 	@Override
 	public void onMouseButtonEvent(final MouseButtonEvent evt) {
+
+		if (this.everListeningInputListenerAdapter != null) {
+			this.everListeningInputListenerAdapter.onMouseButtonEvent(evt);
+		}
 
 		// TODO: Process events in separate thread ?
 		if (this.jmeFxContainer.scenePeer == null) {
@@ -157,6 +174,10 @@ public class JmeFXInputListener implements RawInputListener {
 	@Override
 	public void onKeyEvent(final KeyInputEvent evt) {
 
+		if (this.everListeningInputListenerAdapter != null) {
+			this.everListeningInputListenerAdapter.onKeyEvent(evt);
+		}
+
 		if (this.jmeFxContainer.scenePeer == null) {
 			return;
 		}
@@ -209,6 +230,9 @@ public class JmeFXInputListener implements RawInputListener {
 
 	@Override
 	public void onTouchEvent(final TouchEvent evt) {
+		if (this.everListeningInputListenerAdapter != null) {
+			this.everListeningInputListenerAdapter.onTouchEvent(evt);
+		}
 	}
 
 	public int retrieveKeyState() {
@@ -230,5 +254,9 @@ public class JmeFXInputListener implements RawInputListener {
 			embedModifiers |= AbstractEvents.MODIFIER_META;
 		}
 		return embedModifiers;
+	}
+
+	public void setEverListeningRawInputListener(final RawInputListener rawInputListenerAdapter) {
+		this.everListeningInputListenerAdapter = rawInputListenerAdapter;
 	}
 }

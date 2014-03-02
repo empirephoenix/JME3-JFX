@@ -220,4 +220,14 @@ public class GuiManager {
 			});
 		}
 	}
+
+	/**
+	 * this inputlistener recives all! events, even those that are normally consumed by JFX. <br>
+	 * Usecase
+	 * 
+	 * @param rawInputListenerAdapter
+	 */
+	public void setEverListeningRawInputListener(final RawInputListener rawInputListenerAdapter) {
+		this.jmefx.setEverListeningRawInputListener(rawInputListenerAdapter);
+	}
 }
