@@ -4,8 +4,8 @@
  */
 package com.jme3x.jfx;
 
-import java.lang.reflect.Field;
 import java.nio.IntBuffer;
+import java.util.concurrent.Semaphore;
 
 import javafx.application.Platform;
 import javafx.scene.Scene;
@@ -26,49 +26,58 @@ public class PopupSnapper {
 	private Window	window;
 	private Scene	scene;
 	WritableImage	img;
-	boolean			ignoreRepaint;
+	double		    ignoreRepaintHeight;
 	JmeFxContainer	jmeFXcontainerReference;
+	private Semaphore  repaintLock = new Semaphore(1);
 
 	public PopupSnapper(final JmeFxContainer containReference, final Window window, final Scene scene) {
 		this.window = window;
 		this.scene = scene;
+		this.jmeFXcontainerReference = containReference;
 	}
 
 	public void paint(final IntBuffer buf, final int pWidth, final int pHeight) {
-
-		// fixme to preserve proper colors
-
-		try {
+	    		try {
 
 			final WritableImage img = this.img;
 			if (img == null) {
+			    //System.out.println("Skipping popup merge due to no image");
 				return;
 			}
-			synchronized (this) {
-				final PixelReader pr = img.getPixelReader();
-
-				final int w = (int) img.getWidth();
-				final int h = (int) img.getHeight();
-
-				final byte[] pixels = new byte[w * h * 4];
-				pr.getPixels(0, 0, w, h, PixelFormat.getByteBgraPreInstance(), pixels, 0, w * 4);
-
-				final int xoff = (int) this.window.getX() - this.jmeFXcontainerReference.getWindowX();
-				final int yoff = (int) this.window.getY() - this.jmeFXcontainerReference.getWindowY();
-
-				for (int x = 0; x < w; x++) {
-					for (int y = 0; y < h; y++) {
-						final int offset = x + xoff + (y + yoff) * pWidth;
-						final int old = buf.get(offset);
-						final int boff = 4 * (x + y * w);
-						final int toMerge = pixels[boff] | pixels[boff + 1] << 8 | pixels[boff + 2] << 16
-								| pixels[boff + 3] << 24;
-
-						final int merge = PixelUtils.mergeBgra(old, toMerge);
-						buf.put(offset, merge);
-					}
-				}
+			boolean lock = repaintLock.tryAcquire();
+			if ( lock ) {
+			    try {
+    				final PixelReader pr = img.getPixelReader();
+    
+    				final int w = (int) img.getWidth();
+    				final int h = (int) img.getHeight();
+    
+    				final byte[] pixels = new byte[w * h * 4];
+    				pr.getPixels(0, 0, w, h, PixelFormat.getByteBgraPreInstance(), pixels, 0, w * 4);
+    
+    				final int xoff = (int) this.window.getX() - this.jmeFXcontainerReference.getWindowX();
+    				final int yoff = (int) this.window.getY() - this.jmeFXcontainerReference.getWindowY();
+    
+    				for (int x = 0; x < w; x++) {
+    					for (int y = 0; y < h; y++) {
+    						final int offset = x + xoff + (y + yoff) * pWidth;
+    						final int old = buf.get(offset);
+    						final int boff = 4 * (x + y * w);
+    						final int toMerge = (pixels[boff]&0xff) | ((pixels[boff + 1]&0xff) << 8) | ((pixels[boff + 2]&0xff) << 16)
+    								| ((pixels[boff+3]&0xff) << 24);
+    						    						
+    						final int merge = PixelUtils.mergeBgraPre(old, toMerge);
+    						buf.put(offset, merge);
+    					}
+    				}
+    				//System.out.println("Done popup merge");
+			    } finally {
+			        repaintLock.release();
+			    }
+			} else {
+			    //System.out.println("Skipping popup merge due to contention");
 			}
+			
 		} catch (final Exception exc) {
 			exc.printStackTrace();
 		}
@@ -80,16 +89,33 @@ public class PopupSnapper {
 			if (!Color.TRANSPARENT.equals(this.scene.getFill())) {
 				this.scene.setFill(Color.TRANSPARENT);
 			}
-
 			if (this.img != null) {
 				if (this.img.getWidth() != this.scene.getWidth() || this.img.getHeight() != this.scene.getHeight()) {
+				    //System.out.println("Invalidating image due to size change");
 					this.img = null;
 				}
 			}
-			synchronized (this) {
-				this.img = this.scene.snapshot(this.img);
+			boolean lock = repaintLock.tryAcquire();
+			if ( lock ) {
+			    try {
+			        //System.out.println("Popup render");
+			        this.img = this.scene.snapshot(this.img);
+			    } finally {
+			        repaintLock.release();
+			    }
+			    this.jmeFXcontainerReference.paintComponent();
+			} else {
+			    //System.out.println("Schedulling extra repaint due to contention");
+			    Platform.runLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        //System.out.println("Extra popup repaint due to contention");
+                        repaint();
+                    }
+                });
 			}
-			this.jmeFXcontainerReference.paintComponent();
+			
+			
 		} catch (final Exception exc) {
 			exc.printStackTrace();
 		}
@@ -97,51 +123,24 @@ public class PopupSnapper {
 
 	public void start() {
 
-		try {
-			final Field trackerField = Scene.class.getDeclaredField("tracker");
-			trackerField.setAccessible(true);
-			trackerField.set(this.scene, new PerformanceTracker() {
-				@Override
-				public void frameRendered() {
-					super.frameRendered();
-					if (PopupSnapper.this.ignoreRepaint) {
-						PopupSnapper.this.ignoreRepaint = false;
-						return;
-					}
-					Platform.runLater(new Runnable() {
-						@Override
-						public void run() {
-							PopupSnapper.this.ignoreRepaint = true;
-							PopupSnapper.this.repaint();
-						}
-					});
-
-				}
-
-				@Override
-				public void pulse() {
-					super.pulse();
-				}
-
-				@Override
-				protected long nanoTime() {
-					return System.nanoTime();
-				}
-
-				@Override
-				public void doOutputLog() {
-				}
-
-				@Override
-				public void doLogEvent(final String s) {
-				}
-			});
-		} catch (final Exception exc) {
-			exc.printStackTrace();
-		}
+	    PerformanceTracker.getSceneTracker(scene).setOnRenderedFrameTask(new Runnable () {
+	        @Override
+	        public void run() {
+	            if (ignoreRepaintHeight == scene.getHeight()) {
+	                ignoreRepaintHeight = -1;
+                    return;
+                }
+                Platform.runLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        ignoreRepaintHeight = scene.getHeight();
+                        repaint();
+                    }
+                });
+	        }
+	    });
 
 		this.jmeFXcontainerReference.activeSnappers.add(this);
-
 	}
 
 	public void stop() {
