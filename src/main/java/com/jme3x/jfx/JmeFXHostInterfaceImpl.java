@@ -86,7 +86,9 @@ public class JmeFXHostInterfaceImpl implements HostInterface {
 
 	@Override
 	public void setCursor(final CursorFrame cursorFrame) {
-		this.jmeFxContainer.cursorDisplayProvider.showCursor(cursorFrame);
+	    if (this.jmeFxContainer.cursorDisplayProvider != null) {
+	        this.jmeFxContainer.cursorDisplayProvider.showCursor(cursorFrame);
+	    }
 	}
 
 	@Override

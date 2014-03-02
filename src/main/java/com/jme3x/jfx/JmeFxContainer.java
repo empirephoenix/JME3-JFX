@@ -227,6 +227,10 @@ public class JmeFxContainer {
 	public Scene getScene() {
 		return this.scene;
 	}
+	
+	public EmbeddedWindow getStage() {
+        return stage;
+    }
 
 	public void setScene(final Scene newScene) {
 		FxPlatformExecutor.runOnFxApplication(new Runnable() {
