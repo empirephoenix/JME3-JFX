@@ -23,6 +23,7 @@ public class FXMLHud<ControllerType> extends AbstractHud {
 		fxmlLoader.setBuilderFactory(new JavaFXBuilderFactory());
 		final Region rv = fxmlLoader.load(location.openStream());
 		this.controller = fxmlLoader.getController();
+		assert FXMLUtils.assertInjection(this);
 		return rv;
 	}
 

@@ -7,9 +7,19 @@ import com.jme3.math.ColorRGBA;
 import com.jme3x.jfx.cursor.proton.ProtonCursorProvider;
 
 public class Test extends SimpleApplication {
+	private static boolean	assertionsEnabled;
 
 	public static void main(final String[] args) {
+		assert Test.enabled();
+		if (!Test.assertionsEnabled) {
+			throw new RuntimeException("Assertions must be enabled (vm args -ea");
+		}
 		new Test().start();
+	}
+
+	private static boolean enabled() {
+		Test.assertionsEnabled = true;
+		return true;
 	}
 
 	@Override
@@ -18,8 +28,7 @@ public class Test extends SimpleApplication {
 		this.flyCam.setDragToRotate(true);
 		this.viewPort.setBackgroundColor(ColorRGBA.Red);
 
-		final GuiManager testguiManager = new GuiManager(this.guiNode, this.assetManager, this, false,
-				new ProtonCursorProvider(this, this.assetManager, this.inputManager));
+		final GuiManager testguiManager = new GuiManager(this.guiNode, this.assetManager, this, false, new ProtonCursorProvider(this, this.assetManager, this.inputManager));
 		/**
 		 * 2d gui, use the default input provider
 		 */
