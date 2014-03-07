@@ -1,10 +1,4 @@
-repositories {
-	maven { url = 'https://oss.sonatype.org/content/groups/public/' 	}
-	maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' 	}
-	maven { url "http://oss.sonatype.org/content/repositories/releases/" 	}
-}
-
 dependencies{
 	compile project(':libs-jme3')
-	compile group: 'org.jfxtras', name: 'jfxtras-window', version:'8.0-r1-SNAPSHOT' 
+	compile files('lib/jfxtras-common-8.0-r1-SNAPSHOT.jar', 'lib/jfxtras-window-8.0-r1-SNAPSHOT.jar')
 }
