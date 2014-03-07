@@ -2,10 +2,8 @@ package com.jme3x.jfx;
 
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import jfxtras.labs.scene.control.window.MinimizeIcon;
-import jfxtras.labs.scene.control.window.SelectableNode;
-import jfxtras.labs.scene.control.window.Window;
-import jfxtras.labs.util.WindowUtil;
+import jfxtras.scene.control.window.MinimizeIcon;
+import jfxtras.scene.control.window.Window;
 
 /**
  * extends the default minimize button with a few hacks to ignore minSize values when minimizing
@@ -36,28 +34,7 @@ public class AdjustedMinimizeIcon extends MinimizeIcon {
 					AdjustedMinimizeIcon.this.w.minHeightProperty().set(0);
 					AdjustedMinimizeIcon.this.w.minWidthProperty().set(0);
 				}
-
-				if (AdjustedMinimizeIcon.this.w.isSelected()) {
-					AdjustedMinimizeIcon.this.minimizeSelectedWindows();
-				}
 			}
 		});
-	}
-
-	// TODO move from skin to behavior class (a lot of other stuff here too)
-	private void minimizeSelectedWindows() {
-		for (final SelectableNode sN : WindowUtil.getDefaultClipboard().getSelectedItems()) {
-
-			if (sN == this.w || !(sN instanceof Window)) {
-				continue;
-			}
-
-			final Window selectedWindow = (Window) sN;
-
-			if (this.w.getParent().equals(selectedWindow.getParent())) {
-
-				selectedWindow.setMinimized(!selectedWindow.isMinimized());
-			}
-		} // end for sN
 	}
 }

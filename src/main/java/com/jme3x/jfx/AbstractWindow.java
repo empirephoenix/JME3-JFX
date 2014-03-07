@@ -7,7 +7,7 @@ import javafx.event.ActionEvent;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.layout.Region;
-import jfxtras.labs.scene.control.window.Window;
+import jfxtras.scene.control.window.Window;
 
 public abstract class AbstractWindow extends AbstractHud {
 	private Region		inner;
@@ -84,8 +84,7 @@ public abstract class AbstractWindow extends AbstractHud {
 			this.window.minimizedProperty().addListener(new ChangeListener<Boolean>() {
 
 				@Override
-				public void changed(final ObservableValue<? extends Boolean> observable, final Boolean oldValue,
-						final Boolean newValue) {
+				public void changed(final ObservableValue<? extends Boolean> observable, final Boolean oldValue, final Boolean newValue) {
 					if (!newValue) {
 						// restore states
 						AbstractWindow.this.window.getContentPane().getChildren().add(AbstractWindow.this.innerScroll);

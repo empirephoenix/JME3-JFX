@@ -2,7 +2,7 @@ package com.jme3x.jfx;
 
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import jfxtras.labs.scene.control.window.CloseIcon;
+import jfxtras.scene.control.window.CloseIcon;
 
 /**
  * redirects the close events to make it compatible with the GuiManager
