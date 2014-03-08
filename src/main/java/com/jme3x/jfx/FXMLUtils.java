@@ -15,8 +15,7 @@ public class FXMLUtils {
 	 * @return always true, just for assert useage
 	 */
 	public static boolean assertInjection(final FXMLHud<?> hud) {
-		FXMLUtils.checkClassInjection(hud.getController());
-		return true;
+		return FXMLUtils.checkClassInjection(hud.getController());
 	}
 
 	/**
@@ -26,11 +25,16 @@ public class FXMLUtils {
 	 * @return always true, just for assert useage
 	 */
 	public static boolean assertInjection(final FXMLWindow<?> hud) {
-		FXMLUtils.checkClassInjection(hud.getController());
-		return true;
+		return FXMLUtils.checkClassInjection(hud.getController());
 	}
 
-	private static void checkClassInjection(final Object controller) {
+	/**
+	 * Utility Method that assets all @FXML injections were sucessfully done, and an attached Controller was loaded
+	 * 
+	 * @param controllerClass
+	 * @return always true, just for assert useage
+	 */
+	public static boolean checkClassInjection(final Object controller) {
 		assert controller != null : "The controller was not loaded";
 		for (final Field f : FXMLUtils.getAllFields(controller.getClass())) {
 			if (f.isAnnotationPresent(FXML.class)) {
@@ -43,6 +47,7 @@ public class FXMLUtils {
 				}
 			}
 		}
+		return true;
 	}
 
 	private static ArrayList<Field> getAllFields(final Class<? extends Object> class1) {
@@ -70,4 +75,5 @@ public class FXMLUtils {
 			FXMLUtils.getFieldsRecursive(superclass, returnvalue);
 		}
 	}
+
 }
