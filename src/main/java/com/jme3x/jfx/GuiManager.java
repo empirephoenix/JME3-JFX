@@ -53,8 +53,10 @@ public class GuiManager {
 		this.jmefx = JmeFxContainer.install(application, guiParent, fullscreen, cursorDisplayProvider);
 		guiParent.attachChild(this.jmefx.getJmeNode());
 
-		for (final CursorType type : CursorType.values()) {
-			cursorDisplayProvider.setup(type);
+		if ( cursorDisplayProvider != null ) {
+    		for (final CursorType type : CursorType.values()) {
+    			cursorDisplayProvider.setup(type);
+    		}
 		}
 		this.initRootGroup();
 
