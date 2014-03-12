@@ -29,14 +29,15 @@ public abstract class AbstractWindow extends AbstractHud {
 	}
 
 	/**
-	 * centers a window on the screen, using it's current width and height
+	 * centers a window on the screen, using it's current width and height this method does not work correctly, for some reason
 	 */
+	@Deprecated
 	public void center() {
 		assert this.init : "Needs to be init to center";
 		final double sceneWidth = this.getNode().getScene().getWidth();
 		final double sceneHeight = this.getNode().getScene().getHeight();
-		final double windowWidth = this.window.getWidth();
-		final double windowHeight = this.window.getHeight();
+		final double windowWidth = this.inner.getWidth();
+		final double windowHeight = this.inner.getHeight();
 		final double newPosx = sceneWidth / 2 - windowWidth / 2;
 		final double newPosy = sceneHeight / 2 - windowHeight / 2;
 		this.setLayoutX((int) newPosx);

@@ -16,7 +16,12 @@ import javafx.scene.paint.Color;
 import com.jme3.app.Application;
 import com.jme3.asset.AssetManager;
 import com.jme3.input.RawInputListener;
+import com.jme3.material.MatParam;
+import com.jme3.material.Material;
+import com.jme3.math.ColorRGBA;
 import com.jme3.scene.Node;
+import com.jme3.texture.Texture;
+import com.jme3.ui.Picture;
 import com.jme3x.jfx.cursor.ICursorDisplayProvider;
 import com.sun.javafx.cursor.CursorType;
 
@@ -29,6 +34,7 @@ public class GuiManager {
 	 * a list of all attached huds, using copyonwrite to allow reading from other threads in a save way
 	 */
 	private List<AbstractHud>	attachedHuds	= new CopyOnWriteArrayList<>();
+	private Material			customMaterial;
 
 	public Group getRootGroup() {
 		return this.highLevelGroup;
@@ -39,6 +45,11 @@ public class GuiManager {
 
 	}
 
+	public GuiManager(final Node guiParent, final AssetManager assetManager, final Application application, final boolean fullscreen, final ICursorDisplayProvider cursorDisplayProvider) {
+		this(guiParent, assetManager, application, fullscreen, cursorDisplayProvider, new Material(assetManager, "Common/MatDefs/Gui/Gui.j3md"));
+		this.getCustomMaterial().setColor("Color", ColorRGBA.White);
+	}
+
 	/**
 	 * creates a new JMEFX container, this is a rather expensive operation and should only be done one time fr the 2d fullscreengui. Additionals should only be necessary for 3d guis, should be called from JME thread
 	 * 
@@ -46,20 +57,30 @@ public class GuiManager {
 	 * @param assetManager
 	 * @param application
 	 * @param fullscreen
+	 * @param customMaterial
+	 *            allows to specify a own Material for the gui, requires the MaterialParamter Texture with type Texture, wich will contain the RenderTarget of jfx
 	 */
-	public GuiManager(final Node guiParent, final AssetManager assetManager, final Application application,
-			final boolean fullscreen, final ICursorDisplayProvider cursorDisplayProvider) {
-
+	public GuiManager(final Node guiParent, final AssetManager assetManager, final Application application, final boolean fullscreen, final ICursorDisplayProvider cursorDisplayProvider, final Material customMaterial) {
+		this.customMaterial = customMaterial;
 		this.jmefx = JmeFxContainer.install(application, guiParent, fullscreen, cursorDisplayProvider);
+		this.initMaterial(this.jmefx.getJmeNode());
+
 		guiParent.attachChild(this.jmefx.getJmeNode());
 
-		if ( cursorDisplayProvider != null ) {
-    		for (final CursorType type : CursorType.values()) {
-    			cursorDisplayProvider.setup(type);
-    		}
+		if (cursorDisplayProvider != null) {
+			for (final CursorType type : CursorType.values()) {
+				cursorDisplayProvider.setup(type);
+			}
 		}
 		this.initRootGroup();
 
+	}
+
+	private void initMaterial(final Picture jmeNode) {
+		final MatParam jfxRenderTarget = jmeNode.getMaterial().getParam("Texture");
+		assert this.customMaterial.getMaterialDef().getMaterialParam("Texture") != null : "CustomMaterial must habe Texture parameter";
+		this.customMaterial.setTexture("Texture", (Texture) jfxRenderTarget.getValue());
+		jmeNode.setMaterial(this.customMaterial);
 	}
 
 	private void initRootGroup() {
@@ -149,11 +170,9 @@ public class GuiManager {
 					return;
 				}
 				System.out.println("Attaching " + hud);
-				assert !GuiManager.this.attachedHuds.contains(hud) : "Duplicated attach of " + hud
-						+ " isAttached state error?";
+				assert !GuiManager.this.attachedHuds.contains(hud) : "Duplicated attach of " + hud + " isAttached state error?";
 				if (!hud.isInitialized()) {
-					System.err.println("Late init of " + hud.getClass().getName()
-							+ " call initialize early to prevent microlags");
+					System.err.println("Late init of " + hud.getClass().getName() + " call initialize early to prevent microlags");
 					hud.precache();
 				}
 				GuiManager.this.attachedHuds.add(hud);
@@ -235,4 +254,9 @@ public class GuiManager {
 	public void setEverListeningRawInputListener(final RawInputListener rawInputListenerAdapter) {
 		this.jmefx.setEverListeningRawInputListener(rawInputListenerAdapter);
 	}
+
+	private Material getCustomMaterial() {
+		return this.customMaterial;
+	}
+
 }
