@@ -158,8 +158,9 @@ public abstract class AbstractWindow extends AbstractHud {
 		if (this.minimumEnforced) {
 			this.innerScroll.setHbarPolicy(ScrollBarPolicy.NEVER);
 			this.innerScroll.setVbarPolicy(ScrollBarPolicy.NEVER);
-			this.window.minWidthProperty().bind(this.inner.minWidthProperty());
-			this.window.minHeightProperty().bind(this.inner.minHeightProperty());
+
+			this.window.getContentPane().minWidthProperty().bind(this.inner.minWidthProperty());
+			this.window.getContentPane().minHeightProperty().bind(this.inner.minHeightProperty());
 		} else {
 			this.innerScroll.setHbarPolicy(ScrollBarPolicy.AS_NEEDED);
 			this.innerScroll.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
