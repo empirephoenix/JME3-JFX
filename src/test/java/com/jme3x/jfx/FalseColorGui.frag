@@ -20,6 +20,6 @@ void main() {
     col *= 1.0-0.9*rand(vec2(g_Time*100.0, tan(g_Time)));
     float comp = smoothstep( 0.2, 0.7, sin(g_Time) );
     
-    gl_FragColor = vec4(col,1.0);
+    gl_FragColor = vec4(col,texture2D(m_Texture,texCoord).w);
 }
 

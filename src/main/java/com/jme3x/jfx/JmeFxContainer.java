@@ -76,10 +76,8 @@ public class JmeFxContainer {
 	CompletableFuture<Format>	nativeFormat	= new CompletableFuture<Format>();
 	ICursorDisplayProvider		cursorDisplayProvider;
 
-	public static JmeFxContainer install(final Application app, final Node guiNode, final boolean fullScreenSupport,
-			final ICursorDisplayProvider cursorDisplayProvider) {
-		final JmeFxContainer ctr = new JmeFxContainer(app.getAssetManager(), app, fullScreenSupport,
-				cursorDisplayProvider);
+	public static JmeFxContainer install(final Application app, final Node guiNode, final boolean fullScreenSupport, final ICursorDisplayProvider cursorDisplayProvider) {
+		final JmeFxContainer ctr = new JmeFxContainer(app.getAssetManager(), app, fullScreenSupport, cursorDisplayProvider);
 		guiNode.attachChild(ctr.getJmeNode());
 		ctr.inputListener = new JmeFXInputListener(ctr);
 		app.getInputManager().addRawInputListener(ctr.inputListener);
@@ -91,8 +89,7 @@ public class JmeFxContainer {
 		return ctr;
 	}
 
-	private JmeFxContainer(final AssetManager assetManager, final Application app, final boolean fullScreenSupport,
-			final ICursorDisplayProvider cursorDisplayProvider) {
+	private JmeFxContainer(final AssetManager assetManager, final Application app, final boolean fullScreenSupport, final ICursorDisplayProvider cursorDisplayProvider) {
 
 		this.cursorDisplayProvider = cursorDisplayProvider;
 		this.app = app;
@@ -112,8 +109,7 @@ public class JmeFxContainer {
 			public void updateLogicalState(final float tpf) {
 				if (JmeFxContainer.this.stagePeer != null) {
 
-					if (Display.getWidth() != JmeFxContainer.this.pWidth
-							|| Display.getHeight() != JmeFxContainer.this.pHeight) {
+					if (Display.getWidth() != JmeFxContainer.this.pWidth || Display.getHeight() != JmeFxContainer.this.pHeight) {
 						JmeFxContainer.this.handleResize();
 					}
 
@@ -227,10 +223,10 @@ public class JmeFxContainer {
 	public Scene getScene() {
 		return this.scene;
 	}
-	
+
 	public EmbeddedWindow getStage() {
-        return stage;
-    }
+		return this.stage;
+	}
 
 	public void setScene(final Scene newScene) {
 		FxPlatformExecutor.runOnFxApplication(new Runnable() {
@@ -428,8 +424,7 @@ public class JmeFxContainer {
 					final Scene scene = orig.createPopupScene(root);
 					scene.windowProperty().addListener(new ChangeListener<Window>() {
 						@Override
-						public void changed(final javafx.beans.value.ObservableValue<? extends Window> observable,
-								final Window oldValue, final Window window) {
+						public void changed(final javafx.beans.value.ObservableValue<? extends Window> observable, final Window oldValue, final Window window) {
 							window.addEventHandler(WindowEvent.WINDOW_SHOWN, new EventHandler<WindowEvent>() {
 								@Override
 								public void handle(final WindowEvent event) {
@@ -445,8 +440,7 @@ public class JmeFxContainer {
 
 					scene.windowProperty().addListener(new ChangeListener<Window>() {
 						@Override
-						public void changed(final javafx.beans.value.ObservableValue<? extends Window> observable,
-								final Window oldValue, final Window window) {
+						public void changed(final javafx.beans.value.ObservableValue<? extends Window> observable, final Window oldValue, final Window window) {
 							window.addEventHandler(WindowEvent.WINDOW_HIDDEN, new EventHandler<WindowEvent>() {
 								@Override
 								public void handle(final WindowEvent event) {

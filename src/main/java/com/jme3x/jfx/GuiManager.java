@@ -18,6 +18,7 @@ import com.jme3.asset.AssetManager;
 import com.jme3.input.RawInputListener;
 import com.jme3.material.MatParam;
 import com.jme3.material.Material;
+import com.jme3.material.RenderState.BlendMode;
 import com.jme3.math.ColorRGBA;
 import com.jme3.scene.Node;
 import com.jme3.texture.Texture;
@@ -65,8 +66,6 @@ public class GuiManager {
 		this.jmefx = JmeFxContainer.install(application, guiParent, fullscreen, cursorDisplayProvider);
 		this.initMaterial(this.jmefx.getJmeNode());
 
-		guiParent.attachChild(this.jmefx.getJmeNode());
-
 		if (cursorDisplayProvider != null) {
 			for (final CursorType type : CursorType.values()) {
 				cursorDisplayProvider.setup(type);
@@ -77,6 +76,8 @@ public class GuiManager {
 	}
 
 	private void initMaterial(final Picture jmeNode) {
+		this.getCustomMaterial().getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
+
 		final MatParam jfxRenderTarget = jmeNode.getMaterial().getParam("Texture");
 		assert this.customMaterial.getMaterialDef().getMaterialParam("Texture") != null : "CustomMaterial must habe Texture parameter";
 		this.customMaterial.setTexture("Texture", (Texture) jfxRenderTarget.getValue());
