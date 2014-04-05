@@ -4,7 +4,7 @@ import java.text.SimpleDateFormat;
 def cmd = "git rev-parse --short HEAD"
 def proc = cmd.execute()
 String gitRevision = proc.text.trim()
-SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss")
+SimpleDateFormat format = new SimpleDateFormat("yyyyMMddHHmmss")
 String gitTimestamp = format.format(new Date());
 /////////////////git version logic///////////////
 
@@ -26,10 +26,12 @@ repositories {
 configurations {
     	provided
 }
+
 sourceSets {
     	main { compileClasspath += configurations.provided }
 	test { compileClasspath += configurations.provided }
 }
+sourceSets.main.resources.srcDir 'src/main/java'
 
 
 dependencies {
@@ -54,7 +56,7 @@ uploadArchives {
        			repository(url: "$targetRepository"+"/releases") {
        				authentication(userName: "$targetRepository_user", password: "$targetRepository_password")
 			}
-       			pom.version = gitTimestamp + "-" + gitRevision
+       			pom.version = "1."gitTimestamp+"."+ gitRevision
         		pom.artifactId = "jfx"
         		pom.groupId = "com.jme3x"
        		}
