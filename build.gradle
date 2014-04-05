@@ -37,6 +37,17 @@ dependencies {
 	compile files('lib/jfxtras-common-8.0-r1-SNAPSHOT.jar', 'lib/jfxtras-window-8.0-r1-SNAPSHOT.jar')
 }
 
+task packageSources(type: Jar) {
+	from sourceSets.main.allSource
+	classifier = 'sources'
+}
+
+artifacts {
+    archives(packageSources) {
+        type = 'sources' 
+    }
+}
+
 uploadArchives {
 	repositories {
 		mavenDeployer {
