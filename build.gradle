@@ -1,4 +1,51 @@
-dependencies{
-	compile project(':libs-jme3')
+import java.text.SimpleDateFormat;
+
+/////////////////git version logic///////////////
+def cmd = "git rev-parse --short HEAD"
+def proc = cmd.execute()
+String gitRevision = proc.text.trim()
+SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss")
+String gitTimestamp = format.format(new Date());
+/////////////////git version logic///////////////
+
+
+apply plugin: 'java'
+sourceCompatibility=JavaVersion.VERSION_1_8
+compileJava.options.encoding = 'UTF-8'
+
+
+apply plugin: 'maven'
+apply plugin: 'eclipse'
+
+
+
+repositories {
+	maven { url "https://oss.sonatype.org/content/groups/public"}
+}
+
+configurations {
+    	provided
+}
+sourceSets {
+    	main { compileClasspath += configurations.provided }
+	test { compileClasspath += configurations.provided }
+}
+
+
+dependencies {
+	provided files('providedlibs/jme3-core.jar','providedlibs/jme3-desktop.jar','providedlibs/jme3-lwjgl.jar','providedlibs/lwjgl.jar')
 	compile files('lib/jfxtras-common-8.0-r1-SNAPSHOT.jar', 'lib/jfxtras-window-8.0-r1-SNAPSHOT.jar')
+}
+
+uploadArchives {
+	repositories {
+		mavenDeployer {
+       			repository(url: "$targetRepository"+"/releases") {
+       				authentication(userName: "$targetRepository_user", password: "$targetRepository_password")
+			}
+       			pom.version = gitTimestamp + "-" + gitRevision
+        		pom.artifactId = "jfx"
+        		pom.groupId = "com.jme3x"
+       		}
+    	}
 }
