@@ -56,7 +56,7 @@ uploadArchives {
        			repository(url: "$targetRepository"+"/releases") {
        				authentication(userName: "$targetRepository_user", password: "$targetRepository_password")
 			}
-       			pom.version = "1."gitTimestamp+"."+ gitRevision
+       			pom.version = "1."+gitTimestamp+"."+ gitRevision
         		pom.artifactId = "jfx"
         		pom.groupId = "com.jme3x"
        		}
