@@ -20,6 +20,8 @@ apply plugin: 'eclipse'
 
 
 repositories {
+	mavenCentral()
+	
 	maven { url "https://oss.sonatype.org/content/groups/public"}
 }
 
@@ -35,8 +37,8 @@ sourceSets.main.resources.srcDir 'src/main/java'
 
 
 dependencies {
+	compile group: 'org.jfxtras', name: 'jfxtras-window', version:'8.0-r2-SNAPSHOT'
 	provided files('providedlibs/jme3-core.jar','providedlibs/jme3-desktop.jar','providedlibs/jme3-lwjgl.jar','providedlibs/lwjgl.jar')
-	compile files('lib/jfxtras-common-8.0-r1-SNAPSHOT.jar', 'lib/jfxtras-window-8.0-r1-SNAPSHOT.jar')
 }
 
 task packageSources(type: Jar) {
