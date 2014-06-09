@@ -1,5 +1,7 @@
 package com.jme3x.jfx;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Semaphore;
 
 import javafx.application.Platform;
@@ -17,11 +19,16 @@ import javafx.scene.layout.Region;
  * 
  */
 public abstract class AbstractHud {
-	private Throwable	innerError	= null;
-	protected Region	node;
-	private boolean		initialized;
-	private boolean		attached;
-	private GuiManager	responsibleGuiManager;
+	private Throwable		innerError	= null;
+	protected Region		node;
+	private boolean			initialized;
+	private boolean			attached;
+	private GuiManager		responsibleGuiManager;
+
+	/**
+	 * Temp array for stylesheet adding before precaching
+	 */
+	protected List<String>	stylesToAdd	= new ArrayList<String>();
 
 	/**
 	 * Internal call, for guimanager statemanagement, do not call
@@ -44,6 +51,39 @@ public abstract class AbstractHud {
 		return this.responsibleGuiManager;
 	}
 
+	/**
+	 * Adds a stylesheet to be used, can be called before precaching, in this case execution is defered till then <br>
+	 * 
+	 * @param stylesheet
+	 *            the URi to be used, eg. <br>
+	 *            DynamicCSS.class.getResource("/jarcss.css").toExternalForm(); <br>
+	 *            or <br>
+	 *            http://mysite.com/style.css <br>
+	 * 
+	 *            I know currently no way to load a directly from a InputStream and thus allow a JME style assetlocator based logic. As a workaround, locate file via assetmanager, copy to tmp folder and pass file uri into here
+	 * 
+	 * 
+	 */
+	public void addStyleSheet(final String stylesheet) {
+		final Runnable inFXThread = new Runnable() {
+
+			@Override
+			public void run() {
+				if (AbstractHud.this.initialized) {
+					AbstractHud.this.node.getStylesheets().add(stylesheet);
+				} else {
+					AbstractHud.this.stylesToAdd.add(stylesheet);
+				}
+			}
+		};
+		if (Platform.isFxApplicationThread()) {
+			inFXThread.run();
+		} else {
+			Platform.runLater(inFXThread);
+		}
+
+	}
+
 	public boolean isAttached() {
 		return this.attached;
 	}
@@ -63,6 +103,8 @@ public abstract class AbstractHud {
 				@Override
 				public void run() {
 					AbstractHud.this.node = AbstractHud.this.doInit();
+					AbstractHud.this.node.getStylesheets().addAll(AbstractHud.this.stylesToAdd);
+					AbstractHud.this.stylesToAdd = null;
 					waitForInit.release();
 				}
 			});
@@ -86,8 +128,7 @@ public abstract class AbstractHud {
 			final Region node = AbstractHud.this.innerInit();
 			node.sceneProperty().addListener(new ChangeListener<Scene>() {
 				@Override
-				public void changed(final ObservableValue<? extends Scene> observable, final Scene oldValue,
-						final Scene newValue) {
+				public void changed(final ObservableValue<? extends Scene> observable, final Scene oldValue, final Scene newValue) {
 					if (newValue == null) {
 						node.prefWidthProperty().unbind();
 						node.prefHeightProperty().unbind();

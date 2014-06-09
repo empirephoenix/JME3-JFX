@@ -21,8 +21,8 @@ public class FXMLHud<ControllerType> extends AbstractHud {
 		final FXMLLoader fxmlLoader = new FXMLLoader();
 		final URL location = Thread.currentThread().getContextClassLoader().getResource(this.fxml);
 		fxmlLoader.setLocation(location);
-		final ResourceBundle ressources = fxmlLoader.getResources();
-		fxmlLoader.setResources(this.addCustomRessources(ressources));
+		final ResourceBundle defaultRessources = fxmlLoader.getResources();
+		fxmlLoader.setResources(this.addCustomRessources(defaultRessources));
 		fxmlLoader.setBuilderFactory(new JavaFXBuilderFactory());
 		final Region rv = fxmlLoader.load(location.openStream());
 		this.controller = fxmlLoader.getController();
@@ -37,11 +37,11 @@ public class FXMLHud<ControllerType> extends AbstractHud {
 	/**
 	 * Hook to add own Resourcebundles if necessary
 	 * 
-	 * @param ressources
+	 * @param defaultRessources
 	 *            the currently set value
 	 * @return
 	 */
-	protected ResourceBundle addCustomRessources(final ResourceBundle ressources) {
-		return ressources;
+	protected ResourceBundle addCustomRessources(final ResourceBundle defaultRessources) {
+		return defaultRessources;
 	}
 }
