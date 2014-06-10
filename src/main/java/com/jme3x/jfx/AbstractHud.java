@@ -102,10 +102,15 @@ public abstract class AbstractHud {
 			Platform.runLater(new Runnable() {
 				@Override
 				public void run() {
-					AbstractHud.this.node = AbstractHud.this.doInit();
-					AbstractHud.this.node.getStylesheets().addAll(AbstractHud.this.stylesToAdd);
-					AbstractHud.this.stylesToAdd = null;
-					waitForInit.release();
+					try {
+						AbstractHud.this.node = AbstractHud.this.doInit();
+						if (AbstractHud.this.node != null) {
+							AbstractHud.this.node.getStylesheets().addAll(AbstractHud.this.stylesToAdd);
+						}
+						AbstractHud.this.stylesToAdd = null;
+					} finally {
+						waitForInit.release();
+					}
 				}
 			});
 			waitForInit.acquireUninterruptibly();
@@ -126,6 +131,7 @@ public abstract class AbstractHud {
 	protected Region doInit() {
 		try {
 			final Region node = AbstractHud.this.innerInit();
+			assert node != null : "no node was loaded";
 			node.sceneProperty().addListener(new ChangeListener<Scene>() {
 				@Override
 				public void changed(final ObservableValue<? extends Scene> observable, final Scene oldValue, final Scene newValue) {
