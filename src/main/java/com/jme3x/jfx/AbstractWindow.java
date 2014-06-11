@@ -104,7 +104,7 @@ public abstract class AbstractWindow extends AbstractHud {
 				}
 			});
 			// apply preferd width
-			this.setSize(this.inner.getPrefWidth(), this.inner.getPrefHeight());
+			this.window.setPrefSize(this.inner.getPrefWidth(), this.inner.getPrefHeight());
 			this.init = true;
 			this.afterInit();
 			return this.window;
