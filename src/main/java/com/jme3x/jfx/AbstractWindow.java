@@ -36,8 +36,17 @@ public abstract class AbstractWindow extends AbstractHud {
 		assert this.init : "Needs to be init to center";
 		final double sceneWidth = this.getNode().getScene().getWidth();
 		final double sceneHeight = this.getNode().getScene().getHeight();
-		final double windowWidth = this.inner.getWidth();
-		final double windowHeight = this.inner.getHeight();
+
+		double windowWidth = this.inner.getWidth();
+		if (windowWidth == 0) {
+			windowWidth = Math.max(this.inner.getPrefWidth(), this.inner.getMinWidth());
+		}
+
+		double windowHeight = this.inner.getHeight();
+		if (windowHeight == 0) {
+			windowHeight = Math.max(this.inner.getPrefHeight(), this.inner.getMinHeight());
+		}
+
 		final double newPosx = sceneWidth / 2 - windowWidth / 2;
 		final double newPosy = sceneHeight / 2 - windowHeight / 2;
 		this.setLayoutX((int) newPosx);
@@ -94,7 +103,8 @@ public abstract class AbstractWindow extends AbstractHud {
 					}
 				}
 			});
-
+			// apply preferd width
+			this.setSize(this.inner.getPrefWidth(), this.inner.getPrefHeight());
 			this.init = true;
 			this.afterInit();
 			return this.window;
@@ -107,7 +117,7 @@ public abstract class AbstractWindow extends AbstractHud {
 	/**
 	 * Any Thread
 	 */
-	public void setSize(final int width, final int height) {
+	public void setSize(final double width, final double height) {
 		assert this.init : "Not init";
 		if (Platform.isFxApplicationThread()) {
 			this.window.setPrefSize(width, height);
