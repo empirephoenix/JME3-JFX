@@ -49,12 +49,13 @@ public class JmeFXHostInterfaceImpl implements HostInterface {
 		}
 
 		this.jmeFxContainer.scenePeer.setDragStartListener(new HostDragStartListener() {
+
 			@Override
 			public void dragStarted(final EmbeddedSceneDSInterface dragSource, final TransferMode dragAction) {
-				System.out.println("Dragging");
+				System.out.println("Dragging " + dragSource + " transfermode " + dragAction);
+
 			}
 		});
-
 	}
 
 	@Override
@@ -86,9 +87,9 @@ public class JmeFXHostInterfaceImpl implements HostInterface {
 
 	@Override
 	public void setCursor(final CursorFrame cursorFrame) {
-	    if (this.jmeFxContainer.cursorDisplayProvider != null) {
-	        this.jmeFxContainer.cursorDisplayProvider.showCursor(cursorFrame);
-	    }
+		if (this.jmeFxContainer.cursorDisplayProvider != null) {
+			this.jmeFxContainer.cursorDisplayProvider.showCursor(cursorFrame);
+		}
 	}
 
 	@Override
