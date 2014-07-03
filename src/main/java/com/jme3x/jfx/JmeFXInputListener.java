@@ -7,6 +7,8 @@ package com.jme3x.jfx;
 import java.awt.event.KeyEvent;
 import java.util.BitSet;
 
+import javafx.application.Platform;
+
 import org.lwjgl.opengl.Display;
 
 import com.jme3.input.RawInputListener;
@@ -31,6 +33,8 @@ public class JmeFXInputListener implements RawInputListener {
 	private char[]				keyCharSet			= new char[0xFF];
 	boolean[]					mouseButtonState	= new boolean[3];
 	private RawInputListener	everListeningInputListenerAdapter;
+
+	private JmeFxDNDHandler		jfxdndHandler;
 
 	public JmeFXInputListener(final JmeFxContainer listensOnContainer) {
 		this.jmeFxContainer = listensOnContainer;
@@ -103,11 +107,22 @@ public class JmeFXInputListener implements RawInputListener {
 			type = AbstractEvents.MOUSEEVENT_DRAGGED;
 			button = AbstractEvents.MOUSEEVENT_MIDDLE_BUTTON;
 		}
-
-		this.jmeFxContainer.scenePeer.mouseEvent(type, button, this.mouseButtonState[0], this.mouseButtonState[1],
-				this.mouseButtonState[2], x, y, Display.getX() + x, Display.getY() + y,
-				this.keyStateSet.get(KeyEvent.VK_SHIFT), this.keyStateSet.get(KeyEvent.VK_CONTROL),
-				this.keyStateSet.get(KeyEvent.VK_ALT), this.keyStateSet.get(KeyEvent.VK_META), wheelRotation, false);
+		final int ftype = type;
+		final int fbutton = button;
+		/**
+		 * ensure drag and drop is handled before the mouse release event fires
+		 */
+		Platform.runLater(new Runnable() {
+			@Override
+			public void run() {
+				if (JmeFXInputListener.this.jfxdndHandler != null) {
+					JmeFXInputListener.this.jfxdndHandler.mouseUpdate(x, y, JmeFXInputListener.this.mouseButtonState[0]);
+				}
+				JmeFXInputListener.this.jmeFxContainer.scenePeer.mouseEvent(ftype, fbutton, JmeFXInputListener.this.mouseButtonState[0], JmeFXInputListener.this.mouseButtonState[1], JmeFXInputListener.this.mouseButtonState[2], x, y, Display.getX()
+						+ x, Display.getY() + y, JmeFXInputListener.this.keyStateSet.get(KeyEvent.VK_SHIFT), JmeFXInputListener.this.keyStateSet.get(KeyEvent.VK_CONTROL), JmeFXInputListener.this.keyStateSet.get(KeyEvent.VK_ALT),
+						JmeFXInputListener.this.keyStateSet.get(KeyEvent.VK_META), wheelRotation, false);
+			}
+		});
 	}
 
 	@Override
@@ -162,13 +177,17 @@ public class JmeFXInputListener implements RawInputListener {
 		} else {
 			return;
 		}
-
-		this.jmeFxContainer.scenePeer.mouseEvent(type, button, this.mouseButtonState[0], this.mouseButtonState[1],
-				this.mouseButtonState[2], x, y, Display.getX() + x, Display.getY() + y,
-				this.keyStateSet.get(KeyEvent.VK_SHIFT), this.keyStateSet.get(KeyEvent.VK_CONTROL),
-				this.keyStateSet.get(KeyEvent.VK_ALT), this.keyStateSet.get(KeyEvent.VK_META), 0,
-				button == AbstractEvents.MOUSEEVENT_SECONDARY_BUTTON);
-
+		Platform.runLater(new Runnable() {
+			@Override
+			public void run() {
+				if (JmeFXInputListener.this.jfxdndHandler != null) {
+					JmeFXInputListener.this.jfxdndHandler.mouseUpdate(x, y, JmeFXInputListener.this.mouseButtonState[0]);
+				}
+				JmeFXInputListener.this.jmeFxContainer.scenePeer.mouseEvent(type, button, JmeFXInputListener.this.mouseButtonState[0], JmeFXInputListener.this.mouseButtonState[1], JmeFXInputListener.this.mouseButtonState[2], x, y,
+						Display.getX() + x, Display.getY() + y, JmeFXInputListener.this.keyStateSet.get(KeyEvent.VK_SHIFT), JmeFXInputListener.this.keyStateSet.get(KeyEvent.VK_CONTROL), JmeFXInputListener.this.keyStateSet.get(KeyEvent.VK_ALT),
+						JmeFXInputListener.this.keyStateSet.get(KeyEvent.VK_META), 0, button == AbstractEvents.MOUSEEVENT_SECONDARY_BUTTON);
+			}
+		});
 	}
 
 	@Override
@@ -205,24 +224,20 @@ public class JmeFXInputListener implements RawInputListener {
 			final char x = this.keyCharSet[fxKeycode];
 
 			if (this.jmeFxContainer.focus) {
-				this.jmeFxContainer.scenePeer.keyEvent(AbstractEvents.KEYEVENT_TYPED, fxKeycode, new char[] { x },
-						keyState);
+				this.jmeFxContainer.scenePeer.keyEvent(AbstractEvents.KEYEVENT_TYPED, fxKeycode, new char[] { x }, keyState);
 			}
 		} else if (evt.isPressed()) {
 			this.keyCharSet[fxKeycode] = keyChar;
 			this.keyStateSet.set(fxKeycode);
 			if (this.jmeFxContainer.focus) {
-				this.jmeFxContainer.scenePeer.keyEvent(AbstractEvents.KEYEVENT_PRESSED, fxKeycode,
-						new char[] { keyChar }, keyState);
-				this.jmeFxContainer.scenePeer.keyEvent(AbstractEvents.KEYEVENT_TYPED, fxKeycode,
-						new char[] { keyChar }, keyState);
+				this.jmeFxContainer.scenePeer.keyEvent(AbstractEvents.KEYEVENT_PRESSED, fxKeycode, new char[] { keyChar }, keyState);
+				this.jmeFxContainer.scenePeer.keyEvent(AbstractEvents.KEYEVENT_TYPED, fxKeycode, new char[] { keyChar }, keyState);
 			}
 		} else {
 			final char x = this.keyCharSet[fxKeycode];
 			this.keyStateSet.clear(fxKeycode);
 			if (this.jmeFxContainer.focus) {
-				this.jmeFxContainer.scenePeer.keyEvent(AbstractEvents.KEYEVENT_RELEASED, fxKeycode, new char[] { x },
-						keyState);
+				this.jmeFxContainer.scenePeer.keyEvent(AbstractEvents.KEYEVENT_RELEASED, fxKeycode, new char[] { x }, keyState);
 			}
 		}
 
@@ -258,5 +273,16 @@ public class JmeFXInputListener implements RawInputListener {
 
 	public void setEverListeningRawInputListener(final RawInputListener rawInputListenerAdapter) {
 		this.everListeningInputListenerAdapter = rawInputListenerAdapter;
+	}
+
+	/**
+	 * set on drag start /nulled on end<br>
+	 * necessary so that the drag events can be generated appropiatly
+	 * 
+	 * @param jfxdndHandler
+	 */
+	public void setMouseDNDListener(final JmeFxDNDHandler jfxdndHandler) {
+		assert this.jfxdndHandler == null || jfxdndHandler == null : "duplicate jfxdndn handler register? ";
+		this.jfxdndHandler = jfxdndHandler;
 	}
 }

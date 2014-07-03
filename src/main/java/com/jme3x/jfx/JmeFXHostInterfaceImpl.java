@@ -4,14 +4,10 @@
  */
 package com.jme3x.jfx;
 
-import javafx.scene.input.TransferMode;
-
 import com.sun.javafx.cursor.CursorFrame;
 import com.sun.javafx.embed.AbstractEvents;
-import com.sun.javafx.embed.EmbeddedSceneDSInterface;
 import com.sun.javafx.embed.EmbeddedSceneInterface;
 import com.sun.javafx.embed.EmbeddedStageInterface;
-import com.sun.javafx.embed.HostDragStartListener;
 import com.sun.javafx.embed.HostInterface;
 
 /**
@@ -41,21 +37,14 @@ public class JmeFXHostInterfaceImpl implements HostInterface {
 	@Override
 	public void setEmbeddedScene(final EmbeddedSceneInterface embeddedScene) {
 		this.jmeFxContainer.scenePeer = embeddedScene;
-		if (this.jmeFxContainer.scenePeer == null) {
-			return;
-		}
 		if (this.jmeFxContainer.pWidth > 0 && this.jmeFxContainer.pHeight > 0) {
 			this.jmeFxContainer.scenePeer.setSize(this.jmeFxContainer.pWidth, this.jmeFxContainer.pHeight);
 		}
 
-		this.jmeFxContainer.scenePeer.setDragStartListener(new HostDragStartListener() {
+		if (this.jmeFxContainer.scenePeer != null) {
+			this.jmeFxContainer.scenePeer.setDragStartListener(new JmeFxDNDHandler(this.jmeFxContainer));
+		}
 
-			@Override
-			public void dragStarted(final EmbeddedSceneDSInterface dragSource, final TransferMode dragAction) {
-				System.out.println("Dragging " + dragSource + " transfermode " + dragAction);
-
-			}
-		});
 	}
 
 	@Override

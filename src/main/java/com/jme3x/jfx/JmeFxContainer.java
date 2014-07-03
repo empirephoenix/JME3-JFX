@@ -17,6 +17,7 @@ import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.event.EventHandler;
 import javafx.scene.Camera;
+import javafx.scene.Group;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Window;
@@ -75,6 +76,7 @@ public class JmeFxContainer {
 	boolean						fullScreenSuppport;
 	CompletableFuture<Format>	nativeFormat	= new CompletableFuture<Format>();
 	ICursorDisplayProvider		cursorDisplayProvider;
+	private Group				rootNode;
 
 	public static JmeFxContainer install(final Application app, final Node guiNode, final boolean fullScreenSupport, final ICursorDisplayProvider cursorDisplayProvider) {
 		final JmeFxContainer ctr = new JmeFxContainer(app.getAssetManager(), app, fullScreenSupport, cursorDisplayProvider);
@@ -89,7 +91,12 @@ public class JmeFxContainer {
 		return ctr;
 	}
 
+	public JmeFXInputListener getInputListener() {
+		return this.inputListener;
+	}
+
 	private JmeFxContainer(final AssetManager assetManager, final Application app, final boolean fullScreenSupport, final ICursorDisplayProvider cursorDisplayProvider) {
+		this.initFx();
 
 		this.cursorDisplayProvider = cursorDisplayProvider;
 		this.app = app;
@@ -133,8 +140,6 @@ public class JmeFxContainer {
 
 		this.picture.move(0, 0, -1);
 		this.picture.setPosition(0, 0);
-
-		this.initFx();
 
 		this.handleResize();
 
@@ -228,7 +233,8 @@ public class JmeFxContainer {
 		return this.stage;
 	}
 
-	public void setScene(final Scene newScene) {
+	public void setScene(final Scene newScene, final Group highLevelGroup) {
+		this.rootNode = highLevelGroup;
 		FxPlatformExecutor.runOnFxApplication(new Runnable() {
 			@Override
 			public void run() {
@@ -292,7 +298,6 @@ public class JmeFxContainer {
 
 			final IntBuffer buf = data.asIntBuffer();
 
-			final long start = System.currentTimeMillis();
 			if (!this.scenePeer.getPixels(buf, this.pWidth, this.pHeight)) {
 				return;
 			}
@@ -480,4 +485,9 @@ public class JmeFxContainer {
 	public void setEverListeningRawInputListener(final RawInputListener rawInputListenerAdapter) {
 		this.inputListener.setEverListeningRawInputListener(rawInputListenerAdapter);
 	}
+
+	public Group getRootNode() {
+		return this.rootNode;
+	}
+
 }

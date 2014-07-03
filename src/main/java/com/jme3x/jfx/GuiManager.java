@@ -121,7 +121,7 @@ public class GuiManager {
 
 				GuiManager.this.mainScene = new Scene(GuiManager.this.highLevelGroup);
 				GuiManager.this.mainScene.setFill(new Color(0, 0, 0, 0));
-				GuiManager.this.jmefx.setScene(GuiManager.this.mainScene);
+				GuiManager.this.jmefx.setScene(GuiManager.this.mainScene, GuiManager.this.highLevelGroup);
 				waitForInit.release();
 			}
 		});

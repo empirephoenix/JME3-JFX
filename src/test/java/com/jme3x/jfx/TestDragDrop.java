@@ -1,5 +1,6 @@
 package com.jme3x.jfx;
 
+import javafx.application.Platform;
 import javafx.event.EventHandler;
 import javafx.scene.control.Label;
 import javafx.scene.input.ClipboardContent;
@@ -15,6 +16,7 @@ import com.jme3x.jfx.cursor.proton.ProtonCursorProvider;
 
 public class TestDragDrop extends SimpleApplication {
 	private static boolean	assertionsEnabled;
+	public static Label		target;
 
 	public static void main(final String[] args) {
 		System.out.println("testd&d");
@@ -42,76 +44,83 @@ public class TestDragDrop extends SimpleApplication {
 		 */
 		this.inputManager.addRawInputListener(testguiManager.getInputRedirector());
 
-		final AbstractWindow targetwindow = new AbstractWindow() {
+		Platform.runLater(new Runnable() {
 
 			@Override
-			protected Region innerInit() throws Exception {
-				final Label target = new Label("Drag target");
-
-				target.setOnDragEntered(new EventHandler<DragEvent>() {
-					@Override
-					public void handle(final DragEvent event) {
-						System.out.println("Drag enterd!");
-					}
-				});
-
-				target.setOnDragExited(new EventHandler<DragEvent>() {
-					@Override
-					public void handle(final DragEvent event) {
-						System.out.println("Drag enterd!");
-					}
-				});
-
-				target.setOnDragOver(new EventHandler<DragEvent>() {
-					@Override
-					public void handle(final DragEvent event) {
-						event.acceptTransferModes(TransferMode.COPY);
-					}
-				});
-
-				target.setOnDragDropped(new EventHandler<DragEvent>() {
+			public void run() {
+				final AbstractWindow targetwindow = new AbstractWindow() {
 
 					@Override
-					public void handle(final DragEvent event) {
-						System.out.println("Dropped " + event.getDragboard().getString());
+					protected Region innerInit() throws Exception {
+						TestDragDrop.target = new Label("Drag target");
+
+						TestDragDrop.target.setOnDragEntered(new EventHandler<DragEvent>() {
+							@Override
+							public void handle(final DragEvent event) {
+								TestDragDrop.target.setText("DragEnter");
+							}
+						});
+
+						TestDragDrop.target.setOnDragExited(new EventHandler<DragEvent>() {
+							@Override
+							public void handle(final DragEvent event) {
+								TestDragDrop.target.setText("DrgExit");
+							}
+						});
+
+						TestDragDrop.target.setOnDragOver(new EventHandler<DragEvent>() {
+							@Override
+							public void handle(final DragEvent event) {
+								event.acceptTransferModes(TransferMode.COPY);
+							}
+						});
+
+						TestDragDrop.target.setOnDragDropped(new EventHandler<DragEvent>() {
+
+							@Override
+							public void handle(final DragEvent event) {
+								System.out.println("Dropped " + event.getDragboard().getString());
+							}
+						});
+						return TestDragDrop.target;
 					}
-				});
-				return target;
+
+					@Override
+					protected void afterInit() {
+						this.setSize(300, 200);
+					}
+				};
+
+				final AbstractWindow sourceWindow = new AbstractWindow() {
+
+					@Override
+					protected Region innerInit() throws Exception {
+						final Label target = new Label("Drag source");
+						target.setOnDragDetected(new EventHandler<MouseEvent>() {
+
+							@Override
+							public void handle(final MouseEvent event) {
+								final Dragboard db = target.startDragAndDrop(TransferMode.COPY_OR_MOVE);
+								// final WritableImage image = target.snapshot(new SnapshotParameters(), null);
+								// db.setDragView(image);
+								final ClipboardContent content = new ClipboardContent();
+								content.putString("Dragdropped Text");
+								db.setContent(content);
+							}
+						});
+						return target;
+					}
+
+					@Override
+					protected void afterInit() {
+						this.setSize(300, 200);
+						this.setLayoutX(310);
+					}
+				};
+
+				testguiManager.attachHudAsync(targetwindow);
+				testguiManager.attachHudAsync(sourceWindow);
 			}
-
-			@Override
-			protected void afterInit() {
-				this.setSize(300, 200);
-			}
-		};
-
-		final AbstractWindow sourceWindow = new AbstractWindow() {
-
-			@Override
-			protected Region innerInit() throws Exception {
-				final Label target = new Label("Drag source");
-				target.setOnDragDetected(new EventHandler<MouseEvent>() {
-
-					@Override
-					public void handle(final MouseEvent event) {
-						final Dragboard db = target.startDragAndDrop(TransferMode.MOVE);
-						final ClipboardContent content = new ClipboardContent();
-						content.putString("Dragdropped Text");
-						db.setContent(content);
-					}
-				});
-				return target;
-			}
-
-			@Override
-			protected void afterInit() {
-				this.setSize(300, 200);
-				this.setLayoutX(310);
-			}
-		};
-
-		testguiManager.attachHudAsync(targetwindow);
-		testguiManager.attachHudAsync(sourceWindow);
-
+		});
 	}
 }
