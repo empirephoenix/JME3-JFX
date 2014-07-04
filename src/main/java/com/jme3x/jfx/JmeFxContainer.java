@@ -50,7 +50,7 @@ import com.sun.javafx.stage.EmbeddedWindow;
 
 /**
  * Need to pass -Dprism.dirtyopts=false on startup
- * 
+ *
  * @author abies / Artur Biesiadowski
  */
 public class JmeFxContainer {
@@ -464,11 +464,6 @@ public class JmeFxContainer {
 
 					return scene;
 				}
-
-				@Override
-				public void setTransientFocusContainer(final Scene scene, final javafx.scene.Node node) {
-
-				}
 			};
 
 			f.set(null, sa);
@@ -479,7 +474,7 @@ public class JmeFxContainer {
 
 	/**
 	 * call via gui manager!
-	 * 
+	 *
 	 * @param rawInputListenerAdapter
 	 */
 	public void setEverListeningRawInputListener(final RawInputListener rawInputListenerAdapter) {
