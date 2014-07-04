@@ -1,9 +1,15 @@
 package com.jme3x.jfx;
 
+import java.net.URL;
+
 import javafx.application.Platform;
 import javafx.event.EventHandler;
+import javafx.scene.SnapshotParameters;
 import javafx.scene.control.Label;
+import javafx.scene.image.Image;
+import javafx.scene.image.WritableImage;
 import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.DataFormat;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.MouseEvent;
@@ -101,10 +107,16 @@ public class TestDragDrop extends SimpleApplication {
 							@Override
 							public void handle(final MouseEvent event) {
 								final Dragboard db = target.startDragAndDrop(TransferMode.COPY_OR_MOVE);
-								// final WritableImage image = target.snapshot(new SnapshotParameters(), null);
-								// db.setDragView(image);
 								final ClipboardContent content = new ClipboardContent();
 								content.putString("Dragdropped Text");
+								// do not use snapshot!, it will destroy input handling apparently :/
+
+								// final WritableImage image = target.snapshot(new SnapshotParameters(), null);
+								// we cannot use the default dragimage, as it will be invisible and block the processing of the embedded scene
+								// also images are for some reason not serializeable, so we need to make a helper map :/
+								URL dummyImage = Thread.currentThread().getContextClassLoader().getResource("com/jme3x/jfx/test.jpg");
+								db.setDragView(new Image(dummyImage.toExternalForm()));
+								// content.put(GuiManager.DRAG_IMAGE_FORMAT, GuiManager.registerDragImage());
 								db.setContent(content);
 							}
 						});

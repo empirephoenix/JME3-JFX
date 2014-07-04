@@ -465,7 +465,6 @@ public class JmeFxContainer {
 					return scene;
 				}
 
-				@Override
 				public void setTransientFocusContainer(final Scene scene, final javafx.scene.Node node) {
 
 				}
