@@ -66,7 +66,7 @@ uploadArchives {
 
 eclipse {
 	classpath {
-		plusConfigurations += configurations.provided
-		noExportConfigurations += configurations.provided
+		plusConfigurations += [configurations.provided]
+		noExportConfigurations += [configurations.provided]
 	}
 }
