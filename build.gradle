@@ -17,20 +17,22 @@ compileJava.options.encoding = 'UTF-8'
 apply plugin: 'maven'
 apply plugin: 'eclipse'
 
+version = "1."+gitTimestamp+"."+ gitRevision
+group = "com.jme3x"
 
 
 repositories {
 	mavenCentral()
-	
+
 	maven { url "https://oss.sonatype.org/content/groups/public"}
 }
 
 configurations {
-    	provided
+	provided
 }
 
 sourceSets {
-    	main { compileClasspath += configurations.provided }
+	main { compileClasspath += configurations.provided }
 	test { compileClasspath += configurations.provided }
 }
 sourceSets.main.resources.srcDir 'src/main/java'
@@ -47,20 +49,24 @@ task packageSources(type: Jar) {
 }
 
 artifacts {
-    archives(packageSources) {
-        type = 'sources' 
-    }
+	archives(packageSources) {
+		type = 'jar'
+	}
 }
 
 uploadArchives {
 	repositories {
 		mavenDeployer {
-       			repository(url: "$targetRepository"+"/releases") {
-       				authentication(userName: "$targetRepository_user", password: "$targetRepository_password")
+			repository(url: "$targetRepository/releases") {
+				 authentication(userName: targetRepository_user, password: targetRepository_password)
 			}
-       			pom.version = "1."+gitTimestamp+"."+ gitRevision
-        		pom.artifactId = "jfx"
-        		pom.groupId = "com.jme3x"
-       		}
-    	}
+		 }
+	}
+}
+
+eclipse {
+	classpath {
+		plusConfigurations += configurations.provided
+		noExportConfigurations += configurations.provided
+	}
 }
