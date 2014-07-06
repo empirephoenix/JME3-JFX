@@ -29,6 +29,15 @@ public abstract class AbstractWindow extends AbstractHud {
 	}
 
 	/**
+	 * returns the Scrollpane inside the window
+	 * 
+	 * @return
+	 */
+	public ScrollPane getInnerScroll() {
+		return this.innerScroll;
+	}
+
+	/**
 	 * centers a window on the screen, using it's current width and height this method does not work correctly, for some reason
 	 */
 	@Deprecated
