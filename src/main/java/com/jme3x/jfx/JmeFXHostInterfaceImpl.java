@@ -15,7 +15,8 @@ import com.sun.javafx.embed.HostInterface;
  * 
  */
 public class JmeFXHostInterfaceImpl implements HostInterface {
-	private final JmeFxContainer	jmeFxContainer;
+
+	private final JmeFxContainer jmeFxContainer;
 
 	public JmeFXHostInterfaceImpl(final JmeFxContainer jmeFxContainer) {
 		this.jmeFxContainer = jmeFxContainer;
@@ -24,10 +25,10 @@ public class JmeFXHostInterfaceImpl implements HostInterface {
 	@Override
 	public void setEmbeddedStage(final EmbeddedStageInterface embeddedStage) {
 		this.jmeFxContainer.stagePeer = embeddedStage;
-		if (this.jmeFxContainer.stagePeer == null) {
+		if(this.jmeFxContainer.stagePeer == null) {
 			return;
 		}
-		if (this.jmeFxContainer.pWidth > 0 && this.jmeFxContainer.pHeight > 0) {
+		if(this.jmeFxContainer.pWidth > 0 && this.jmeFxContainer.pHeight > 0) {
 			this.jmeFxContainer.stagePeer.setSize(this.jmeFxContainer.pWidth, this.jmeFxContainer.pHeight);
 		}
 
@@ -37,11 +38,14 @@ public class JmeFXHostInterfaceImpl implements HostInterface {
 	@Override
 	public void setEmbeddedScene(final EmbeddedSceneInterface embeddedScene) {
 		this.jmeFxContainer.scenePeer = embeddedScene;
-		if (this.jmeFxContainer.pWidth > 0 && this.jmeFxContainer.pHeight > 0) {
+		if(this.jmeFxContainer.scenePeer == null) {
+			return;
+		}
+		if(this.jmeFxContainer.pWidth > 0 && this.jmeFxContainer.pHeight > 0) {
 			this.jmeFxContainer.scenePeer.setSize(this.jmeFxContainer.pWidth, this.jmeFxContainer.pHeight);
 		}
 
-		if (this.jmeFxContainer.scenePeer != null) {
+		if(this.jmeFxContainer.scenePeer != null) {
 			this.jmeFxContainer.scenePeer.setDragStartListener(new JmeFxDNDHandler(this.jmeFxContainer));
 		}
 
@@ -62,7 +66,7 @@ public class JmeFXHostInterfaceImpl implements HostInterface {
 	public void setPreferredSize(final int width, final int height) {
 	}
 
-	int	repaintCounter	= 0;
+	int repaintCounter = 0;
 
 	@Override
 	public void repaint() {
@@ -76,7 +80,7 @@ public class JmeFXHostInterfaceImpl implements HostInterface {
 
 	@Override
 	public void setCursor(final CursorFrame cursorFrame) {
-		if (this.jmeFxContainer.cursorDisplayProvider != null) {
+		if(this.jmeFxContainer.cursorDisplayProvider != null) {
 			this.jmeFxContainer.cursorDisplayProvider.showCursor(cursorFrame);
 		}
 	}
