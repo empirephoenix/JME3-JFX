@@ -3,9 +3,9 @@ package com.jme3x.jfx;
 import java.nio.ByteBuffer;
 
 import javafx.scene.image.ImageView;
+import javafx.scene.image.PixelFormat;
 import javafx.scene.image.PixelWriter;
 import javafx.scene.image.WritableImage;
-import javafx.scene.image.WritablePixelFormat;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.TransferMode;
 
@@ -36,9 +36,10 @@ public class JmeFxDNDHandler implements HostDragStartListener {
 	@Override
 	public void dragStarted(final EmbeddedSceneDSInterface dragSource, final TransferMode dragAction) {
 		try {
-			Object dimg = dragSource.getData("application/x-java-drag-image");
+			final Object dimg = dragSource.getData("application/x-java-drag-image");
+			final Object offset = dragSource.getData("application/x-java-drag-image-offset");
 			if (dimg != null) {
-				createDragImageProxy(dimg);
+				this.createDragImageProxy(dimg, offset);
 			}
 
 			this.jmeFxContainer.getInputListener().setMouseDNDListener(this);
@@ -54,7 +55,7 @@ public class JmeFxDNDHandler implements HostDragStartListener {
 			this.dropTarget = JmeFxDNDHandler.this.jmeFxContainer.scenePeer.createDropTarget();
 			// pseudo enter, we only support inner events, so it stays always entered
 			this.dropTarget.handleDragEnter(0, 0, 0, 0, TransferMode.COPY, dragSource);
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			e.printStackTrace();
 		}
 	}
@@ -63,35 +64,39 @@ public class JmeFxDNDHandler implements HostDragStartListener {
 	 * this is kinda ridiculous, but well at least it seems to work
 	 * 
 	 * @param jmeJfxDragImage
+	 * @param offset
 	 */
-	private void createDragImageProxy(Object jmeJfxDragImage) {
+	private void createDragImageProxy(final Object jmeJfxDragImage, final Object offset) {
 		if (jmeJfxDragImage instanceof ByteBuffer) {
 			try {
-				ByteBuffer casted = (ByteBuffer) jmeJfxDragImage;
+				final ByteBuffer casted = (ByteBuffer) jmeJfxDragImage;
 				casted.position(0);
-				int w = casted.getInt();
-				int h = casted.getInt();
+				final int w = casted.getInt();
+				final int h = casted.getInt();
 
-				byte[] imgdata = new byte[casted.remaining()];
+				final byte[] imgdata = new byte[casted.remaining()];
 				casted.get(imgdata);
 
-				WritableImage img = new WritableImage(w, h);
-				PixelWriter writer = img.getPixelWriter();
+				final WritableImage img = new WritableImage(w, h);
+				final PixelWriter writer = img.getPixelWriter();
+				writer.setPixels(0, 0, w, h, PixelFormat.getByteBgraInstance(), imgdata, 0, w * 4);
 
-				writer.setPixels(0, 0, w, h, WritablePixelFormat.getByteBgraInstance(), imgdata, 0, w * 4);
-				// writer.setPixels(0, 0, w, h, WritablePixelFormat.getByteBgraInstance(), imgData, 0);
+				this.dragImage = new ImageView(img);
+				this.dragImage.setStyle("dragimage:true;");
+				this.dragImage.setMouseTransparent(true);
+				this.dragImage.setVisible(true);
 
-				dragImage = new ImageView(img);
-				dragImage.setStyle("dragimage:true;");
-				dragImage.setMouseTransparent(true);
-				dragImage.setVisible(true);
+				if (offset instanceof ByteBuffer) {
+					((ByteBuffer) offset).position(0);
+					final int x = ((ByteBuffer) offset).getInt();
+					final int y = ((ByteBuffer) offset).getInt();
+					System.out.println("Img offset " + x + "," + y);
+				}
 
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				e.printStackTrace();
 			}
 		}
-		// restore the hacky serialized dragimage
-
 	}
 
 	public void mouseUpdate(final int x, final int y, final boolean mousePressed) {
@@ -100,18 +105,18 @@ public class JmeFxDNDHandler implements HostDragStartListener {
 				return;
 			}
 			if (mousePressed) {
-				if (dragImage != null) {
-					dragImage.relocate(x, y);
-					//only add once it has a valid position
-					if (!jmeFxContainer.getRootNode().getChildren().contains(dragImage)) {
-						jmeFxContainer.getRootNode().getChildren().add(dragImage);
+				if (this.dragImage != null) {
+					this.dragImage.relocate(x, y);
+					// only add once it has a valid position
+					if (!this.jmeFxContainer.getRootNode().getChildren().contains(this.dragImage)) {
+						this.jmeFxContainer.getRootNode().getChildren().add(this.dragImage);
 					}
 				}
 				this.overtarget = this.dropTarget.handleDragOver(x, y, x, y, TransferMode.COPY);
 			} else {
-				if (dragImage != null) {
-					jmeFxContainer.getRootNode().getChildren().remove(dragImage);
-					dragImage = null;
+				if (this.dragImage != null) {
+					this.jmeFxContainer.getRootNode().getChildren().remove(this.dragImage);
+					this.dragImage = null;
 				}
 				System.out.println("Drag released!");
 				if (this.overtarget != null) {
@@ -130,7 +135,7 @@ public class JmeFxDNDHandler implements HostDragStartListener {
 				this.dragSource = null;
 				this.dropTarget = null;
 			}
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			e.printStackTrace();
 		}
 	}
