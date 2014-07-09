@@ -16,6 +16,7 @@ import java.util.concurrent.Semaphore;
 
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.event.EventHandler;
 import javafx.scene.Camera;
 import javafx.scene.Group;
@@ -108,7 +109,7 @@ public class JmeFxContainer {
 		final Point decorationSize = JFXUtils.getWindowDecorationSize();
 
 		this.windowOffsetX = (int) decorationSize.getX();
-		this.windowOffsetY = (int) decorationSize.getY() + 5; // test
+		this.windowOffsetY = (int) decorationSize.getY();
 		this.cursorDisplayProvider = cursorDisplayProvider;
 		this.app = app;
 		this.fullScreenSuppport = fullScreenSupport;
@@ -130,6 +131,7 @@ public class JmeFxContainer {
 
 				final EmbeddedStageInterface currentStage = getStagePeer();
 				try {
+
 					if(currentStage == null) {
 						return;
 					}
@@ -293,6 +295,13 @@ public class JmeFxContainer {
 			@Override
 			public void run() {
 				JmeFxContainer.this.setSceneImpl(newScene);
+				newScene.getWindow().xProperty().addListener(new ChangeListener<Number>() {
+
+					@Override
+					public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+						System.out.println(newValue);
+					}
+				});
 			}
 		});
 	}

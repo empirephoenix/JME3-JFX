@@ -1,9 +1,11 @@
 package com.jme3x.jfx.util;
 
-import java.awt.Insets;
+import java.awt.Frame;
 import java.awt.Point;
+import java.awt.Rectangle;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-import javax.swing.JFrame;
+import javax.swing.SwingUtilities;
 
 /**
  * Set of methods for scrap work JFX.
@@ -17,17 +19,45 @@ public class JFXUtils {
 	 */
 	public static final Point getWindowDecorationSize() {
 
-		JFrame frame = new JFrame();
-		frame.setSize(0, 0);
-		frame.setVisible(true);
+		final Point point = new Point();
+		final AtomicBoolean sync = new AtomicBoolean(false);
 
-		final Insets insets = frame.getInsets();
+		SwingUtilities.invokeLater(() -> {
 
-		frame.setVisible(false);
-		frame.dispose();
+			final Frame frame = new Frame();
+			frame.setVisible(true);
+			try {
 
-		Point point = new Point();
-		point.setLocation(insets.right + insets.left, insets.top + insets.bottom);
+				// wait AWT init native minimum size
+				try {
+					Thread.sleep(500);
+				} catch(Exception e) {
+					e.printStackTrace();
+				}
+
+				final Rectangle bounds = frame.getBounds();
+				point.setLocation(bounds.getWidth(), bounds.getHeight());
+
+				frame.setVisible(false);
+				frame.dispose();
+
+			} finally {
+				synchronized(point) {
+					sync.set(true);
+					point.notifyAll();
+				}
+			}
+		});
+
+		synchronized(point) {
+			if(!sync.get()) {
+				try {
+					point.wait();
+				} catch(InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		}
 
 		return point;
 	}
