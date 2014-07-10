@@ -16,7 +16,6 @@ import java.util.concurrent.Semaphore;
 
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.event.EventHandler;
 import javafx.scene.Camera;
 import javafx.scene.Group;
@@ -295,13 +294,6 @@ public class JmeFxContainer {
 			@Override
 			public void run() {
 				JmeFxContainer.this.setSceneImpl(newScene);
-				newScene.getWindow().xProperty().addListener(new ChangeListener<Number>() {
-
-					@Override
-					public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-						System.out.println(newValue);
-					}
-				});
 			}
 		});
 	}

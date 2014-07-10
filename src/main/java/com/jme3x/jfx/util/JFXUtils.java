@@ -1,11 +1,10 @@
 package com.jme3x.jfx.util;
 
-import java.awt.Frame;
 import java.awt.Point;
-import java.awt.Rectangle;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.HashMap;
+import java.util.Map;
 
-import javax.swing.SwingUtilities;
+import com.jme3x.jfx.util.os.OperatingSystem;
 
 /**
  * Set of methods for scrap work JFX.
@@ -14,51 +13,29 @@ import javax.swing.SwingUtilities;
  */
 public class JFXUtils {
 
+	public static final String PROP_DISPLAY_UNDECORATED = "org.lwjgl.opengl.Window.undecorated";
+
+	private static final Map<String, Point> OFFSET_MAPPING = new HashMap<>();
+
+	static {
+		OFFSET_MAPPING.put("Ubuntu 14.04 LTS (trusty)", new Point(10, 37));
+	}
+
 	/**
 	 * Getting the size of the window decorations in the system.
 	 */
 	public static final Point getWindowDecorationSize() {
 
-		final Point point = new Point();
-		final AtomicBoolean sync = new AtomicBoolean(false);
-
-		SwingUtilities.invokeLater(() -> {
-
-			final Frame frame = new Frame();
-			frame.setVisible(true);
-			try {
-
-				// wait AWT init native minimum size
-				try {
-					Thread.sleep(500);
-				} catch(Exception e) {
-					e.printStackTrace();
-				}
-
-				final Rectangle bounds = frame.getBounds();
-				point.setLocation(bounds.getWidth(), bounds.getHeight());
-
-				frame.setVisible(false);
-				frame.dispose();
-
-			} finally {
-				synchronized(point) {
-					sync.set(true);
-					point.notifyAll();
-				}
-			}
-		});
-
-		synchronized(point) {
-			if(!sync.get()) {
-				try {
-					point.wait();
-				} catch(InterruptedException e) {
-					e.printStackTrace();
-				}
-			}
+		if("true".equalsIgnoreCase(System.getProperty(PROP_DISPLAY_UNDECORATED))) {
+			return new Point(0, 0);
 		}
 
-		return point;
+		OperatingSystem system = new OperatingSystem();
+
+		if(OFFSET_MAPPING.containsKey(system.getDistribution())) {
+			return OFFSET_MAPPING.get(system.getDistribution());
+		}
+
+		return new Point(3, 25);
 	}
 }
