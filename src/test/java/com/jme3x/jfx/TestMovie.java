@@ -1,6 +1,9 @@
 package com.jme3x.jfx;
 
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.scene.media.Media;
+import javafx.scene.media.MediaException;
 import javafx.scene.media.MediaPlayer;
 
 import com.jme3.app.SimpleApplication;
@@ -15,43 +18,51 @@ import com.sun.javafx.application.PlatformImpl;
 
 public class TestMovie extends SimpleApplication {
 
-    private TextureMovie textureMovie;
-    private MediaPlayer mp;
+	private TextureMovie	textureMovie;
+	private MediaPlayer		mp;
 
-    public static void main(String[] args) {
+	public static void main(final String[] args) {
 
-        PlatformImpl.startup(() -> {});
+		PlatformImpl.startup(() -> {
+		});
 
-        TestMovie app = new TestMovie();
-        app.start();
-    }
+		final TestMovie app = new TestMovie();
+		app.start();
+	}
 
-    @Override
-    public void simpleInitApp() {
+	@Override
+	public void simpleInitApp() {
 
-        Media media = new Media("http://download.oracle.com/otndocs/products/javafx/oow2010-2.flv");
-        mp = new MediaPlayer(media);
-        mp.play();
+		final Media media = new Media("http://download.oracle.com/otndocs/products/javafx/oow2010-2.flv");
+		media.errorProperty().addListener(new ChangeListener<MediaException>() {
 
-        textureMovie = new TextureMovie(mp, LetterboxMode.VALID_LETTERBOX);
-        textureMovie.setLetterboxColor(ColorRGBA.Black);
+			@Override
+			public void changed(final ObservableValue<? extends MediaException> observable, final MediaException oldValue, final MediaException newValue) {
+				newValue.printStackTrace();
+			}
+		});
+		this.mp = new MediaPlayer(media);
+		this.mp.play();
 
-        Geometry screen1 = new Geometry("Screen1", new Quad(20, 20));
+		this.textureMovie = new TextureMovie(this.mp, LetterboxMode.VALID_LETTERBOX);
+		this.textureMovie.setLetterboxColor(ColorRGBA.Black);
 
-        Material s1mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        s1mat.setTexture("ColorMap", textureMovie.getTexture());
-        screen1.setMaterial(s1mat);
-        rootNode.attachChild(screen1);
+		final Geometry screen1 = new Geometry("Screen1", new Quad(20, 20));
 
-        cam.setLocation(new Vector3f(10, 10, 15));
+		final Material s1mat = new Material(this.assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+		s1mat.setTexture("ColorMap", this.textureMovie.getTexture());
+		screen1.setMaterial(s1mat);
+		this.rootNode.attachChild(screen1);
 
-    }
+		this.cam.setLocation(new Vector3f(10, 10, 15));
 
-    @Override
-    public void destroy() {
-        super.destroy();
-        mp.stop();
-        PlatformImpl.exit();
-    }
+	}
+
+	@Override
+	public void destroy() {
+		super.destroy();
+		this.mp.stop();
+		PlatformImpl.exit();
+	}
 
 }
