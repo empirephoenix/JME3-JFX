@@ -174,22 +174,23 @@ public class TextureMovie {
                         image = new Image(Format.ARGB8, expectedWidth, expectedHeight, bb);
                         texture.setImage(image);
                     }
+                    
+                    
                     ByteBuffer src = argbFrame.getBuffer();
-
                     ByteBuffer bb = image.getData(0);
-
-                    // bb.clear();
-
+                    bb.clear();
+                    
                     for (int y = 0; y < ySize; y++) {
-                        for (int x = 0; x < xSize; x++) {
-                            int tx = x + xOffset;
-                            int ty = expectedHeight - (y + yOffset) - 1;
-                            bb.putInt((tx + ty * xSize) * 4, src.getInt((x + y * argbFrame.getEncodedWidth()) * 4));
-                        }
+                        int ty = expectedHeight - (y + yOffset) - 1;
+                        bb.position(4*(ty*xSize+xOffset));
+                        src.position(4*(y * argbFrame.getEncodedWidth())).limit(4*(y * argbFrame.getEncodedWidth() + xSize));
+                        bb.put(src);
+                        src.limit(src.capacity());
                     }
-
-                    // bb.position(bb.limit());
-                    // bb.flip();
+                    
+                    bb.position(bb.limit());
+                    bb.flip();
+                    
                     argbFrame.releaseFrame();
                     image.setUpdateNeeded();
                 } catch (Exception exc) {
