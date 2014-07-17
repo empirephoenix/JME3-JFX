@@ -30,7 +30,7 @@ public class JmeFXInputListener implements RawInputListener {
 
 	JmeFxContainer				jmeFxContainer;
 	private BitSet				keyStateSet			= new BitSet(0xFF);
-	private char[]				keyCharSet			= new char[0xFF];
+	private char[]				keyCharSet			= new char[Short.MAX_VALUE * 3];
 	boolean[]					mouseButtonState	= new boolean[3];
 	private RawInputListener	everListeningInputListenerAdapter;
 
