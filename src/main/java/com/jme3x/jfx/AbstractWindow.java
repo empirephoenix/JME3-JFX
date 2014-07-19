@@ -12,16 +12,22 @@ import jfxtras.scene.control.window.Window;
 public abstract class AbstractWindow extends AbstractHud {
 	private Region		inner;
 	private Window		window;
-	final ScrollPane	innerScroll		= new ScrollPane();
+	private ScrollPane	innerScroll;
 	private boolean		init;
 	private boolean		maximumEnforced;
 	private boolean		minimumEnforced;
 	private boolean		minimizeVisible	= true;
 	private boolean		modal			= false;
+	private boolean		useInnerScroll	= true;		;
 
 	public void setMinimizeVisible(final boolean visible) {
 		assert !this.init : "Cannot change this after window is precached";
 		this.minimizeVisible = visible;
+	}
+
+	public void setUseInnerScroll(final boolean useInnerScroll) {
+		assert !this.init : "Cannot change this after window is precached";
+		this.useInnerScroll = useInnerScroll;
 	}
 
 	public void setResizeable(final boolean b) {
@@ -29,7 +35,7 @@ public abstract class AbstractWindow extends AbstractHud {
 	}
 
 	/**
-	 * returns the Scrollpane inside the window
+	 * returns the Scrollpane inside the window, or null if none is used
 	 * 
 	 * @return
 	 */
@@ -94,11 +100,17 @@ public abstract class AbstractWindow extends AbstractHud {
 				this.window.getRightIcons().add(new AdjustedMinimizeIcon(this));
 			}
 			this.window.getRightIcons().add(new AdjustedCloseIcon(this));
-			this.innerScroll.setContent(this.inner);
-			this.window.getContentPane().getChildren().add(this.innerScroll);
+			if (this.useInnerScroll) {
+				this.innerScroll = new ScrollPane();
+				this.innerScroll.setContent(this.inner);
+				this.window.getContentPane().getChildren().add(this.innerScroll);
 
-			this.innerScroll.setFitToHeight(true);
-			this.innerScroll.setFitToWidth(true);
+				this.innerScroll.setFitToHeight(true);
+				this.innerScroll.setFitToWidth(true);
+
+			} else {
+				this.window.getContentPane().getChildren().add(this.inner);
+			}
 
 			this.window.minimizedProperty().addListener(new ChangeListener<Boolean>() {
 
@@ -106,7 +118,11 @@ public abstract class AbstractWindow extends AbstractHud {
 				public void changed(final ObservableValue<? extends Boolean> observable, final Boolean oldValue, final Boolean newValue) {
 					if (!newValue) {
 						// restore states
-						AbstractWindow.this.window.getContentPane().getChildren().add(AbstractWindow.this.innerScroll);
+						if (AbstractWindow.this.useInnerScroll) {
+							AbstractWindow.this.window.getContentPane().getChildren().add(AbstractWindow.this.innerScroll);
+						} else {
+							AbstractWindow.this.window.getContentPane().getChildren().add(AbstractWindow.this.inner);
+						}
 						AbstractWindow.this.applyEnforcedMaximumSize();
 						AbstractWindow.this.applyEnforcedMinimumSize();
 					}
@@ -175,14 +191,18 @@ public abstract class AbstractWindow extends AbstractHud {
 
 	private void applyEnforcedMinimumSize() {
 		if (this.minimumEnforced) {
-			this.innerScroll.setHbarPolicy(ScrollBarPolicy.NEVER);
-			this.innerScroll.setVbarPolicy(ScrollBarPolicy.NEVER);
+			if (this.useInnerScroll) {
+				this.innerScroll.setHbarPolicy(ScrollBarPolicy.NEVER);
+				this.innerScroll.setVbarPolicy(ScrollBarPolicy.NEVER);
 
+			}
 			this.window.getContentPane().minWidthProperty().bind(this.inner.minWidthProperty());
 			this.window.getContentPane().minHeightProperty().bind(this.inner.minHeightProperty());
 		} else {
-			this.innerScroll.setHbarPolicy(ScrollBarPolicy.AS_NEEDED);
-			this.innerScroll.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
+			if (this.useInnerScroll) {
+				this.innerScroll.setHbarPolicy(ScrollBarPolicy.AS_NEEDED);
+				this.innerScroll.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
+			}
 			this.window.minHeightProperty().unbind();
 			this.window.minWidthProperty().unbind();
 		}
