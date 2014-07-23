@@ -1,5 +1,6 @@
 package com.jme3x.jfx;
 
+import java.awt.Point;
 import java.awt.event.KeyEvent;
 import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
@@ -37,6 +38,7 @@ import com.jme3.texture.Texture2D;
 import com.jme3.ui.Picture;
 import com.jme3.util.BufferUtils;
 import com.jme3x.jfx.cursor.ICursorDisplayProvider;
+import com.jme3x.jfx.util.JFXUtils;
 import com.sun.glass.ui.Pixels;
 import com.sun.javafx.application.PlatformImpl;
 import com.sun.javafx.cursor.CursorType;
@@ -50,33 +52,38 @@ import com.sun.javafx.stage.EmbeddedWindow;
 
 /**
  * Need to pass -Dprism.dirtyopts=false on startup
- *
+ * 
  * @author abies / Artur Biesiadowski
  */
 public class JmeFxContainer {
 
-	EmbeddedStageInterface		stagePeer;
-	EmbeddedSceneInterface		scenePeer;
-	volatile EmbeddedWindow		stage;
-	HostInterface				hostContainer;
-	JmeFXInputListener			inputListener;
-	int							pWidth;
-	int							pHeight;
-	volatile Scene				scene;
-	Picture						picture;
-	Image						jmeImage;
-	Texture2D					tex;
-	ByteBuffer					jmeData;
-	ByteBuffer					fxData;
-	boolean						fxDataReady		= false;
-	int							oldX			= -1;
-	int							oldY			= -1;
-	boolean						focus;
-	Application					app;
-	boolean						fullScreenSuppport;
-	CompletableFuture<Format>	nativeFormat	= new CompletableFuture<Format>();
-	ICursorDisplayProvider		cursorDisplayProvider;
-	private Group				rootNode;
+	EmbeddedStageInterface stagePeer;
+	EmbeddedSceneInterface scenePeer;
+	volatile EmbeddedWindow stage;
+	HostInterface hostContainer;
+	JmeFXInputListener inputListener;
+	int pWidth;
+	int pHeight;
+	volatile Scene scene;
+	Image jmeImage;
+	Texture2D tex;
+	ByteBuffer jmeData;
+	ByteBuffer fxData;
+	boolean fxDataReady = false;
+	int oldX = -1;
+	int oldY = -1;
+	boolean focus;
+	Application app;
+	boolean fullScreenSuppport;
+	CompletableFuture<Format> nativeFormat = new CompletableFuture<Format>();
+	ICursorDisplayProvider cursorDisplayProvider;
+	private Group rootNode;
+
+	private final Picture picture;
+
+	/** Indent the window position to account for window decoration by Ronn */
+	private int windowOffsetX;
+	private int windowOffsetY;
 
 	public static JmeFxContainer install(final Application app, final Node guiNode, final boolean fullScreenSupport, final ICursorDisplayProvider cursorDisplayProvider) {
 		final JmeFxContainer ctr = new JmeFxContainer(app.getAssetManager(), app, fullScreenSupport, cursorDisplayProvider);
@@ -84,7 +91,7 @@ public class JmeFxContainer {
 		ctr.inputListener = new JmeFXInputListener(ctr);
 		app.getInputManager().addRawInputListener(ctr.inputListener);
 
-		if (fullScreenSupport) {
+		if(fullScreenSupport) {
 			ctr.installSceneAccessorHack();
 		}
 
@@ -98,11 +105,16 @@ public class JmeFxContainer {
 	private JmeFxContainer(final AssetManager assetManager, final Application app, final boolean fullScreenSupport, final ICursorDisplayProvider cursorDisplayProvider) {
 		this.initFx();
 
+		final Point decorationSize = JFXUtils.getWindowDecorationSize();
+
+		this.windowOffsetX = (int) decorationSize.getX();
+		this.windowOffsetY = (int) decorationSize.getY();
 		this.cursorDisplayProvider = cursorDisplayProvider;
 		this.app = app;
 		this.fullScreenSuppport = fullScreenSupport;
 
 		app.getStateManager().attach(new AbstractAppState() {
+
 			@Override
 			public void cleanup() {
 				Platform.exit();
@@ -112,29 +124,38 @@ public class JmeFxContainer {
 
 		this.hostContainer = new JmeFXHostInterfaceImpl(this);
 		this.picture = new Picture("JavaFXContainer", true) {
+
 			@Override
 			public void updateLogicalState(final float tpf) {
-				if (JmeFxContainer.this.stagePeer != null) {
 
-					if (Display.getWidth() != JmeFxContainer.this.pWidth || Display.getHeight() != JmeFxContainer.this.pHeight) {
-						JmeFxContainer.this.handleResize();
+				final EmbeddedStageInterface currentStage = getStagePeer();
+				try {
+
+					if(currentStage == null) {
+						return;
 					}
 
-					final int x = Display.getX() + (Display.isFullscreen() ? 0 : 3);
-					final int y = Display.getY() + (Display.isFullscreen() ? 0 : 25);
-					if (JmeFxContainer.this.oldX != x || JmeFxContainer.this.oldY != y) {
-						JmeFxContainer.this.oldX = x;
-						JmeFxContainer.this.oldY = y;
-						Platform.runLater(new Runnable() {
-							@Override
-							public void run() {
-								JmeFxContainer.this.stagePeer.setLocation(x, y);
-							}
-						});
+					final int currentWidth = Display.getWidth();
+					final int currentHeight = Display.getHeight();
+
+					if(currentWidth != getpWidth() || currentHeight != getpHeight()) {
+						handleResize();
 					}
 
+					final int x = Display.getX() + (Display.isFullscreen() ? 0 : getWindowOffsetX());
+					final int y = Display.getY() + (Display.isFullscreen() ? 0 : getWindowOffsetY());
+
+					if(getOldX() != x || getOldY() != y) {
+
+						setOldX(x);
+						setOldY(y);
+
+						Platform.runLater(() -> currentStage.setLocation(x, y));
+					}
+
+				} finally {
+					super.updateLogicalState(tpf);
 				}
-				super.updateLogicalState(tpf);
 			}
 		};
 
@@ -145,7 +166,38 @@ public class JmeFxContainer {
 
 		this.tex = new Texture2D(this.jmeImage);
 		this.picture.setTexture(assetManager, this.tex, true);
+	}
 
+	private int getOldX() {
+		return oldX;
+	}
+
+	private int getOldY() {
+		return oldY;
+	}
+
+	private void setOldX(int oldX) {
+		this.oldX = oldX;
+	}
+
+	private void setOldY(int oldY) {
+		this.oldY = oldY;
+	}
+
+	private int getpHeight() {
+		return pHeight;
+	}
+
+	private int getpWidth() {
+		return pWidth;
+	}
+
+	private EmbeddedSceneInterface getScenePeer() {
+		return scenePeer;
+	}
+
+	private EmbeddedStageInterface getStagePeer() {
+		return stagePeer;
 	}
 
 	private void handleResize() {
@@ -155,10 +207,10 @@ public class JmeFxContainer {
 
 			this.pWidth = Display.getWidth();
 			this.pHeight = Display.getHeight();
-			if (this.pWidth < 64) {
+			if(this.pWidth < 64) {
 				this.pWidth = 64;
 			}
-			if (this.pHeight < 64) {
+			if(this.pHeight < 64) {
 				this.pHeight = 64;
 			}
 			this.picture.setWidth(this.pWidth);
@@ -167,12 +219,13 @@ public class JmeFxContainer {
 			this.fxData = BufferUtils.createByteBuffer(this.pWidth * this.pHeight * 4);
 
 			this.jmeImage = new Image(this.nativeFormat.get(), this.pWidth, this.pHeight, this.jmeData);
-			if (this.tex != null) {
+			if(this.tex != null) {
 				this.tex.setImage(this.jmeImage);
 			}
 
-			if (this.stagePeer != null) {
+			if(this.stagePeer != null) {
 				Platform.runLater(new Runnable() {
+
 					@Override
 					public void run() {
 						JmeFxContainer.this.stagePeer.setSize(JmeFxContainer.this.pWidth, JmeFxContainer.this.pHeight);
@@ -182,7 +235,7 @@ public class JmeFxContainer {
 				});
 			}
 
-		} catch (final Exception exc) {
+		} catch(final Exception exc) {
 			exc.printStackTrace();
 		} finally {
 			this.imageExchange.release();
@@ -203,19 +256,20 @@ public class JmeFxContainer {
 
 	private void initFx() {
 		PlatformImpl.startup(new Runnable() {
+
 			@Override
 			public void run() {
-				switch (Pixels.getNativeFormat()) {
-				case Pixels.Format.BYTE_ARGB:
-					JmeFxContainer.this.nativeFormat.complete(Format.ARGB8);
-					break;
-				case Pixels.Format.BYTE_BGRA_PRE:
-					JmeFxContainer.this.nativeFormat.complete(Format.BGRA8);
-					break;
-				default:
-					// this is wrong, but at least will display something
-					JmeFxContainer.this.nativeFormat.complete(Format.ARGB8);
-					break;
+				switch(Pixels.getNativeFormat()) {
+					case Pixels.Format.BYTE_ARGB:
+						JmeFxContainer.this.nativeFormat.complete(Format.ARGB8);
+						break;
+					case Pixels.Format.BYTE_BGRA_PRE:
+						JmeFxContainer.this.nativeFormat.complete(Format.BGRA8);
+						break;
+					default:
+						// this is wrong, but at least will display something
+						JmeFxContainer.this.nativeFormat.complete(Format.ARGB8);
+						break;
 				}
 			}
 		});
@@ -236,6 +290,7 @@ public class JmeFxContainer {
 	public void setScene(final Scene newScene, final Group highLevelGroup) {
 		this.rootNode = highLevelGroup;
 		FxPlatformExecutor.runOnFxApplication(new Runnable() {
+
 			@Override
 			public void run() {
 				JmeFxContainer.this.setSceneImpl(newScene);
@@ -247,12 +302,13 @@ public class JmeFxContainer {
 	 * Called on JavaFX app thread.
 	 */
 	private void setSceneImpl(final Scene newScene) {
-		if (this.stage != null && newScene == null) {
+		if(this.stage != null && newScene == null) {
 			this.stage.hide();
 			this.stage = null;
 		}
 
 		this.app.enqueue(new Callable<Void>() {
+
 			@Override
 			public Void call() {
 				JmeFxContainer.this.picture.setCullHint(newScene == null ? CullHint.Always : CullHint.Never);
@@ -261,28 +317,29 @@ public class JmeFxContainer {
 		});
 
 		this.scene = newScene;
-		if (this.stage == null && newScene != null) {
+		if(this.stage == null && newScene != null) {
 			this.stage = new EmbeddedWindow(this.hostContainer);
 		}
-		if (this.stage != null) {
+		if(this.stage != null) {
 			this.stage.setScene(newScene);
-			if (!this.stage.isShowing()) {
+			if(!this.stage.isShowing()) {
 				this.stage.show();
 			}
 		}
 	}
 
-	private Semaphore	imageExchange	= new Semaphore(1);
-	public CursorType	lastcursor;
+	private final Semaphore imageExchange = new Semaphore(1);
+	public CursorType lastcursor;
 
 	void paintComponent() {
-		if (this.scenePeer == null) {
+		if(this.scenePeer == null) {
 			return;
 		}
 
 		final boolean lock = this.imageExchange.tryAcquire();
-		if (!lock) {
+		if(!lock) {
 			Platform.runLater(new Runnable() {
+
 				@Override
 				public void run() {
 					JmeFxContainer.this.paintComponent();
@@ -298,12 +355,12 @@ public class JmeFxContainer {
 
 			final IntBuffer buf = data.asIntBuffer();
 
-			if (!this.scenePeer.getPixels(buf, this.pWidth, this.pHeight)) {
+			if(!this.scenePeer.getPixels(buf, this.pWidth, this.pHeight)) {
 				return;
 			}
 
-			if (this.fullScreenSuppport) {
-				for (final PopupSnapper ps : this.activeSnappers) {
+			if(this.fullScreenSuppport) {
+				for(final PopupSnapper ps : this.activeSnappers) {
 					ps.paint(buf, this.pWidth, this.pHeight);
 				}
 			}
@@ -311,21 +368,23 @@ public class JmeFxContainer {
 			data.flip();
 			this.fxDataReady = true;
 
-		} catch (final Exception exc) {
+		} catch(final Exception exc) {
 			exc.printStackTrace();
 		} finally {
 			this.imageExchange.release();
 		}
 		this.app.enqueue(new Callable<Void>() {
+
 			@Override
 			public Void call() throws Exception {
 				final boolean updateImage = JmeFxContainer.this.imageExchange.tryAcquire();
 				// we update only if we can do that in nonblocking mode
-				// if would need to block, it means that another callable with newer data will be
+				// if would need to block, it means that another callable with
+				// newer data will be
 				// enqueued soon, so we can just ignore this repaint
-				if (updateImage) {
+				if(updateImage) {
 					try {
-						if (JmeFxContainer.this.fxDataReady) {
+						if(JmeFxContainer.this.fxDataReady) {
 							JmeFxContainer.this.fxDataReady = false;
 							final ByteBuffer tmp = JmeFxContainer.this.jmeData;
 							JmeFxContainer.this.jmeData = JmeFxContainer.this.fxData;
@@ -344,13 +403,13 @@ public class JmeFxContainer {
 
 	}
 
-	boolean[]	mouseButtonState	= new boolean[3];
+	boolean[] mouseButtonState = new boolean[3];
 
 	public boolean isCovered(final int x, final int y) {
-		if (x < 0 || x >= this.pWidth) {
+		if(x < 0 || x >= this.pWidth) {
 			return false;
 		}
-		if (y < 0 || y >= this.pHeight) {
+		if(y < 0 || y >= this.pHeight) {
 			return false;
 		}
 		final ByteBuffer data = this.jmeImage.getData(0);
@@ -361,45 +420,45 @@ public class JmeFxContainer {
 	}
 
 	public void grabFocus() {
-		if (!this.focus && this.stagePeer != null) {
+		if(!this.focus && this.stagePeer != null) {
 			this.stagePeer.setFocused(true, AbstractEvents.FOCUSEVENT_ACTIVATED);
 			this.focus = true;
 		}
 	}
 
 	public void loseFocus() {
-		if (this.focus && this.stagePeer != null) {
+		if(this.focus && this.stagePeer != null) {
 			this.stagePeer.setFocused(false, AbstractEvents.FOCUSEVENT_DEACTIVATED);
 			this.focus = false;
 		}
 	}
 
-	private char[]	keyCharSet	= new char[0xFF];
-	private BitSet	keyStateSet	= new BitSet(0xFF);
+	private final char[] keyCharSet = new char[0xFF];
+	private final BitSet keyStateSet = new BitSet(0xFF);
 
 	int retrieveKeyState() {
 		int embedModifiers = 0;
 
-		if (this.keyStateSet.get(KeyEvent.VK_SHIFT)) {
+		if(this.keyStateSet.get(KeyEvent.VK_SHIFT)) {
 			embedModifiers |= AbstractEvents.MODIFIER_SHIFT;
 		}
 
-		if (this.keyStateSet.get(KeyEvent.VK_CONTROL)) {
+		if(this.keyStateSet.get(KeyEvent.VK_CONTROL)) {
 			embedModifiers |= AbstractEvents.MODIFIER_CONTROL;
 		}
 
-		if (this.keyStateSet.get(KeyEvent.VK_ALT)) {
+		if(this.keyStateSet.get(KeyEvent.VK_ALT)) {
 			embedModifiers |= AbstractEvents.MODIFIER_ALT;
 		}
 
-		if (this.keyStateSet.get(KeyEvent.VK_META)) {
+		if(this.keyStateSet.get(KeyEvent.VK_META)) {
 			embedModifiers |= AbstractEvents.MODIFIER_META;
 		}
 		return embedModifiers;
 	}
 
-	Map<Window, PopupSnapper>	snappers		= new IdentityHashMap<>();
-	List<PopupSnapper>			activeSnappers	= new CopyOnWriteArrayList<>();
+	Map<Window, PopupSnapper> snappers = new IdentityHashMap<>();
+	List<PopupSnapper> activeSnappers = new CopyOnWriteArrayList<>();
 
 	private void installSceneAccessorHack() {
 
@@ -409,6 +468,7 @@ public class JmeFxContainer {
 			final SceneAccessor orig = (SceneAccessor) f.get(null);
 
 			final SceneAccessor sa = new SceneAccessor() {
+
 				@Override
 				public void setPaused(final boolean paused) {
 					orig.setPaused(paused);
@@ -428,12 +488,14 @@ public class JmeFxContainer {
 				public Scene createPopupScene(final Parent root) {
 					final Scene scene = orig.createPopupScene(root);
 					scene.windowProperty().addListener(new ChangeListener<Window>() {
+
 						@Override
 						public void changed(final javafx.beans.value.ObservableValue<? extends Window> observable, final Window oldValue, final Window window) {
 							window.addEventHandler(WindowEvent.WINDOW_SHOWN, new EventHandler<WindowEvent>() {
+
 								@Override
 								public void handle(final WindowEvent event) {
-									if (Display.isFullscreen()) {
+									if(Display.isFullscreen()) {
 										final PopupSnapper ps = new PopupSnapper(JmeFxContainer.this, window, scene);
 										JmeFxContainer.this.snappers.put(window, ps);
 										ps.start();
@@ -444,14 +506,16 @@ public class JmeFxContainer {
 					});
 
 					scene.windowProperty().addListener(new ChangeListener<Window>() {
+
 						@Override
 						public void changed(final javafx.beans.value.ObservableValue<? extends Window> observable, final Window oldValue, final Window window) {
 							window.addEventHandler(WindowEvent.WINDOW_HIDDEN, new EventHandler<WindowEvent>() {
+
 								@Override
 								public void handle(final WindowEvent event) {
-									if (Display.isFullscreen()) {
+									if(Display.isFullscreen()) {
 										final PopupSnapper ps = JmeFxContainer.this.snappers.remove(window);
-										if (ps == null) {
+										if(ps == null) {
 											System.out.println("Cannot find snapper for window " + window);
 										} else {
 											ps.stop();
@@ -464,19 +528,21 @@ public class JmeFxContainer {
 
 					return scene;
 				}
+
 				public void setTransientFocusContainer(final Scene scene, final javafx.scene.Node node) {
+
 				}
 			};
 
 			f.set(null, sa);
-		} catch (final Exception exc) {
+		} catch(final Exception exc) {
 			exc.printStackTrace();
 		}
 	}
 
 	/**
 	 * call via gui manager!
-	 *
+	 * 
 	 * @param rawInputListenerAdapter
 	 */
 	public void setEverListeningRawInputListener(final RawInputListener rawInputListenerAdapter) {
@@ -487,4 +553,31 @@ public class JmeFxContainer {
 		return this.rootNode;
 	}
 
+	/**
+	 * Indent the window position to account for window decoration.
+	 */
+	public void setWindowOffsetX(int windowOffsetX) {
+		this.windowOffsetX = windowOffsetX;
+	}
+
+	/**
+	 * Indent the window position to account for window decoration.
+	 */
+	public void setWindowOffsetY(int windowOffsetY) {
+		this.windowOffsetY = windowOffsetY;
+	}
+
+	/**
+	 * Indent the window position to account for window decoration.
+	 */
+	public int getWindowOffsetX() {
+		return windowOffsetX;
+	}
+
+	/**
+	 * Indent the window position to account for window decoration.
+	 */
+	public int getWindowOffsetY() {
+		return windowOffsetY;
+	}
 }
