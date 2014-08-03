@@ -1,8 +1,7 @@
 package com.jme3x.jfx.injfx;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javafx.beans.value.ChangeListener;
@@ -10,6 +9,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.image.PixelFormat;
 import javafx.scene.image.WritableImage;
 
+import com.jme3.app.Application;
 import com.jme3.post.SceneProcessor;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
@@ -21,63 +21,74 @@ import com.jme3x.jfx.FxPlatformExecutor;
 
 //https://github.com/caprica/vlcj-javafx/blob/master/src/test/java/uk/co/caprica/vlcj/javafx/test/JavaFXDirectRenderingTest.java
 //http://stackoverflow.com/questions/15951284/javafx-image-resizing
+//http://hub.jmonkeyengine.org/forum/topic/offscreen-rendering-problem/
 //TODO manage suspend/resume (eg when image/stage is hidden)
-//FIXME better management of sync data  buffer + size (immutable ?) between async read / async write (to avoid IndexOutOfBoundsException reproduce the bug increase framerate and resize)
 public class SceneProcessorCopyToImageView implements SceneProcessor {
 
-	private FrameBuffer fb;
-	private ByteBuffer byteBuf;
 	private RenderManager rm;
-	boolean attachAsMain = true;
-	private ArrayList<ViewPort> viewPorts = new ArrayList<ViewPort>();
+	private ViewPort latestViewPorts;
 	private int askWidth  = 1;
 	private int askHeight = 1;
-	private int width  = 1;
-	private int height = 1;
+	private boolean askFixAspect = true;
+	private TransfertImage timage;
 	private AtomicBoolean reshapeNeeded  = new AtomicBoolean(true);
 
-	private WritableImage img;
-	private final Object imgLock = new Object();
 	private ImageView imgView;
 	private ChangeListener<? super Number> wlistener = (w,o,n)->{
-		componentResized(n.intValue(), (int)this.imgView.getFitHeight());
+		componentResized(n.intValue(), (int)this.imgView.getFitHeight(), this.imgView.preserveRatioProperty().get());
 	};
 	private ChangeListener<? super Number> hlistener = (w,o,n)->{
-		componentResized((int)this.imgView.getFitWidth(), n.intValue());
+		componentResized((int)this.imgView.getFitWidth(), n.intValue(), this.imgView.preserveRatioProperty().get());
+	};
+	private ChangeListener<? super Boolean> rlistener = (w,o,n)->{
+		componentResized((int)this.imgView.getFitWidth(), (int)this.imgView.getFitHeight(), n.booleanValue());
 	};
 
-	public void componentResized(int w, int h) {
+	public void componentResized(int w, int h, boolean fixAspect) {
 		int newWidth2 = Math.max(w, 1);
 		int newHeight2 = Math.max(h, 1);
-		if (width != newWidth2 || height != newHeight2){
+		if (askWidth != newWidth2 || askWidth != newHeight2 || askFixAspect != fixAspect){
 			askWidth = newWidth2;
 			askHeight = newHeight2;
+			askFixAspect = fixAspect;
 			reshapeNeeded.set(true);
 		}
 	}
 
-	public void bind(ImageView view, boolean overrideMainFramebuffer, ViewPort ... vps){
-		if (viewPorts.size() > 0){
-			for (ViewPort vp : viewPorts){
-				vp.setOutputFrameBuffer(null);
+	public void bind(ImageView view, Application jmeApp){
+		unbind();
+
+		if (jmeApp != null) {
+			List<ViewPort> vps = jmeApp.getRenderManager().getPostViews();
+			latestViewPorts = vps.get(vps.size() - 1);
+			latestViewPorts.addProcessor(this);
+		}
+
+		FxPlatformExecutor.runOnFxApplication(() -> {
+			imgView = view;
+			if (imgView != null) {
+				imgView.fitWidthProperty().addListener(wlistener);
+				imgView.fitHeightProperty().addListener(hlistener);
+				imgView.preserveRatioProperty().addListener(rlistener);
+				componentResized((int)imgView.getFitWidth(), (int)imgView.getFitHeight(), imgView.isPreserveRatio());
+				imgView.setScaleY(-1.0);
 			}
-			viewPorts.get(viewPorts.size()-1).removeProcessor(this);
+		});
+	}
+
+	public void unbind(){
+
+		if (latestViewPorts != null){
+			latestViewPorts.removeProcessor(this); // call this.cleanup()
+			latestViewPorts = null;
 		}
 
-		viewPorts.addAll(Arrays.asList(vps));
-		viewPorts.get(viewPorts.size()-1).addProcessor(this);
-		attachAsMain = overrideMainFramebuffer;
-
-		if (imgView != null) {
-			imgView.fitWidthProperty().removeListener(wlistener);
-			imgView.fitHeightProperty().removeListener(hlistener);
-		}
-		imgView = view;
-		if (imgView != null) {
-			imgView.fitWidthProperty().addListener(wlistener);
-			imgView.fitHeightProperty().addListener(hlistener);
-			componentResized((int)imgView.getFitWidth(), (int)imgView.getFitHeight());
-		}
+		FxPlatformExecutor.runOnFxApplication(() -> {
+			if (imgView != null) {
+				imgView.fitWidthProperty().removeListener(wlistener);
+				imgView.fitHeightProperty().removeListener(hlistener);
+			}
+		});
 	}
 
 	@Override
@@ -85,62 +96,30 @@ public class SceneProcessorCopyToImageView implements SceneProcessor {
 		if (this.rm == null){
 			// First time called in OGL thread
 			this.rm = rm;
-			reshapeInThread(1, 1);
 		}
 	}
-	public void repaintInThread(){
-		// Convert screenshot.
-		byteBuf.clear();
-		rm.getRenderer().readFrameBuffer(fb, byteBuf);
-		FxPlatformExecutor.runOnFxApplication(() -> {
-			synchronized (imgLock){
-				img.getPixelWriter().setPixels(0, 0, width, height, PixelFormat.getByteBgraInstance(), byteBuf, width * 4);
-			}
-		});
-	}
 
-	private void reshapeInThread(int width0, int height0) {
-		width = width0;
-		height = height0;
-		byteBuf = BufferUtils.ensureLargeEnough(byteBuf, width * height * 4);
+	private TransfertImage reshapeInThread(int width0, int height0, boolean fixAspect) {
+		TransfertImage ti = new TransfertImage(width0, height0);
 
-		fb = new FrameBuffer(width, height, 1);
-		fb.setDepthBuffer(Format.Depth);
-		fb.setColorBuffer(Format.RGB8);
+		rm.getRenderer().setMainFrameBufferOverride(ti.fb);
+		rm.notifyReshape(ti.width, ti.height);
 
-		if (attachAsMain){
-			rm.getRenderer().setMainFrameBufferOverride(fb);
-		}
-
-		synchronized (imgLock){
-			img = new WritableImage(width, height);//, BufferedImage.TYPE_INT_RGB);
-		}
-		FxPlatformExecutor.runOnFxApplication(() -> {
-			//this.canvas.setScaleX(-1.0);
-			this.imgView.setScaleY(-1.0);
-			synchronized (imgLock){
-				imgView.setImage(img);
-			}
-		});
-
-		for (ViewPort vp : viewPorts){
-			if (!attachAsMain){
-				vp.setOutputFrameBuffer(fb);
-			}
-			vp.getCamera().resize(width, height, true);
-
-			// NOTE: Hack alert. This is done ONLY for custom framebuffers.
-			// Main framebuffer should use RenderManager.notifyReshape().
-			for (SceneProcessor sp : vp.getProcessors()){
-				sp.reshape(vp, width, height);
-			}
-			rm.notifyReshape(width, height);
-		}
+//		for (ViewPort vp : viewPorts){
+//			vp.getCamera().resize(ti.width, ti.height, fixAspect);
+//
+//			// NOTE: Hack alert. This is done ONLY for custom framebuffers.
+//			// Main framebuffer should use RenderManager.notifyReshape().
+//			for (SceneProcessor sp : vp.getProcessors()){
+//				sp.reshape(vp, ti.width, ti.height);
+//			}
+//		}
+		return ti;
 	}
 
 	@Override
 	public boolean isInitialized() {
-		return fb != null;
+		return timage != null;
 	}
 
 	@Override
@@ -153,27 +132,72 @@ public class SceneProcessorCopyToImageView implements SceneProcessor {
 
 	@Override
 	public void postFrame(FrameBuffer out) {
-		if (!attachAsMain && out != fb){
-			throw new IllegalStateException("Why did you change the output framebuffer?");
+		if (imgView != null && timage != null) {
+	//		if (out != timage.fb){
+	//			throw new IllegalStateException("Why did you change the output framebuffer? " + out + " != " + timage.fb);
+	//		}
+			timage.copyFrameBufferToImage(rm, imgView);
 		}
-		if (imgView == null) {
-			return;
-		}
-
+		// for the next frame
 		if (reshapeNeeded.getAndSet(false)){
-			reshapeInThread(askWidth, askHeight);
-		}else if (imgView.isVisible()) {
-			//System.out.print(".");
-			repaintInThread();
+			timage = reshapeInThread(askWidth, askHeight, askFixAspect);
+			//TODO dispose previous timage ASAP (when no longer used in JavafFX thread)
 		}
 	}
 
 	@Override
 	public void cleanup() {
+		if (timage != null) {
+			timage.dispose();
+			timage = null;
+		}
 	}
 
 	@Override
 	public void reshape(ViewPort vp, int w, int h) {
 	}
 
+	static class TransfertImage {
+		public final int width;
+		public final int height;
+		public final FrameBuffer fb;
+		public final ByteBuffer byteBuf;
+		public final WritableImage img;
+		private ImageView lastIv = null;
+
+		TransfertImage(int width, int height) {
+			this.width = width;
+			this.height = height;
+
+			fb = new FrameBuffer(width, height, 1);
+			fb.setDepthBuffer(Format.Depth);
+			fb.setColorBuffer(Format.RGB8);
+
+			byteBuf = BufferUtils.createByteBuffer(width * height * 4);
+
+			img = new WritableImage(width, height);
+		}
+
+		/** SHOULD run in JME'Display thread */
+		void copyFrameBufferToImage(RenderManager rm, ImageView iv) {
+			synchronized (byteBuf) {
+				// Convert screenshot.
+				byteBuf.clear();
+				rm.getRenderer().readFrameBuffer(fb, byteBuf);
+			}
+			FxPlatformExecutor.runOnFxApplication(() -> {
+				synchronized (byteBuf) {
+					if (lastIv != iv) {
+						lastIv = iv;
+						lastIv.setImage(img);
+					}
+					img.getPixelWriter().setPixels(0, 0, width, height, PixelFormat.getByteBgraInstance(), byteBuf, width * 4);
+				}
+			});
+		}
+
+		void dispose() {
+			fb.dispose();
+		}
+	}
 }
