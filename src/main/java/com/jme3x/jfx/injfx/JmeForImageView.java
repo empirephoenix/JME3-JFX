@@ -75,14 +75,14 @@ public class JmeForImageView {
 	 */
 	public Future<Boolean> bind(ImageView imageView) {
 		return enqueue((jmeApp) -> {
-			jmeAppDisplayBinder.bind(imageView, true, jmeApp.getViewPort(), jmeApp.getGuiViewPort());
+			jmeAppDisplayBinder.bind(imageView, jmeApp);
 			return true;
 		});
 	}
 
 	public Future<Boolean> unbind() {
 		return enqueue((jmeApp) -> {
-			jmeAppDisplayBinder.bind(null, true);
+			jmeAppDisplayBinder.unbind();
 			return true;
 		});
 	}

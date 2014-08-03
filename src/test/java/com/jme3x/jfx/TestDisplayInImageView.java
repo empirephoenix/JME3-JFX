@@ -186,6 +186,7 @@ public class TestDisplayInImageView extends Application {
 			image.fitWidthProperty().bind(p.widthProperty());
 
 			fpsReq.valueProperty().addListener((ov, o, n) -> fpsLabel.setText(String.format("fps : %4d", n.intValue())));
+			image.setPreserveRatio(false);
 		}
 
 	}
