@@ -1,5 +1,6 @@
 package com.jme3x.jfx;
 
+import java.awt.Point;
 import java.awt.event.KeyEvent;
 import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
@@ -37,6 +38,7 @@ import com.jme3.texture.Texture2D;
 import com.jme3.ui.Picture;
 import com.jme3.util.BufferUtils;
 import com.jme3x.jfx.cursor.ICursorDisplayProvider;
+import com.jme3x.jfx.util.JFXUtils;
 import com.sun.glass.ui.Accessible;
 import com.sun.glass.ui.Pixels;
 import com.sun.javafx.application.PlatformImpl;
@@ -64,7 +66,6 @@ public class JmeFxContainer {
 	int							pWidth;
 	int							pHeight;
 	volatile Scene				scene;
-	Picture						picture;
 	Image						jmeImage;
 	Texture2D					tex;
 	ByteBuffer					jmeData;
@@ -78,6 +79,12 @@ public class JmeFxContainer {
 	CompletableFuture<Format>	nativeFormat	= new CompletableFuture<Format>();
 	ICursorDisplayProvider		cursorDisplayProvider;
 	private Group				rootNode;
+
+	private final Picture		picture;
+
+	/** Indent the window position to account for window decoration by Ronn */
+	private int					windowOffsetX;
+	private int					windowOffsetY;
 
 	public static JmeFxContainer install(final Application app, final Node guiNode, final boolean fullScreenSupport, final ICursorDisplayProvider cursorDisplayProvider) {
 		final JmeFxContainer ctr = new JmeFxContainer(app.getAssetManager(), app, fullScreenSupport, cursorDisplayProvider);
@@ -99,11 +106,16 @@ public class JmeFxContainer {
 	private JmeFxContainer(final AssetManager assetManager, final Application app, final boolean fullScreenSupport, final ICursorDisplayProvider cursorDisplayProvider) {
 		this.initFx();
 
+		final Point decorationSize = JFXUtils.getWindowDecorationSize();
+
+		this.windowOffsetX = (int) decorationSize.getX();
+		this.windowOffsetY = (int) decorationSize.getY();
 		this.cursorDisplayProvider = cursorDisplayProvider;
 		this.app = app;
 		this.fullScreenSuppport = fullScreenSupport;
 
 		app.getStateManager().attach(new AbstractAppState() {
+
 			@Override
 			public void cleanup() {
 				Platform.exit();
@@ -113,29 +125,38 @@ public class JmeFxContainer {
 
 		this.hostContainer = new JmeFXHostInterfaceImpl(this);
 		this.picture = new Picture("JavaFXContainer", true) {
+
 			@Override
 			public void updateLogicalState(final float tpf) {
-				if (JmeFxContainer.this.stagePeer != null) {
 
-					if (Display.getWidth() != JmeFxContainer.this.pWidth || Display.getHeight() != JmeFxContainer.this.pHeight) {
+				final EmbeddedStageInterface currentStage = JmeFxContainer.this.getStagePeer();
+				try {
+
+					if (currentStage == null) {
+						return;
+					}
+
+					final int currentWidth = Display.getWidth();
+					final int currentHeight = Display.getHeight();
+
+					if (currentWidth != JmeFxContainer.this.getpWidth() || currentHeight != JmeFxContainer.this.getpHeight()) {
 						JmeFxContainer.this.handleResize();
 					}
 
-					final int x = Display.getX() + (Display.isFullscreen() ? 0 : 3);
-					final int y = Display.getY() + (Display.isFullscreen() ? 0 : 25);
-					if (JmeFxContainer.this.oldX != x || JmeFxContainer.this.oldY != y) {
-						JmeFxContainer.this.oldX = x;
-						JmeFxContainer.this.oldY = y;
-						Platform.runLater(new Runnable() {
-							@Override
-							public void run() {
-								JmeFxContainer.this.stagePeer.setLocation(x, y);
-							}
-						});
+					final int x = Display.getX() + (Display.isFullscreen() ? 0 : JmeFxContainer.this.getWindowOffsetX());
+					final int y = Display.getY() + (Display.isFullscreen() ? 0 : JmeFxContainer.this.getWindowOffsetY());
+
+					if (JmeFxContainer.this.getOldX() != x || JmeFxContainer.this.getOldY() != y) {
+
+						JmeFxContainer.this.setOldX(x);
+						JmeFxContainer.this.setOldY(y);
+
+						Platform.runLater(() -> currentStage.setLocation(x, y));
 					}
 
+				} finally {
+					super.updateLogicalState(tpf);
 				}
-				super.updateLogicalState(tpf);
 			}
 		};
 
@@ -146,7 +167,38 @@ public class JmeFxContainer {
 
 		this.tex = new Texture2D(this.jmeImage);
 		this.picture.setTexture(assetManager, this.tex, true);
+	}
 
+	private int getOldX() {
+		return this.oldX;
+	}
+
+	private int getOldY() {
+		return this.oldY;
+	}
+
+	private void setOldX(final int oldX) {
+		this.oldX = oldX;
+	}
+
+	private void setOldY(final int oldY) {
+		this.oldY = oldY;
+	}
+
+	private int getpHeight() {
+		return this.pHeight;
+	}
+
+	private int getpWidth() {
+		return this.pWidth;
+	}
+
+	private EmbeddedSceneInterface getScenePeer() {
+		return this.scenePeer;
+	}
+
+	private EmbeddedStageInterface getStagePeer() {
+		return this.stagePeer;
 	}
 
 	private void handleResize() {
@@ -174,6 +226,7 @@ public class JmeFxContainer {
 
 			if (this.stagePeer != null) {
 				Platform.runLater(new Runnable() {
+
 					@Override
 					public void run() {
 						JmeFxContainer.this.stagePeer.setSize(JmeFxContainer.this.pWidth, JmeFxContainer.this.pHeight);
@@ -204,6 +257,7 @@ public class JmeFxContainer {
 
 	private void initFx() {
 		PlatformImpl.startup(new Runnable() {
+
 			@Override
 			public void run() {
 				switch (Pixels.getNativeFormat()) {
@@ -237,6 +291,7 @@ public class JmeFxContainer {
 	public void setScene(final Scene newScene, final Group highLevelGroup) {
 		this.rootNode = highLevelGroup;
 		FxPlatformExecutor.runOnFxApplication(new Runnable() {
+
 			@Override
 			public void run() {
 				JmeFxContainer.this.setSceneImpl(newScene);
@@ -254,6 +309,7 @@ public class JmeFxContainer {
 		}
 
 		this.app.enqueue(new Callable<Void>() {
+
 			@Override
 			public Void call() {
 				JmeFxContainer.this.picture.setCullHint(newScene == null ? CullHint.Always : CullHint.Never);
@@ -273,8 +329,8 @@ public class JmeFxContainer {
 		}
 	}
 
-	private Semaphore	imageExchange	= new Semaphore(1);
-	public CursorType	lastcursor;
+	private final Semaphore	imageExchange	= new Semaphore(1);
+	public CursorType		lastcursor;
 
 	void paintComponent() {
 		if (this.scenePeer == null) {
@@ -284,6 +340,7 @@ public class JmeFxContainer {
 		final boolean lock = this.imageExchange.tryAcquire();
 		if (!lock) {
 			Platform.runLater(new Runnable() {
+
 				@Override
 				public void run() {
 					JmeFxContainer.this.paintComponent();
@@ -318,11 +375,13 @@ public class JmeFxContainer {
 			this.imageExchange.release();
 		}
 		this.app.enqueue(new Callable<Void>() {
+
 			@Override
 			public Void call() throws Exception {
 				final boolean updateImage = JmeFxContainer.this.imageExchange.tryAcquire();
 				// we update only if we can do that in nonblocking mode
-				// if would need to block, it means that another callable with newer data will be
+				// if would need to block, it means that another callable with
+				// newer data will be
 				// enqueued soon, so we can just ignore this repaint
 				if (updateImage) {
 					try {
@@ -375,8 +434,8 @@ public class JmeFxContainer {
 		}
 	}
 
-	private char[]	keyCharSet	= new char[0xFF];
-	private BitSet	keyStateSet	= new BitSet(0xFF);
+	private final char[]	keyCharSet	= new char[0xFF];
+	private final BitSet	keyStateSet	= new BitSet(0xFF);
 
 	int retrieveKeyState() {
 		int embedModifiers = 0;
@@ -410,6 +469,7 @@ public class JmeFxContainer {
 			final SceneAccessor orig = (SceneAccessor) f.get(null);
 
 			final SceneAccessor sa = new SceneAccessor() {
+
 				@Override
 				public void setPaused(final boolean paused) {
 					orig.setPaused(paused);
@@ -429,9 +489,11 @@ public class JmeFxContainer {
 				public Scene createPopupScene(final Parent root) {
 					final Scene scene = orig.createPopupScene(root);
 					scene.windowProperty().addListener(new ChangeListener<Window>() {
+
 						@Override
 						public void changed(final javafx.beans.value.ObservableValue<? extends Window> observable, final Window oldValue, final Window window) {
 							window.addEventHandler(WindowEvent.WINDOW_SHOWN, new EventHandler<WindowEvent>() {
+
 								@Override
 								public void handle(final WindowEvent event) {
 									if (Display.isFullscreen()) {
@@ -445,9 +507,11 @@ public class JmeFxContainer {
 					});
 
 					scene.windowProperty().addListener(new ChangeListener<Window>() {
+
 						@Override
 						public void changed(final javafx.beans.value.ObservableValue<? extends Window> observable, final Window oldValue, final Window window) {
 							window.addEventHandler(WindowEvent.WINDOW_HIDDEN, new EventHandler<WindowEvent>() {
+
 								@Override
 								public void handle(final WindowEvent event) {
 									if (Display.isFullscreen()) {
@@ -471,6 +535,7 @@ public class JmeFxContainer {
 
 				}
 
+				@Override
 				public Accessible getAccessible(final Scene arg0) {
 					return null;
 				}
@@ -495,4 +560,31 @@ public class JmeFxContainer {
 		return this.rootNode;
 	}
 
+	/**
+	 * Indent the window position to account for window decoration.
+	 */
+	public void setWindowOffsetX(final int windowOffsetX) {
+		this.windowOffsetX = windowOffsetX;
+	}
+
+	/**
+	 * Indent the window position to account for window decoration.
+	 */
+	public void setWindowOffsetY(final int windowOffsetY) {
+		this.windowOffsetY = windowOffsetY;
+	}
+
+	/**
+	 * Indent the window position to account for window decoration.
+	 */
+	public int getWindowOffsetX() {
+		return this.windowOffsetX;
+	}
+
+	/**
+	 * Indent the window position to account for window decoration.
+	 */
+	public int getWindowOffsetY() {
+		return this.windowOffsetY;
+	}
 }

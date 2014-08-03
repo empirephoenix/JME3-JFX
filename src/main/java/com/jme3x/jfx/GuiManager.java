@@ -27,7 +27,6 @@ import com.jme3x.jfx.cursor.ICursorDisplayProvider;
 import com.sun.javafx.cursor.CursorType;
 
 public class GuiManager {
-
 	private JmeFxContainer		jmefx;
 	private Group				highLevelGroup;
 	private Scene				mainScene;
@@ -198,8 +197,10 @@ public class GuiManager {
 		final ArrayList<AbstractWindow> orderedWindows = new ArrayList<>();
 		final ArrayList<AbstractWindow> orderedModalWindows = new ArrayList<>();
 		final ArrayList<AbstractHud> orderdHuds = new ArrayList<>();
+
+		final ArrayList<javafx.scene.Node> others = new ArrayList<>();
 		boolean switchToModal = false;
-		for (final javafx.scene.Node n : currentOrder) {
+		nextNode: for (final javafx.scene.Node n : currentOrder) {
 			for (final AbstractHud hud : this.attachedHuds) {
 				if (hud.getNode() == n) {
 					if (hud instanceof AbstractWindow) {
@@ -209,19 +210,29 @@ public class GuiManager {
 								switchToModal = true;
 							}
 							orderedModalWindows.add((AbstractWindow) hud);
+							continue nextNode;
 						} else {
 							orderedWindows.add((AbstractWindow) hud);
+							continue nextNode;
 						}
 					} else {
 						orderdHuds.add(hud);
+						continue nextNode;
 					}
 				}
 			}
+			others.add(n);
 		}
 
 		// clean current list, add huds first then windows
 
 		currentOrder.clear();
+		// put everything else somewhare + ugly hack for dragimage
+		for (final javafx.scene.Node other : others) {
+			if (!("dragimage:true;".equals(other.getStyle()))) {
+				currentOrder.add(other);
+			}
+		}
 		for (final AbstractHud hud : orderdHuds) {
 			// disable them if a modal window exist(till a better solution is found for input interception)
 			hud.getNode().disableProperty().set(orderedModalWindows.size() > 0);
@@ -236,10 +247,16 @@ public class GuiManager {
 			currentOrder.add(modalWindow.getNode());
 			modalWindow.getNode().requestFocus();
 		}
+		// ugly hack to make sure the dragimage stays on front
+		for (final javafx.scene.Node other : others) {
+			if ("dragimage:true;".equals(other.getStyle())) {
+				currentOrder.add(other);
+			}
+		}
 		if (!switchToModal && orderedModalWindows.size() > 0) {
-			// TODO focuse notification
 			System.out.println("TODO FocusDenied sound/visual representation");
 		}
+
 	}
 
 	public List<AbstractHud> getAttachedHuds() {
@@ -259,5 +276,4 @@ public class GuiManager {
 	private Material getCustomMaterial() {
 		return this.customMaterial;
 	}
-
 }
