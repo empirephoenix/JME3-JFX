@@ -39,7 +39,6 @@ import com.jme3.ui.Picture;
 import com.jme3.util.BufferUtils;
 import com.jme3x.jfx.cursor.ICursorDisplayProvider;
 import com.jme3x.jfx.util.JFXUtils;
-import com.sun.glass.ui.Accessible;
 import com.sun.glass.ui.Pixels;
 import com.sun.javafx.application.PlatformImpl;
 import com.sun.javafx.cursor.CursorType;
@@ -533,11 +532,6 @@ public class JmeFxContainer {
 				@Override
 				public void setTransientFocusContainer(final Scene scene, final javafx.scene.Node node) {
 
-				}
-
-				@Override
-				public Accessible getAccessible(final Scene arg0) {
-					return null;
 				}
 			};
 
