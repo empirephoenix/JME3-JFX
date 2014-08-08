@@ -19,6 +19,7 @@ public class JFXUtils {
 
 	static {
 		OFFSET_MAPPING.put("Ubuntu 14.04 LTS (trusty)", new Point(10, 37));
+		OFFSET_MAPPING.put("Ubuntu 14.04.1 LTS (trusty)", new Point(10, 37));
 	}
 
 	/**
