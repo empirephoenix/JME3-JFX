@@ -142,6 +142,10 @@ public class GuiManager {
 	 * @param hud
 	 */
 	public void detachHudAsync(final AbstractHud hud) {
+		if (hud == null) {
+			System.err.println("Warning trying to remove null hud!");
+			return;
+		}
 		final Runnable attachTask = new Runnable() {
 			@Override
 			public void run() {
@@ -229,7 +233,7 @@ public class GuiManager {
 		currentOrder.clear();
 		// put everything else somewhare + ugly hack for dragimage
 		for (final javafx.scene.Node other : others) {
-			if (!("dragimage:true;".equals(other.getStyle()))) {
+			if (!"dragimage:true;".equals(other.getStyle())) {
 				currentOrder.add(other);
 			}
 		}
