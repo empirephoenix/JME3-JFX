@@ -29,7 +29,7 @@ import com.sun.javafx.cursor.CursorType;
 public class GuiManager {
 	private JmeFxContainer		jmefx;
 	private Group				highLevelGroup;
-	private Scene				mainScene;
+
 	/**
 	 * a list of all attached huds, using copyonwrite to allow reading from other threads in a save way
 	 */
@@ -52,7 +52,7 @@ public class GuiManager {
 
 	/**
 	 * creates a new JMEFX container, this is a rather expensive operation and should only be done one time fr the 2d fullscreengui. Additionals should only be necessary for 3d guis, should be called from JME thread
-	 * 
+	 *
 	 * @param guiParent
 	 * @param assetManager
 	 * @param application
@@ -85,9 +85,9 @@ public class GuiManager {
 
 	private void initRootGroup() {
 		/*
-		 * 
+		 *
 		 * Group baseHighLevelGroup = new Group(); Scene baseScene = new Scene(baseHighLevelGroup); baseScene.setFill(new Color(0, 0, 0, 0)); switchRootGroup(baseHighLevelGroup); }
-		 * 
+		 *
 		 * private void switchRootGroup(Group newRootGroup) {
 		 */
 		final Semaphore waitForInit = new Semaphore(0);
@@ -118,9 +118,9 @@ public class GuiManager {
 					}
 				});
 
-				GuiManager.this.mainScene = new Scene(GuiManager.this.highLevelGroup);
-				GuiManager.this.mainScene.setFill(new Color(0, 0, 0, 0));
-				GuiManager.this.jmefx.setScene(GuiManager.this.mainScene, GuiManager.this.highLevelGroup);
+				Scene scene = new Scene(GuiManager.this.highLevelGroup);
+				scene.setFill(new Color(0, 0, 0, 0));
+				GuiManager.this.jmefx.setScene(scene, GuiManager.this.highLevelGroup);
 				waitForInit.release();
 			}
 		});
@@ -129,7 +129,7 @@ public class GuiManager {
 
 	/**
 	 * bind your input suppliery here, for 2d the normal inputmanager will suffice, Events are expected to be in the JME thread
-	 * 
+	 *
 	 * @return
 	 */
 	public RawInputListener getInputRedirector() {
@@ -138,7 +138,7 @@ public class GuiManager {
 
 	/**
 	 * removes a hud, if this is not called in the jfx thread this is done async, else it is done instantly
-	 * 
+	 *
 	 * @param hud
 	 */
 	public void detachHudAsync(final AbstractHud hud) {
@@ -163,7 +163,7 @@ public class GuiManager {
 
 	/**
 	 * adds a hud, if this is not called in the jfx thread this is done async, else it is done instantly
-	 * 
+	 *
 	 * @param hud
 	 */
 	public void attachHudAsync(final AbstractHud hud) {
@@ -270,7 +270,7 @@ public class GuiManager {
 	/**
 	 * this inputlistener recives all! events, even those that are normally consumed by JFX. <br>
 	 * Usecase
-	 * 
+	 *
 	 * @param rawInputListenerAdapter
 	 */
 	public void setEverListeningRawInputListener(final RawInputListener rawInputListenerAdapter) {
