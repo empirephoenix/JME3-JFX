@@ -52,7 +52,7 @@ import com.sun.javafx.stage.EmbeddedWindow;
 
 /**
  * Need to pass -Dprism.dirtyopts=false on startup
- * 
+ *
  * @author abies / Artur Biesiadowski
  */
 public class JmeFxContainer {
@@ -190,10 +190,6 @@ public class JmeFxContainer {
 
 	private int getpWidth() {
 		return this.pWidth;
-	}
-
-	private EmbeddedSceneInterface getScenePeer() {
-		return this.scenePeer;
 	}
 
 	private EmbeddedStageInterface getStagePeer() {
@@ -433,7 +429,6 @@ public class JmeFxContainer {
 		}
 	}
 
-	private final char[]	keyCharSet	= new char[0xFF];
 	private final BitSet	keyStateSet	= new BitSet(0xFF);
 
 	int retrieveKeyState() {
@@ -541,7 +536,7 @@ public class JmeFxContainer {
 
 	/**
 	 * call via gui manager!
-	 * 
+	 *
 	 * @param rawInputListenerAdapter
 	 */
 	public void setEverListeningRawInputListener(final RawInputListener rawInputListenerAdapter) {
