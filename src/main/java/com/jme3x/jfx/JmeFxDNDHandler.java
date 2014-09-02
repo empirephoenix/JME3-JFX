@@ -9,6 +9,9 @@ import javafx.scene.image.WritableImage;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.TransferMode;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.sun.javafx.embed.EmbeddedSceneDSInterface;
 import com.sun.javafx.embed.EmbeddedSceneDTInterface;
 import com.sun.javafx.embed.HostDragStartListener;
@@ -17,11 +20,13 @@ import com.sun.javafx.embed.HostDragStartListener;
  * A very hacky implementation of a DND system, similar to SwingDND but for jme context. <br>
  * Allows for inner application drag and drop support. <br>
  * Cross GuiManager support is untested.
- * 
+ *
  * @author empire
  *
  */
 public class JmeFxDNDHandler implements HostDragStartListener {
+	private static final Logger logger = LoggerFactory.getLogger(JmeFxDNDHandler.class);
+
 	private JmeFxContainer				jmeFxContainer;
 	private EmbeddedSceneDTInterface	dropTarget;
 	// mouse event stuff
@@ -44,9 +49,9 @@ public class JmeFxDNDHandler implements HostDragStartListener {
 
 			this.jmeFxContainer.getInputListener().setMouseDNDListener(this);
 			assert dragAction == TransferMode.COPY : "Only Copy is supported currently";
-			System.out.println("Drag started of " + dragSource + " in mode " + dragAction);
+			logger.debug("Drag started of {} in mode {}", dragSource, dragAction);
 			final Clipboard clip = Clipboard.getSystemClipboard();
-			System.out.println(clip);
+			logger.debug("clip : {}", clip);
 
 			assert this.dragSource == null;
 			assert this.dropTarget == null;
@@ -62,7 +67,7 @@ public class JmeFxDNDHandler implements HostDragStartListener {
 
 	/**
 	 * this is kinda ridiculous, but well at least it seems to work
-	 * 
+	 *
 	 * @param jmeJfxDragImage
 	 * @param offset
 	 */
@@ -90,7 +95,7 @@ public class JmeFxDNDHandler implements HostDragStartListener {
 					((ByteBuffer) offset).position(0);
 					final int x = ((ByteBuffer) offset).getInt();
 					final int y = ((ByteBuffer) offset).getInt();
-					System.out.println("Img offset " + x + "," + y);
+					logger.debug("Img offset {},{}", x, y);
 				}
 
 			} catch (final Exception e) {
@@ -118,7 +123,7 @@ public class JmeFxDNDHandler implements HostDragStartListener {
 					this.jmeFxContainer.getRootNode().getChildren().remove(this.dragImage);
 					this.dragImage = null;
 				}
-				System.out.println("Drag released!");
+				logger.debug("Drag released!");
 				if (this.overtarget != null) {
 					// // causes exceptions when done without a target
 					this.overtarget = JmeFxDNDHandler.this.dropTarget.handleDragOver(x, y, x, y, TransferMode.COPY);
@@ -126,7 +131,7 @@ public class JmeFxDNDHandler implements HostDragStartListener {
 					// // Necessary to reset final the internal states, and allow final another drag drop
 					this.dragSource.dragDropEnd(acceptedMode);
 				} else {
-					System.out.println("invalid drag target");
+					logger.debug("invalid drag target");
 					// // seems to be necessary if no dragdrop attempt is being made
 					JmeFxDNDHandler.this.dropTarget.handleDragLeave();
 					this.dragSource.dragDropEnd(null);

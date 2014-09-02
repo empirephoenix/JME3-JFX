@@ -3,6 +3,9 @@ package com.jme3x.jfx.cursor.proton;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.jme3.app.Application;
 import com.jme3.asset.AssetManager;
 import com.jme3.asset.plugins.ClasspathLocator;
@@ -16,11 +19,13 @@ import com.sun.javafx.cursor.CursorType;
  * http://www.rw-designer.com/cursor-set/proton by juanello <br>
  * A cursorProvider that simulates the native JFX one and tries to behave similar,<br>
  * using native cursors and 2D surface logic.
- * 
+ *
  * @author empire
- * 
+ *
  */
 public class ProtonCursorProvider implements ICursorDisplayProvider {
+	private static final Logger logger = LoggerFactory.getLogger(ProtonCursorProvider.class);
+
 	private ConcurrentHashMap<CursorType, JmeCursor>	cache	= new ConcurrentHashMap<CursorType, JmeCursor>();
 	private AssetManager								assetManager;
 	private InputManager								inputManager;
@@ -37,7 +42,7 @@ public class ProtonCursorProvider implements ICursorDisplayProvider {
 	public void showCursor(final CursorFrame cursorFrame) {
 		CursorType cursorType = cursorFrame.getCursorType();
 		if (this.cache.get(cursorType) == null) {
-			System.out.println("Unkown Cursor! " + cursorType);
+			logger.debug("Unkown Cursor! {}", cursorType);
 			cursorType = CursorType.DEFAULT;
 		}
 
