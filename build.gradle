@@ -43,7 +43,7 @@ dependencies {
 	compile group: 'org.jfxtras', name: 'jfxtras-window', version:'8.0-r2-SNAPSHOT'
 	compile "org.slf4j:slf4j-api:${v_slf4j}"
 	provided files('providedlibs/jme3-core.jar','providedlibs/jme3-desktop.jar','providedlibs/jme3-lwjgl.jar','providedlibs/lwjgl.jar')
-	runtime "org.slf4j:slf4j-jdk14:${v_slf4j}"
+	testRuntime "org.slf4j:slf4j-jdk14:${v_slf4j}"
 }
 
 task packageSources(type: Jar) {
