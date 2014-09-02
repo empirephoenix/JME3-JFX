@@ -25,6 +25,8 @@ import javafx.stage.Window;
 import javafx.stage.WindowEvent;
 
 import org.lwjgl.opengl.Display;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.jme3.app.Application;
 import com.jme3.app.state.AbstractAppState;
@@ -56,6 +58,7 @@ import com.sun.javafx.stage.EmbeddedWindow;
  * @author abies / Artur Biesiadowski
  */
 public class JmeFxContainer {
+	private static final Logger logger = LoggerFactory.getLogger(JmeFxContainer.class);
 
 	EmbeddedStageInterface		stagePeer;
 	EmbeddedSceneInterface		scenePeer;
@@ -511,7 +514,7 @@ public class JmeFxContainer {
 									if (Display.isFullscreen()) {
 										final PopupSnapper ps = JmeFxContainer.this.snappers.remove(window);
 										if (ps == null) {
-											System.out.println("Cannot find snapper for window " + window);
+											logger.warn("Cannot find snapper for window " + window);
 										} else {
 											ps.stop();
 										}

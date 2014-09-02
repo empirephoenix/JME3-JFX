@@ -4,6 +4,9 @@
  */
 package com.jme3x.jfx;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.sun.javafx.cursor.CursorFrame;
 import com.sun.javafx.embed.AbstractEvents;
 import com.sun.javafx.embed.EmbeddedSceneInterface;
@@ -12,9 +15,10 @@ import com.sun.javafx.embed.HostInterface;
 
 /**
  * Fakes a top level window
- * 
+ *
  */
 public class JmeFXHostInterfaceImpl implements HostInterface {
+	private static final Logger logger = LoggerFactory.getLogger(JmeFXHostInterfaceImpl.class);
 
 	private final JmeFxContainer jmeFxContainer;
 
@@ -58,7 +62,7 @@ public class JmeFXHostInterfaceImpl implements HostInterface {
 
 	@Override
 	public boolean traverseFocusOut(final boolean forward) {
-		System.out.println("Called traverseFocusOut " + forward);
+		logger.debug("Called traverseFocusOut({})", forward);
 		return true;
 	}
 

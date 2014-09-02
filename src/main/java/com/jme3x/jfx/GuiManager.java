@@ -13,6 +13,9 @@ import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.paint.Color;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.jme3.app.Application;
 import com.jme3.asset.AssetManager;
 import com.jme3.input.RawInputListener;
@@ -27,6 +30,8 @@ import com.jme3x.jfx.cursor.ICursorDisplayProvider;
 import com.sun.javafx.cursor.CursorType;
 
 public class GuiManager {
+	private static final Logger logger = LoggerFactory.getLogger(GuiManager.class);
+
 	private JmeFxContainer		jmefx;
 	private Group				highLevelGroup;
 
@@ -143,7 +148,7 @@ public class GuiManager {
 	 */
 	public void detachHudAsync(final AbstractHud hud) {
 		if (hud == null) {
-			System.err.println("Warning trying to remove null hud!");
+			logger.warn("trying to remove null hud!");
 			return;
 		}
 		final Runnable attachTask = new Runnable() {
@@ -152,7 +157,7 @@ public class GuiManager {
 				if (!hud.isAttached()) {
 					return;
 				}
-				System.out.println("Detaching " + hud);
+				logger.debug("Detaching {}", hud);
 				GuiManager.this.attachedHuds.remove(hud);
 				GuiManager.this.highLevelGroup.getChildren().remove(hud.getNode());
 				hud.setAttached(false, null);
@@ -173,10 +178,10 @@ public class GuiManager {
 				if (hud.isAttached()) {
 					return;
 				}
-				System.out.println("Attaching " + hud);
+				logger.debug("Attaching {}", hud);
 				assert !GuiManager.this.attachedHuds.contains(hud) : "Duplicated attach of " + hud + " isAttached state error?";
 				if (!hud.isInitialized()) {
-					System.err.println("Late init of " + hud.getClass().getName() + " call initialize early to prevent microlags");
+					logger.warn("Late init of {} call initialize early to prevent microlags", hud.getClass().getName());
 					hud.precache();
 				}
 				GuiManager.this.attachedHuds.add(hud);
@@ -258,7 +263,7 @@ public class GuiManager {
 			}
 		}
 		if (!switchToModal && orderedModalWindows.size() > 0) {
-			System.out.println("TODO FocusDenied sound/visual representation");
+			logger.warn("TODO FocusDenied sound/visual representation");
 		}
 
 	}
