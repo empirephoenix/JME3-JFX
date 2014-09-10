@@ -39,15 +39,11 @@ sourceSets {
 sourceSets.main.resources.srcDir 'src/main/java'
 
 def v_slf4j = '1.7.7'
-def v_jme = '3.1.0-snapshot-github'
 
 dependencies {
 	compile group: 'org.jfxtras', name: 'jfxtras-window', version:'8.0-r2-SNAPSHOT'
 	compile "org.slf4j:slf4j-api:${v_slf4j}"
-	provided "com.jme3:jme3-core:${v_jme}"
-	provided "com.jme3:jme3-lwjgl:${v_jme}"
-	provided "com.jme3:jme3-desktop:${v_jme}"
-	//provided files('providedlibs/jme3-core.jar','providedlibs/jme3-desktop.jar','providedlibs/jme3-lwjgl.jar','providedlibs/lwjgl.jar')
+	provided files('providedlibs/jme3-core.jar','providedlibs/jme3-desktop.jar','providedlibs/jme3-lwjgl.jar','providedlibs/lwjgl.jar')
 	testRuntime "org.slf4j:slf4j-jdk14:${v_slf4j}"
 }
 
