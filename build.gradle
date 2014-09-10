@@ -22,6 +22,7 @@ group = "com.jme3x"
 
 
 repositories {
+	mavenLocal()
 	mavenCentral()
 
 	maven { url "https://oss.sonatype.org/content/groups/public"}
