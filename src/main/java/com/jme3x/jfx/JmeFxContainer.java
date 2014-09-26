@@ -271,28 +271,22 @@ public class JmeFxContainer {
 			@Override
 			public void run() {
 				//TODO 3.1: use Format.ARGB8 and Format.BGRA8 and remove used of exchangeData, fx2jme_ARGB82ABGR8,...
-				try {
-					Format Format_ARGB8 = Format.ABGR8;
-					Format Format_BGRA8 = Format.ABGR8;
-					switch (Pixels.getNativeFormat()) {
-					case Pixels.Format.BYTE_ARGB:
-						JmeFxContainer.this.nativeFormat.complete(Format_ARGB8);
-						exchangeData = JmeFxContainer::fx2jme_ARGB82ABGR8;
-						break;
-					case Pixels.Format.BYTE_BGRA_PRE:
-						JmeFxContainer.this.nativeFormat.complete(Format_BGRA8);
-						exchangeData = JmeFxContainer::fx2jme_BGRA82ABGR8;
-						break;
-					default:
-						// this is wrong, but at least will display something
-						JmeFxContainer.this.nativeFormat.complete(Format_ARGB8);
-						exchangeData = JmeFxContainer::fx2jme_ARGB82ABGR8;
-						break;
-					}
-				} catch (RuntimeException e) {
-					throw e;
-				} catch (Exception e) {
-					throw new RuntimeException(e);
+				Format Format_ARGB8 = Format.ABGR8;
+				Format Format_BGRA8 = Format.ABGR8;
+				switch (Pixels.getNativeFormat()) {
+				case Pixels.Format.BYTE_ARGB:
+					JmeFxContainer.this.nativeFormat.complete(Format_ARGB8);
+					exchangeData = JmeFxContainer::fx2jme_ARGB82ABGR8;
+					break;
+				case Pixels.Format.BYTE_BGRA_PRE:
+					JmeFxContainer.this.nativeFormat.complete(Format_BGRA8);
+					exchangeData = JmeFxContainer::fx2jme_BGRA82ABGR8;
+					break;
+				default:
+					// this is wrong, but at least will display something
+					JmeFxContainer.this.nativeFormat.complete(Format_ARGB8);
+					exchangeData = JmeFxContainer::fx2jme_ARGB82ABGR8;
+					break;
 				}
 			}
 		});
