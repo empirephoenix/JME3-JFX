@@ -15,15 +15,15 @@ import com.sun.media.jfxmedia.events.NewFrameEvent;
 import com.sun.media.jfxmedia.events.VideoRendererListener;
 
 /**
- * 
+ *
  * Example usage
- * 
+ *
  * PlatformImpl.startup(() -> {}); media = new
  * Media("http://download.oracle.com/otndocs/products/javafx/oow2010-2.flv"); mp
  * = new javafx.scene.media.MediaPlayer(media); mp.play(); tm = new
  * TextureMovie(mp, LetterboxMode.VALID_LETTERBOX);
  * tm.setLetterboxColor(ColorRGBA.Black); texture = tm.getTexture();
- * 
+ *
  * material.setTexture("ColorMap",texture); Please be sure you do not lose
  * reference to TextureMove while you need the result texture - if it ever gets
  * garbage collected, movie can stop playing.
@@ -52,7 +52,7 @@ public class TextureMovie {
         VALID_LETTERBOX
     }
 
-    private static Image emptyImage = new Image(Format.ARGB8, 1, 1, BufferUtils.createByteBuffer(4));
+    private static Image emptyImage = new Image(Format.ABGR8, 1, 1, BufferUtils.createByteBuffer(4));
 
     private final javafx.scene.media.MediaPlayer jPlayer;
     private final com.sun.media.jfxmedia.MediaPlayer cPlayer;
@@ -167,19 +167,19 @@ public class TextureMovie {
 
                         for (int i = 0; i < bb.limit(); i += 4) {
                             bb.put(i, (byte) (letterboxColor.a * 255));
-                            bb.put(i + 1, (byte) (letterboxColor.r * 255));
+                            bb.put(i + 1, (byte) (letterboxColor.b * 255));
                             bb.put(i + 2, (byte) (letterboxColor.g * 255));
-                            bb.put(i + 3, (byte) (letterboxColor.b * 255));
+                            bb.put(i + 3, (byte) (letterboxColor.r * 255));
                         }
-                        image = new Image(Format.ARGB8, expectedWidth, expectedHeight, bb);
+                        image = new Image(Format.ABGR8, expectedWidth, expectedHeight, bb);
                         texture.setImage(image);
                     }
-                    
-                    
+
+
                     ByteBuffer src = argbFrame.getBuffer();
                     ByteBuffer bb = image.getData(0);
                     bb.clear();
-                    
+
                     for (int y = 0; y < ySize; y++) {
                         int ty = expectedHeight - (y + yOffset) - 1;
                         bb.position(4*(ty*xSize+xOffset));
@@ -187,10 +187,10 @@ public class TextureMovie {
                         bb.put(src);
                         src.limit(src.capacity());
                     }
-                    
+
                     bb.position(bb.limit());
                     bb.flip();
-                    
+
                     argbFrame.releaseFrame();
                     image.setUpdateNeeded();
                 } catch (Exception exc) {
@@ -211,7 +211,7 @@ public class TextureMovie {
     /**
      * Sets the color which should be used for letterbox fill. It is annoying
      * red by default to help with debugging.
-     * 
+     *
      * @param letterboxColor
      */
     public void setLetterboxColor(ColorRGBA letterboxColor) {
@@ -220,7 +220,7 @@ public class TextureMovie {
 
     /**
      * Corner texture coordinates of valid movie area
-     * 
+     *
      * @return
      */
     public Vector2f getUpperLeftCorner() {
@@ -229,7 +229,7 @@ public class TextureMovie {
 
     /**
      * Corner texture coordinates of valid movie area
-     * 
+     *
      * @return
      */
     public Vector2f getBottomRightCorner() {
@@ -237,7 +237,7 @@ public class TextureMovie {
     }
 
     /**
-     * 
+     *
      * @return aspect ratio of played movie (width/height) - for widescreen
      *         movies it will be in range of 1.8-2.9
      */

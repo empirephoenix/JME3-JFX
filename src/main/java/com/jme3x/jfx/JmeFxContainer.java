@@ -14,6 +14,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Semaphore;
+import java.util.function.Function;
 
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
@@ -33,8 +34,6 @@ import com.jme3.app.Application;
 import com.jme3.app.state.AbstractAppState;
 import com.jme3.asset.AssetManager;
 import com.jme3.input.RawInputListener;
-import com.jme3.material.Material;
-import com.jme3.math.ColorRGBA;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial.CullHint;
 import com.jme3.texture.Image;
@@ -86,6 +85,7 @@ public class JmeFxContainer {
 	private Group				rootNode;
 
 	private final Picture		picture;
+	private Function<JmeFxContainer, Void> exchangeData;
 
 	/** Indent the window position to account for window decoration by Ronn */
 	private int					windowOffsetX;
@@ -270,16 +270,22 @@ public class JmeFxContainer {
 
 			@Override
 			public void run() {
+				//TODO 3.1: use Format.ARGB8 and Format.BGRA8 and remove used of exchangeData, fx2jme_ARGB82ABGR8,...
+				Format Format_ARGB8 = Format.ABGR8;
+				Format Format_BGRA8 = Format.ABGR8;
 				switch (Pixels.getNativeFormat()) {
 				case Pixels.Format.BYTE_ARGB:
-					JmeFxContainer.this.nativeFormat.complete(Format.ARGB8);
+					JmeFxContainer.this.nativeFormat.complete(Format_ARGB8);
+					exchangeData = JmeFxContainer::fx2jme_ARGB82ABGR8;
 					break;
 				case Pixels.Format.BYTE_BGRA_PRE:
-					JmeFxContainer.this.nativeFormat.complete(Format.BGRA8);
+					JmeFxContainer.this.nativeFormat.complete(Format_BGRA8);
+					exchangeData = JmeFxContainer::fx2jme_BGRA82ABGR8;
 					break;
 				default:
 					// this is wrong, but at least will display something
-					JmeFxContainer.this.nativeFormat.complete(Format.ARGB8);
+					JmeFxContainer.this.nativeFormat.complete(Format_ARGB8);
+					exchangeData = JmeFxContainer::fx2jme_ARGB82ABGR8;
 					break;
 				}
 			}
@@ -377,6 +383,7 @@ public class JmeFxContainer {
 			}
 
 			data.flip();
+			data.limit(this.pWidth * this.pHeight * 4);
 			this.fxDataReady = true;
 
 		} catch (final Exception exc) {
@@ -397,9 +404,11 @@ public class JmeFxContainer {
 					try {
 						if (JmeFxContainer.this.fxDataReady) {
 							JmeFxContainer.this.fxDataReady = false;
-							final ByteBuffer tmp = JmeFxContainer.this.jmeData;
-							JmeFxContainer.this.jmeData = JmeFxContainer.this.fxData;
-							JmeFxContainer.this.fxData = tmp;
+							JmeFxContainer.this.exchangeData.apply(JmeFxContainer.this);
+							//TODO 3.1: after remove of exchangeData, uncomment swap jmeData and fxData
+//							final ByteBuffer tmp = c.jmeData;
+//							c.jmeData = c.fxData;
+//							c.fxData = tmp;
 						}
 					} finally {
 						JmeFxContainer.this.imageExchange.release();
@@ -412,6 +421,33 @@ public class JmeFxContainer {
 			}
 		});
 
+	}
+
+	private static Void fx2jme_ARGB82ABGR8(JmeFxContainer c){
+		final ByteBuffer tmp = c.jmeData;
+		c.jmeData = c.fxData;
+		c.fxData = tmp;
+		int limit = Math.min(c.jmeData.limit(), c.fxData.limit()) - 3;
+		byte v;
+		for (int i = 0; i < limit; i += 4) {
+			v = c.jmeData.get(i+1);
+			c.jmeData.put(i + 1, c.jmeData.get(i+3) );
+			c.jmeData.put(i + 3, v );
+		}
+		return null;
+	}
+
+	private static Void fx2jme_BGRA82ABGR8(JmeFxContainer c) {
+		c.jmeData.clear();
+		int limit = Math.min(c.jmeData.limit(), c.fxData.limit()) - 3;
+		for (int i = 0; i <  limit; i += 4) {
+			c.jmeData.put(c.fxData.get(i+3) );
+			c.jmeData.put(c.fxData.get(i+0) );
+			c.jmeData.put(c.fxData.get(i+1) );
+			c.jmeData.put(c.fxData.get(i+2) );
+		}
+		c.jmeData.flip();
+		return null;
 	}
 
 	boolean[]	mouseButtonState	= new boolean[3];
