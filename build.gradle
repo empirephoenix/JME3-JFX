@@ -76,3 +76,35 @@ eclipse {
 		noExportConfigurations += [configurations.provided]
 	}
 }
+
+buildscript {
+	repositories {
+		jcenter()
+	}
+	dependencies {
+		classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:0.5'
+	}
+}
+
+apply plugin: 'com.jfrog.bintray'
+
+bintray {
+	user = bintray_user
+	key = bintray_api_key
+
+	configurations = ['archives']
+	//publications = ['maven'] //When uploading Maven-based publication files
+	dryRun = false //Whether to run this as dry-run, without deploying
+	publish = true //If version should be auto published after an upload
+	pkg {
+		repo = 'jme3stuff'
+		name = project.name
+		desc = "JFX Gui bridge for JME with usefull utilities for common usecases."
+		websiteUrl = "https://github.com/empirephoenix/JME3-JFX"
+		issueTrackerUrl = "https://github.com/empirephoenix/JME3-JFX/issues"
+		vcsUrl = "https://github.com/empirephoenix/JME3-JFX.git"
+		licenses = ['BSD 3-Clause']
+		labels = ['jmonkeyengine', 'gui']
+		publicDownloadNumbers = true
+	}
+}
