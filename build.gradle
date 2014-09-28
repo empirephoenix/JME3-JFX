@@ -1,11 +1,12 @@
 import java.text.SimpleDateFormat;
 
 /////////////////git version logic///////////////
-def cmd = "git rev-parse --short HEAD"
+def cmd = "git show --pretty=format:%ct_%h"//"git rev-parse --short HEAD"
 def proc = cmd.execute()
-String gitRevision = proc.text.trim()
+String[] gitInfos = proc.text.trim().split('_')
+String gitRevision = gitInfos[1]
 SimpleDateFormat format = new SimpleDateFormat("yyyyMMddHHmmss")
-String gitTimestamp = format.format(new Date());
+String gitTimestamp = format.format(new Date(Long.parseLong(gitInfos[0])*1000));
 /////////////////git version logic///////////////
 
 
