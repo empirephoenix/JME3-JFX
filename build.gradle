@@ -11,15 +11,15 @@ def cmd = "git show -s --pretty=format:%ct_%h"//"git rev-parse --short HEAD"
 def proc = cmd.execute()
 String[] gitInfos = proc.text.trim().split('_')
 String gitRevision = gitInfos[1]
-SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss")
+SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd_HHmmss")
 String gitTimestamp = format.format(new Date(Long.parseLong(gitInfos[0])*1000));
 
 def env = System.getenv()
 def mainBuildVersion = "1";
 //jenkins part
 def buildVersion = (env.BUILD_NUMBER) ?
-	mainBuildVersion+"."+env.BUILD_NUMBER+"@"+gitTimestamp+"-"+gitRevision
-	: mainBuildVersion+".dev@"+gitTimestamp+"-"+gitRevision
+	mainBuildVersion+"."+env.BUILD_NUMBER+"."+gitTimestamp+"-"+gitRevision
+	: mainBuildVersion+".dev."+gitTimestamp+"-"+gitRevision
 	;
 print("Build is based on " + buildVersion);
 /////////////////git version logic///////////////
