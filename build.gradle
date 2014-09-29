@@ -14,16 +14,14 @@ String gitRevision = gitInfos[1]
 SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss")
 String gitTimestamp = format.format(new Date(Long.parseLong(gitInfos[0])*1000));
 
-ext.env = System.getenv()
-ext.mainBuildVersion = "1";
-
+def env = System.getenv()
+def mainBuildVersion = "1";
 //jenkins part
-if(env.BUILD_NUMBER){
-	ext.buildVersion = ext.mainBuildVersion+"."+env.BUILD_NUMBER+"@"+gitTimestamp+"-"+gitRevision
-}else{
-	ext.buildVersion = ext.mainBuildVersion+".dev@"+gitTimestamp+"-"+gitRevision
-}
-print("Build is based on " + ext.buildVersion);
+def buildVersion = (env.BUILD_NUMBER) ?
+	mainBuildVersion+"."+env.BUILD_NUMBER+"@"+gitTimestamp+"-"+gitRevision
+	: mainBuildVersion+".dev@"+gitTimestamp+"-"+gitRevision
+	;
+print("Build is based on " + buildVersion);
 /////////////////git version logic///////////////
 
 sourceCompatibility=JavaVersion.VERSION_1_8
@@ -87,9 +85,9 @@ buildscript {
 }
 
 jar {
-    manifest {
-        attributes("Implementation-Version": ext.buildVersion)
-    }
+ 	manifest {
+   	   attributes("Implementation-Version": buildVersion)
+   	}
 }
 
 
