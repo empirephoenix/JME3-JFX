@@ -1,5 +1,11 @@
 import java.text.SimpleDateFormat;
 
+apply plugin: 'com.jfrog.bintray'
+apply plugin: 'java'
+apply plugin: 'maven'
+apply plugin: 'eclipse'
+
+
 /////////////////git version logic///////////////
 def cmd = "git show -s --pretty=format:%ct_%h"//"git rev-parse --short HEAD"
 def proc = cmd.execute()
@@ -20,22 +26,15 @@ if(env.BUILD_NUMBER){
 print("Build is based on " + ext.buildVersion);
 /////////////////git version logic///////////////
 
-
-apply plugin: 'java'
 sourceCompatibility=JavaVersion.VERSION_1_8
 compileJava.options.encoding = 'UTF-8'
 
-
-apply plugin: 'maven'
-apply plugin: 'eclipse'
-
-version = "1."+gitTimestamp+"."+ gitRevision
+version = "1.0.0-SNAPSHOT"
 group = "com.jme3x"
 
 
 repositories {
 	mavenCentral()
-
 	maven { url "http://updates.jmonkeyengine.org/maven/"}
 }
 
@@ -87,7 +86,13 @@ buildscript {
 	}
 }
 
-apply plugin: 'com.jfrog.bintray'
+jar {
+    manifest {
+        attributes("Implementation-Version": ext.buildVersion)
+    }
+}
+
+
 
 bintray {
 	user = targetRepository_user
