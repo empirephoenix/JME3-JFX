@@ -1,12 +1,23 @@
 import java.text.SimpleDateFormat;
 
 /////////////////git version logic///////////////
-def cmd = "git show --pretty=format:%ct_%h"//"git rev-parse --short HEAD"
+def cmd = "git show -s --pretty=format:%ct_%h"//"git rev-parse --short HEAD"
 def proc = cmd.execute()
 String[] gitInfos = proc.text.trim().split('_')
 String gitRevision = gitInfos[1]
-SimpleDateFormat format = new SimpleDateFormat("yyyyMMddHHmmss")
+SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss")
 String gitTimestamp = format.format(new Date(Long.parseLong(gitInfos[0])*1000));
+
+ext.env = System.getenv()
+ext.mainBuildVersion = "1";
+
+//jenkins part
+if(env.BUILD_NUMBER){
+	ext.buildVersion = ext.mainBuildVersion+"."+env.BUILD_NUMBER+"@"+gitTimestamp+"-"+gitRevision
+}else{
+	ext.buildVersion = ext.mainBuildVersion+".dev@"+gitTimestamp+"-"+gitRevision
+}
+print("Build is based on " + ext.buildVersion);
 /////////////////git version logic///////////////
 
 
@@ -60,16 +71,6 @@ artifacts {
 	}
 }
 
-uploadArchives {
-	repositories {
-		mavenDeployer {
-			repository(url: "$targetRepository/releases") {
-				 authentication(userName: targetRepository_user, password: targetRepository_password)
-			}
-		 }
-	}
-}
-
 eclipse {
 	classpath {
 		plusConfigurations += [configurations.provided]
@@ -89,15 +90,15 @@ buildscript {
 apply plugin: 'com.jfrog.bintray'
 
 bintray {
-	user = bintray_user
-	key = bintray_api_key
+	user = targetRepository_user
+	key = targetRepository_password
 
 	configurations = ['archives']
 	//publications = ['maven'] //When uploading Maven-based publication files
 	dryRun = false //Whether to run this as dry-run, without deploying
 	publish = true //If version should be auto published after an upload
 	pkg {
-		repo = 'jme3stuff'
+		repo = 'VGS-OSS-Releases'
 		name = project.name
 		desc = "JFX Gui bridge for JME with usefull utilities for common usecases."
 		websiteUrl = "https://github.com/empirephoenix/JME3-JFX"
