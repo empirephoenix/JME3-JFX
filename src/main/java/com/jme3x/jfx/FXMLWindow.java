@@ -1,5 +1,7 @@
 package com.jme3x.jfx;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.ResourceBundle;
 
@@ -9,11 +11,29 @@ import javafx.scene.layout.Region;
 
 public class FXMLWindow<ControllerType> extends AbstractWindow {
 
-	private String			fxml;
 	private ControllerType	controller;
+	private URL				location;
+	InputStream				inStream;
 
 	public FXMLWindow(final String fxml) {
-		this.fxml = fxml;
+		this.location = Thread.currentThread().getContextClassLoader().getResource(fxml);
+		try {
+			this.inStream = this.location.openStream();
+		} catch (final IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	/**
+	 * the given stream will be closed!
+	 * 
+	 * @param location
+	 * @param inStream
+	 */
+	public FXMLWindow(final URL location, final InputStream inStream) {
+		super();
+		this.location = location;
+		this.inStream = inStream;
 	}
 
 	public ControllerType getController() {
@@ -23,14 +43,18 @@ public class FXMLWindow<ControllerType> extends AbstractWindow {
 	@Override
 	protected Region innerInit() throws Exception {
 		final FXMLLoader fxmlLoader = new FXMLLoader();
-		final URL location = Thread.currentThread().getContextClassLoader().getResource(this.fxml);
-		fxmlLoader.setLocation(location);
+		fxmlLoader.setLocation(this.location);
 		final ResourceBundle ressources = fxmlLoader.getResources();
 		fxmlLoader.setResources(this.addCustomRessources(ressources));
 		fxmlLoader.setBuilderFactory(new JavaFXBuilderFactory());
-		final Region rv = fxmlLoader.load(location.openStream());
+		final Region rv = fxmlLoader.load(this.inStream);
+		this.inStream.close();
 		this.controller = fxmlLoader.getController();
-		assert FXMLUtils.assertInjection(this);
+		if (this.controller != null) {
+			assert FXMLUtils.assertInjection(this);
+		} else {
+			System.err.println("No controller loaded!, is this as expected?");
+		}
 		return rv;
 	}
 
