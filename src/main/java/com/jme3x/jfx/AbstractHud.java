@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.concurrent.Semaphore;
 
 import javafx.application.Platform;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.Node;
@@ -19,16 +20,16 @@ import javafx.scene.layout.Region;
  * 
  */
 public abstract class AbstractHud {
-	private Throwable		innerError	= null;
-	protected Region		node;
-	private boolean			initialized;
-	private boolean			attached;
-	private GuiManager		responsibleGuiManager;
+	private Throwable				innerError	= null;
+	protected Region				node;
+	private boolean					initialized;
+	private SimpleBooleanProperty	attached	= new SimpleBooleanProperty();
+	private GuiManager				responsibleGuiManager;
 
 	/**
 	 * Temp array for stylesheet adding before precaching
 	 */
-	protected List<String>	stylesToAdd	= new ArrayList<String>();
+	protected List<String>			stylesToAdd	= new ArrayList<String>();
 
 	/**
 	 * Internal call, for guimanager statemanagement, do not call
@@ -38,7 +39,7 @@ public abstract class AbstractHud {
 	 */
 	public void setAttached(final boolean value, final GuiManager guiManager) {
 		assert Platform.isFxApplicationThread() : "parent change outside of JFX thread?";
-		this.attached = value;
+		this.attached.set(value);
 		this.responsibleGuiManager = guiManager;
 	}
 
@@ -84,8 +85,12 @@ public abstract class AbstractHud {
 
 	}
 
-	public boolean isAttached() {
+	public ObservableValue<Boolean> attached() {
 		return this.attached;
+	}
+
+	public boolean isAttached() {
+		return this.attached.get();
 	}
 
 	/**
