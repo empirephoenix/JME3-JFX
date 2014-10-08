@@ -25,6 +25,11 @@ public abstract class AbstractWindow extends AbstractHud {
 		this.minimizeVisible = visible;
 	}
 
+	public String getTitle() {
+		// no sync as titles are immutable
+		return this.window.titleProperty().get();
+	}
+
 	public void setUseInnerScroll(final boolean useInnerScroll) {
 		assert !this.init : "Cannot change this after window is precached";
 		this.useInnerScroll = useInnerScroll;
