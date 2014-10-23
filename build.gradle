@@ -4,6 +4,7 @@ apply plugin: 'com.jfrog.bintray'
 apply plugin: 'java'
 apply plugin: 'maven'
 apply plugin: 'eclipse'
+apply plugin: "sonar-runner"
 
 
 /////////////////git version logic///////////////
@@ -90,6 +91,19 @@ jar {
    	}
 }
 
+sonarRunner {
+	sonarProperties {
+     	property "sonar.host.url", sonarUrl
+      	property "sonar.jdbc.url", sonarDBUrl
+      	property "sonar.jdbc.driverClassName", sonarDBDriver
+      	property "sonar.jdbc.username", sonarDBUser
+		property "sonar.jdbc.password", sonarDBPw
+		property "sonar.login",sonarUser
+		property "sonar.password",sonarPw
+		property "sonar.sourceEncoding", "UTF-8"
+		property "sonar.projectName", "JME-JFX"
+	}
+}
 
 
 bintray {
