@@ -101,7 +101,14 @@ public abstract class AbstractHud {
 		assert !this.initialized : "Duplicate init";
 
 		if (Platform.isFxApplicationThread()) {
-			this.node = this.doInit();
+			AbstractHud.this.node = AbstractHud.this.doInit();
+			if (AbstractHud.this.node != null) {
+				AbstractHud.this.node.getStylesheets().addAll(AbstractHud.this.stylesToAdd);
+			}
+			AbstractHud.this.stylesToAdd = null;
+
+			// we are not initially attached
+			AbstractHud.this.attached.set(false);
 		} else {
 			final Semaphore waitForInit = new Semaphore(0);
 			Platform.runLater(new Runnable() {
@@ -113,6 +120,9 @@ public abstract class AbstractHud {
 							AbstractHud.this.node.getStylesheets().addAll(AbstractHud.this.stylesToAdd);
 						}
 						AbstractHud.this.stylesToAdd = null;
+
+						// we are not initially attached
+						AbstractHud.this.attached.set(false);
 					} finally {
 						waitForInit.release();
 					}
