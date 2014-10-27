@@ -18,11 +18,17 @@ public abstract class AbstractWindow extends AbstractHud {
 	private boolean		minimumEnforced;
 	private boolean		minimizeVisible	= true;
 	private boolean		modal			= false;
-	private boolean		useInnerScroll	= true;		;
+	private boolean		useInnerScroll	= true;
+	private String		title			= "";		;
 
 	public void setMinimizeVisible(final boolean visible) {
 		assert !this.init : "Cannot change this after window is precached";
 		this.minimizeVisible = visible;
+	}
+
+	public String getTitle() {
+		// no sync as titles are immutable
+		return this.window.titleProperty().get();
 	}
 
 	public void setUseInnerScroll(final boolean useInnerScroll) {
@@ -90,7 +96,7 @@ public abstract class AbstractWindow extends AbstractHud {
 		try {
 
 			this.inner = this.innerInit();
-			this.window = new Window("My Window");
+			this.window = new Window(this.title);
 
 			this.window.setResizableWindow(true);
 			// prefent layouting errors
@@ -272,14 +278,22 @@ public abstract class AbstractWindow extends AbstractHud {
 	 */
 	public void setTitleAsync(final String title) {
 		if (Platform.isFxApplicationThread()) {
+			this.setInnerTitle(title);
 			this.window.setTitle(title);
 		} else {
 			Platform.runLater(new Runnable() {
 				@Override
 				public void run() {
-					AbstractWindow.this.window.setTitle(title);
+					AbstractWindow.this.setInnerTitle(title);
 				}
 			});
+		}
+	}
+
+	private void setInnerTitle(final String title) {
+		this.title = title;
+		if (this.isInitialized()) {
+			AbstractWindow.this.window.setTitle(title);
 		}
 	}
 

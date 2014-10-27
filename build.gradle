@@ -1,30 +1,39 @@
 import java.text.SimpleDateFormat;
 
+apply plugin: 'com.jfrog.bintray'
+apply plugin: 'java'
+apply plugin: 'maven'
+apply plugin: 'eclipse'
+apply plugin: "sonar-runner"
+
+
 /////////////////git version logic///////////////
-def cmd = "git show --pretty=format:%ct_%h"//"git rev-parse --short HEAD"
+def cmd = "git show -s --pretty=format:%ct_%h"//"git rev-parse --short HEAD"
 def proc = cmd.execute()
 String[] gitInfos = proc.text.trim().split('_')
 String gitRevision = gitInfos[1]
-SimpleDateFormat format = new SimpleDateFormat("yyyyMMddHHmmss")
+SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd_HHmmss")
 String gitTimestamp = format.format(new Date(Long.parseLong(gitInfos[0])*1000));
+
+def env = System.getenv()
+def mainBuildVersion = "1";
+//jenkins part
+def buildVersion = (env.BUILD_NUMBER) ?
+	mainBuildVersion+"."+env.BUILD_NUMBER+"."+gitTimestamp+"-"+gitRevision
+	: mainBuildVersion+".dev."+gitTimestamp+"-"+gitRevision
+	;
+print("Build is based on " + buildVersion);
 /////////////////git version logic///////////////
 
-
-apply plugin: 'java'
 sourceCompatibility=JavaVersion.VERSION_1_8
 compileJava.options.encoding = 'UTF-8'
 
-
-apply plugin: 'maven'
-apply plugin: 'eclipse'
-
-version = "1."+gitTimestamp+"."+ gitRevision
+version = buildVersion
 group = "com.jme3x"
 
 
 repositories {
 	mavenCentral()
-
 	maven { url "http://updates.jmonkeyengine.org/maven/"}
 }
 
@@ -60,16 +69,6 @@ artifacts {
 	}
 }
 
-uploadArchives {
-	repositories {
-		mavenDeployer {
-			repository(url: "$targetRepository/releases") {
-				 authentication(userName: targetRepository_user, password: targetRepository_password)
-			}
-		 }
-	}
-}
-
 eclipse {
 	classpath {
 		plusConfigurations += [configurations.provided]
@@ -86,18 +85,37 @@ buildscript {
 	}
 }
 
-apply plugin: 'com.jfrog.bintray'
+jar {
+ 	manifest {
+   	   attributes("Implementation-Version": buildVersion)
+   	}
+}
+
+sonarRunner {
+	sonarProperties {
+     	property "sonar.host.url", sonarUrl
+      	property "sonar.jdbc.url", sonarDBUrl
+      	property "sonar.jdbc.driverClassName", sonarDBDriver
+      	property "sonar.jdbc.username", sonarDBUser
+		property "sonar.jdbc.password", sonarDBPw
+		property "sonar.login",sonarUser
+		property "sonar.password",sonarPw
+		property "sonar.sourceEncoding", "UTF-8"
+		property "sonar.projectName", "JME-JFX"
+	}
+}
+
 
 bintray {
-	user = bintray_user
-	key = bintray_api_key
+	user = targetRepository_user
+	key = targetRepository_password
 
 	configurations = ['archives']
 	//publications = ['maven'] //When uploading Maven-based publication files
 	dryRun = false //Whether to run this as dry-run, without deploying
 	publish = true //If version should be auto published after an upload
 	pkg {
-		repo = 'jme3stuff'
+		repo = 'VGS-OSS-Releases'
 		name = project.name
 		desc = "JFX Gui bridge for JME with usefull utilities for common usecases."
 		websiteUrl = "https://github.com/empirephoenix/JME3-JFX"
