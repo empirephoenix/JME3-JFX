@@ -73,6 +73,7 @@ public class JmeFxContainer {
 	Image						jmeImage;
 	Texture2D					tex;
 	ByteBuffer					jmeData;
+	int							alphaByteOffset	= 3;
 	ByteBuffer					fxData;
 	boolean						fxDataReady		= false;
 	int							oldX			= -1;
@@ -276,27 +277,33 @@ public class JmeFxContainer {
 					try {
 						JmeFxContainer.this.nativeFormat.complete(Format.valueOf("ARGB8"));
 						reorderData = null;
+						alphaByteOffset = 0;
 					} catch(Exception exc) {
 						JmeFxContainer.this.nativeFormat.complete(Format.ABGR8);
 						reorderData = JmeFxContainer::reorder_ARGB82ABGR8;
+						alphaByteOffset = 0;
 					}
 					break;
 				case Pixels.Format.BYTE_BGRA_PRE:
 					try {
 						JmeFxContainer.this.nativeFormat.complete(Format.valueOf("BGRA8"));
 						reorderData = null;
+						alphaByteOffset = 3;
 					} catch(Exception exc) {
 						JmeFxContainer.this.nativeFormat.complete(Format.ABGR8);
 						reorderData = JmeFxContainer::reorder_BGRA82ABGR8;
+						alphaByteOffset = 0;
 					}
 					break;
 				default:
 					try {
 						JmeFxContainer.this.nativeFormat.complete(Format.valueOf("ARGB8"));
 						reorderData = null;
+						alphaByteOffset = 0;
 					} catch(Exception exc) {
 						JmeFxContainer.this.nativeFormat.complete(Format.ABGR8);
 						reorderData = JmeFxContainer::reorder_ARGB82ABGR8;
+						alphaByteOffset = 0;
 					}
 					break;
 				}
@@ -477,7 +484,7 @@ public class JmeFxContainer {
 		}
 		final ByteBuffer data = this.jmeImage.getData(0);
 		data.limit(data.capacity());
-		final int alpha = data.get(3 + 4 * (y * this.pWidth + x));
+		final int alpha = data.get(alphaByteOffset + 4 * (y * this.pWidth + x));
 		data.limit(0);
 		return alpha != 0;
 	}
