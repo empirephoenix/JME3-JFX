@@ -223,8 +223,22 @@ public class JmeFXInputListener implements RawInputListener {
 		if (evt.isRepeating()) {
 			final char x = this.keyCharSet[fxKeycode];
 
+			final int eventType;
+			if (fxKeycode == KeyEvent.VK_BACK_SPACE ||
+					fxKeycode == KeyEvent.VK_DELETE ||
+					fxKeycode == KeyEvent.VK_KP_UP ||
+					fxKeycode == KeyEvent.VK_KP_DOWN ||
+					fxKeycode == KeyEvent.VK_KP_LEFT ||
+					fxKeycode == KeyEvent.VK_KP_RIGHT ||
+					fxKeycode == KeyEvent.VK_UP ||
+					fxKeycode == KeyEvent.VK_DOWN ||
+					fxKeycode == KeyEvent.VK_LEFT ||
+					fxKeycode == KeyEvent.VK_RIGHT)
+				eventType = AbstractEvents.KEYEVENT_PRESSED;
+			else eventType = AbstractEvents.KEYEVENT_TYPED;
+
 			if (this.jmeFxContainer.focus) {
-				this.jmeFxContainer.scenePeer.keyEvent(AbstractEvents.KEYEVENT_TYPED, fxKeycode, new char[] { x }, keyState);
+				this.jmeFxContainer.scenePeer.keyEvent(eventType, fxKeycode, new char[] { x }, keyState);
 			}
 		} else if (evt.isPressed()) {
 			this.keyCharSet[fxKeycode] = keyChar;
