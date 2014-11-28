@@ -2,13 +2,16 @@ package com.jme3x.jfx.media;
 
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
+import java.util.function.Function;
 
+import com.jme3.app.Application;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector2f;
 import com.jme3.texture.Image;
 import com.jme3.texture.Image.Format;
 import com.jme3.texture.Texture2D;
 import com.jme3.util.BufferUtils;
+import com.jme3x.jfx.util.FormatUtils;
 import com.sun.media.jfxmedia.control.VideoDataBuffer;
 import com.sun.media.jfxmedia.control.VideoFormat;
 import com.sun.media.jfxmedia.events.NewFrameEvent;
@@ -64,17 +67,19 @@ public class TextureMovie {
     private float aspectRatio = 1.0f;
 
     private Texture2D texture;
+    private Application app;
 
-    public TextureMovie(javafx.scene.media.MediaPlayer mediaPlayer) {
-        this(mediaPlayer, LetterboxMode.VALID_LETTERBOX);
+    public TextureMovie(final Application app, javafx.scene.media.MediaPlayer mediaPlayer) {
+        this(app, mediaPlayer, LetterboxMode.VALID_LETTERBOX);
     }
 
-    public TextureMovie(javafx.scene.media.MediaPlayer mediaPlayer, ColorRGBA letterboxColor) {
-        this(mediaPlayer, LetterboxMode.VALID_LETTERBOX);
+    public TextureMovie(final Application app, javafx.scene.media.MediaPlayer mediaPlayer, ColorRGBA letterboxColor) {
+        this(app, mediaPlayer, LetterboxMode.VALID_LETTERBOX);
         setLetterboxColor(letterboxColor);
     }
 
-    public TextureMovie(javafx.scene.media.MediaPlayer mediaPlayer, LetterboxMode mode) {
+    public TextureMovie(final Application app, javafx.scene.media.MediaPlayer mediaPlayer, LetterboxMode mode) {
+        this.app = app;
         this.jPlayer = mediaPlayer;
         this.mode = mode;
 
@@ -101,14 +106,17 @@ public class TextureMovie {
     private VideoRendererListener createVrListener() {
         return new VideoRendererListener() {
 
+            private Function<ByteBuffer, Void> reorderData;
+
             @Override
             public void videoFrameUpdated(NewFrameEvent event) {
                 try {
-                    VideoDataBuffer frame = jPlayer.impl_getLatestFrame();
+                    //VideoDataBuffer frame = jPlayer.impl_getLatestFrame();
+                    VideoDataBuffer frame = event.getFrameData();
                     if (frame == null) {
                         return;
                     }
-                    VideoDataBuffer argbFrame = frame.convertToFormat(VideoFormat.ARGB);
+                    final VideoDataBuffer argbFrame = frame.convertToFormat(VideoFormat.ARGB);
                     frame.releaseFrame();
 
                     int expectedWidth, expectedHeight;
@@ -160,41 +168,66 @@ public class TextureMovie {
                     upperLeftCorner.set(xOffset / (float) expectedWidth, yOffset / (float) expectedHeight);
                     bottomRightCorner.set((xOffset + argbFrame.getWidth()) / (float) expectedWidth, (yOffset + argbFrame.getHeight()) / (float) expectedHeight);
 
-                    Image image = texture.getImage();
-
-                    if (image.getWidth() != expectedWidth || image.getHeight() != expectedHeight) {
-                        ByteBuffer bb = BufferUtils.createByteBuffer(expectedHeight * expectedWidth * 4);
-
-                        for (int i = 0; i < bb.limit(); i += 4) {
-                            bb.put(i, (byte) (letterboxColor.a * 255));
-                            bb.put(i + 1, (byte) (letterboxColor.b * 255));
-                            bb.put(i + 2, (byte) (letterboxColor.g * 255));
-                            bb.put(i + 3, (byte) (letterboxColor.r * 255));
-                        }
-                        image = new Image(Format.ABGR8, expectedWidth, expectedHeight, bb);
-                        texture.setImage(image);
-                    }
-
-
                     ByteBuffer src = argbFrame.getBuffer();
-                    ByteBuffer bb = image.getData(0);
-                    bb.clear();
-
-                    for (int y = 0; y < ySize; y++) {
-                        int ty = expectedHeight - (y + yOffset) - 1;
-                        bb.position(4*(ty*xSize+xOffset));
-                        src.position(4*(y * argbFrame.getEncodedWidth())).limit(4*(y * argbFrame.getEncodedWidth() + xSize));
-                        bb.put(src);
-                        src.limit(src.capacity());
+                    if (this.reorderData != null) {
+                        src.position(0);
+                        this.reorderData.apply(src);
+                        src.position(0);
                     }
 
-                    bb.position(bb.limit());
-                    bb.flip();
+                    app.enqueue(()->{
+                        Image image = texture.getImage();
 
-                    argbFrame.releaseFrame();
-                    image.setUpdateNeeded();
+                        if (image.getWidth() != expectedWidth || image.getHeight() != expectedHeight) {
+                            System.out.println("resize : " + expectedWidth + " x " + expectedHeight);
+                            Image image0 = image;
+
+                            ByteBuffer bb = BufferUtils.createByteBuffer(expectedHeight * expectedWidth * 4);
+
+                            for (int i = 0; i < bb.limit(); i += 4) {
+                                bb.put(i, (byte) (letterboxColor.a * 255));
+                                bb.put(i + 1, (byte) (letterboxColor.b * 255));
+                                bb.put(i + 2, (byte) (letterboxColor.g * 255));
+                                bb.put(i + 3, (byte) (letterboxColor.r * 255));
+                            }
+                            bb.position(0);
+                            Format format = Format.ABGR8;
+
+                            try {
+                                format = Format.valueOf("ARGB8");
+                                reorderData = null;
+                            } catch(Exception exc) {
+                                format = Format.ABGR8;
+                                reorderData = FormatUtils::reorder_ARGB82ABGR8;
+                            }
+                            image = new Image(format, expectedWidth, expectedHeight, bb);
+                            texture.setImage(image);
+                            if (image0 != null && image0 != emptyImage) {
+                                image0.dispose();
+                                ByteBuffer bb0 = image0.getData(0);
+                                if (bb0 != null) BufferUtils.destroyDirectBuffer(bb0);
+                            }
+                        }
+
+                        ByteBuffer bb = image.getData(0);
+                        bb.clear();
+                        for (int y = 0; y < ySize; y++) {
+                            int ty = expectedHeight - (y + yOffset) - 1;
+                            bb.position(4*(ty*xSize+xOffset));
+                            src.position(4*(y * argbFrame.getEncodedWidth())).limit(4*(y * argbFrame.getEncodedWidth() + xSize));
+                            bb.put(src);
+                            src.limit(src.capacity());
+                        }
+
+                        bb.position(bb.limit());
+                        bb.flip();
+
+                        image.setUpdateNeeded();
+                        if (argbFrame!= null) argbFrame.releaseFrame();
+                        return null;
+                    });
+
                 } catch (Exception exc) {
-
                     exc.printStackTrace();
                     System.exit(0);
                 }

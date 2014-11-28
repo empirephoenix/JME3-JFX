@@ -32,8 +32,14 @@ public class TestMovie extends SimpleApplication {
 
 	@Override
 	public void simpleInitApp() {
+		//getInputManager().setCursorVisible(true);
+		//getFlyByCamera().setEnabled(false);
 
 		final Media media = new Media("http://download.oracle.com/otndocs/products/javafx/oow2010-2.flv");
+		//final Media media = new Media("http://techslides.com/demos/sample-videos/small.mp4");
+		//final Media media = new Media(new File("/home/dwayne/tmp/small.mp4").toURI().toASCIIString());
+		//final Media media = new Media(new File("/home/dwayne/tmp/output.mp4").toURI().toASCIIString());
+
 		media.errorProperty().addListener(new ChangeListener<MediaException>() {
 
 			@Override
@@ -44,7 +50,7 @@ public class TestMovie extends SimpleApplication {
 		this.mp = new MediaPlayer(media);
 		this.mp.play();
 
-		this.textureMovie = new TextureMovie(this.mp, LetterboxMode.VALID_LETTERBOX);
+		this.textureMovie = new TextureMovie(this, this.mp, LetterboxMode.VALID_LETTERBOX);
 		this.textureMovie.setLetterboxColor(ColorRGBA.Black);
 
 		final Geometry screen1 = new Geometry("Screen1", new Quad(20, 20));
