@@ -42,6 +42,7 @@ import com.jme3.texture.Texture2D;
 import com.jme3.ui.Picture;
 import com.jme3.util.BufferUtils;
 import com.jme3x.jfx.cursor.ICursorDisplayProvider;
+import com.jme3x.jfx.util.FormatUtils;
 import com.jme3x.jfx.util.JFXUtils;
 import com.sun.glass.ui.Pixels;
 import com.sun.javafx.application.PlatformImpl;
@@ -207,6 +208,7 @@ public class JmeFxContainer {
 
 		try {
 			this.imageExchange.acquire();
+			dispose();
 
 			this.pWidth = Display.getWidth();
 			this.pHeight = Display.getHeight();
@@ -280,7 +282,7 @@ public class JmeFxContainer {
 						alphaByteOffset = 0;
 					} catch(Exception exc) {
 						JmeFxContainer.this.nativeFormat.complete(Format.ABGR8);
-						reorderData = JmeFxContainer::reorder_ARGB82ABGR8;
+						reorderData = FormatUtils::reorder_ARGB82ABGR8;
 						alphaByteOffset = 0;
 					}
 					break;
@@ -291,7 +293,7 @@ public class JmeFxContainer {
 						alphaByteOffset = 3;
 					} catch(Exception exc) {
 						JmeFxContainer.this.nativeFormat.complete(Format.ABGR8);
-						reorderData = JmeFxContainer::reorder_BGRA82ABGR8;
+						reorderData = FormatUtils::reorder_BGRA82ABGR8;
 						alphaByteOffset = 0;
 					}
 					break;
@@ -302,7 +304,7 @@ public class JmeFxContainer {
 						alphaByteOffset = 0;
 					} catch(Exception exc) {
 						JmeFxContainer.this.nativeFormat.complete(Format.ABGR8);
-						reorderData = JmeFxContainer::reorder_ARGB82ABGR8;
+						reorderData = FormatUtils::reorder_ARGB82ABGR8;
 						alphaByteOffset = 0;
 					}
 					break;
@@ -442,35 +444,6 @@ public class JmeFxContainer {
 			}
 		});
 
-	}
-
-	//TODO benchmark
-	private static Void reorder_ARGB82ABGR8(ByteBuffer data){
-		int limit = data.limit() - 3;
-		byte v;
-		for (int i = 0; i < limit; i += 4) {
-			v = data.get(i+1);
-			data.put(i + 1, data.get(i+3) );
-			data.put(i + 3, v );
-		}
-		return null;
-	}
-
-	//TODO benchmark
-	private static Void reorder_BGRA82ABGR8(ByteBuffer data) {
-		int limit = data.limit() - 3;
-		byte v0, v1, v2, v3;
-		for (int i = 0; i < limit; i += 4) {
-			v0 = data.get(i + 0);
-			v1 = data.get(i + 1);
-			v2 = data.get(i + 2);
-			v3 = data.get(i + 3);
-			data.put(i + 0, v3);
-			data.put(i + 1, v0);
-			data.put(i + 2, v1);
-			data.put(i + 3, v2);
-		}
-		return null;
 	}
 
 	boolean[]	mouseButtonState	= new boolean[3];
@@ -647,5 +620,18 @@ public class JmeFxContainer {
 	 */
 	public int getWindowOffsetY() {
 		return this.windowOffsetY;
+	}
+
+	public void dispose() {
+		if (this.tex != null) this.tex.setImage(null);
+		if (this.jmeImage != null) this.jmeImage.dispose();
+		if (this.jmeData != null) BufferUtils.destroyDirectBuffer(this.jmeData);
+		if (this.fxData != null) BufferUtils.destroyDirectBuffer(this.fxData);
+	}
+
+	@Override
+	protected void finalize() throws Throwable {
+		dispose();
+		super.finalize();
 	}
 }
