@@ -105,6 +105,19 @@ sonarRunner {
 	}
 }
 
+uploadArchives {
+    	repositories {
+       		mavenDeployer {
+             		repository(url: "$visiongameRepository"+"/releases") {
+             			authentication(userName: "$artifactory_user", password: "$artifactory_password")
+			}
+			pom.version = version
+       			pom.artifactId = project.name
+      			pom.groupId = "com.jme3"
+		}
+	}
+}
+
 
 bintray {
 	user = targetRepository_user
