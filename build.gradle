@@ -27,7 +27,12 @@ print("Build is based on " + buildVersion);
 sourceCompatibility=JavaVersion.VERSION_1_8
 compileJava.options.encoding = 'UTF-8'
 
-version = buildVersion
+if(snapshot.equals("true")){
+	version = 0.1.0-Snapshot
+}else{
+	version = buildVersion
+}end
+
 group = "com.jme3x"
 
 
