@@ -6,6 +6,7 @@ import com.jme3.app.SimpleApplication;
 import com.jme3.math.ColorRGBA;
 import com.jme3.system.AppSettings;
 import com.jme3x.jfx.cursor.proton.ProtonCursorProvider;
+import com.sun.media.jfxmediaimpl.platform.Platform;
 
 public class Test extends SimpleApplication {
 	private static boolean	assertionsEnabled;
@@ -15,9 +16,9 @@ public class Test extends SimpleApplication {
 		if (!Test.assertionsEnabled) {
 			throw new RuntimeException("Assertions must be enabled (vm args -ea");
 		}
-		AppSettings settings = new AppSettings(true);
-		//settings.setGammaCorrection(true);
-		Test t = new Test();
+		final AppSettings settings = new AppSettings(true);
+		// settings.setGammaCorrection(true);
+		final Test t = new Test();
 		t.setSettings(settings);
 		t.start();
 	}
@@ -29,6 +30,8 @@ public class Test extends SimpleApplication {
 
 	@Override
 	public void simpleInitApp() {
+		final Platform initplat = Platform.getPlatformInstance();
+
 		this.setPauseOnLostFocus(false);
 		this.flyCam.setDragToRotate(true);
 		this.viewPort.setBackgroundColor(ColorRGBA.Red);

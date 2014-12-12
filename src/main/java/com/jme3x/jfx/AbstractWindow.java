@@ -1,29 +1,39 @@
 package com.jme3x.jfx;
 
 import javafx.application.Platform;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
+import javafx.scene.Group;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.layout.Region;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
+import javafx.stage.WindowEvent;
 import jfxtras.scene.control.window.Window;
 
 public abstract class AbstractWindow extends AbstractHud {
-	private Region		inner;
-	private Window		window;
-	private ScrollPane	innerScroll;
-	private boolean		init;
-	private boolean		maximumEnforced;
-	private boolean		minimumEnforced;
-	private boolean		minimizeVisible	= true;
-	private boolean		modal			= false;
-	private boolean		useInnerScroll	= true;
-	private String		title			= "";		;
+	private Region					inner;
+	private Window					window;
+	private ScrollPane				innerScroll;
+	private boolean					init;
+	private boolean					maximumEnforced;
+	private boolean					minimumEnforced;
+	private boolean					minimizeVisible	= true;
+	private boolean					modal			= false;
+	private boolean					useInnerScroll	= true;
+	private String					title			= "";
+	private SimpleBooleanProperty	externalisable	= new SimpleBooleanProperty(false);
+	private SimpleBooleanProperty	externalized	= new SimpleBooleanProperty();
 
 	public void setMinimizeVisible(final boolean visible) {
 		assert !this.init : "Cannot change this after window is precached";
-		this.minimizeVisible = visible;
+	this.minimizeVisible = visible;
 	}
 
 	public String getTitle() {
@@ -33,7 +43,7 @@ public abstract class AbstractWindow extends AbstractHud {
 
 	public void setUseInnerScroll(final boolean useInnerScroll) {
 		assert !this.init : "Cannot change this after window is precached";
-		this.useInnerScroll = useInnerScroll;
+	this.useInnerScroll = useInnerScroll;
 	}
 
 	public void setResizeable(final boolean b) {
@@ -55,24 +65,28 @@ public abstract class AbstractWindow extends AbstractHud {
 	@Deprecated
 	public void center() {
 		assert this.init : "Needs to be init to center";
-		final double sceneWidth = this.getNode().getScene().getWidth();
-		final double sceneHeight = this.getNode().getScene().getHeight();
+	final double sceneWidth = this.getNode().getScene().getWidth();
+	final double sceneHeight = this.getNode().getScene().getHeight();
 
-		double windowWidth = this.inner.getWidth();
-		if (windowWidth == 0) {
-			windowWidth = Math.max(this.inner.getPrefWidth(), this.inner.getMinWidth());
-		}
+	double windowWidth = this.inner.getWidth();
+	if (windowWidth == 0) {
+		windowWidth = Math.max(this.inner.getPrefWidth(), this.inner.getMinWidth());
+	}
 
-		double windowHeight = this.inner.getHeight();
-		if (windowHeight == 0) {
-			windowHeight = Math.max(this.inner.getPrefHeight(), this.inner.getMinHeight());
-		}
+	double windowHeight = this.inner.getHeight();
+	if (windowHeight == 0) {
+		windowHeight = Math.max(this.inner.getPrefHeight(), this.inner.getMinHeight());
+	}
 
-		final double newPosx = sceneWidth / 2 - windowWidth / 2;
-		final double newPosy = sceneHeight / 2 - windowHeight / 2;
-		this.setLayoutX((int) newPosx);
-		this.setLayoutY((int) newPosy);
+	final double newPosx = sceneWidth / 2 - windowWidth / 2;
+	final double newPosy = sceneHeight / 2 - windowHeight / 2;
+	this.setLayoutX((int) newPosx);
+	this.setLayoutY((int) newPosy);
 
+	}
+
+	public SimpleBooleanProperty getExternalized() {
+		return this.externalized;
 	}
 
 	/**
@@ -80,7 +94,15 @@ public abstract class AbstractWindow extends AbstractHud {
 	 */
 	public void setModal(final boolean value) {
 		assert !this.init : "modality must be set before init";
-		this.modal = value;
+	this.modal = value;
+	}
+
+	public void setExternalisable(final boolean externalisable) {
+		this.externalisable.set(externalisable);
+	}
+
+	public SimpleBooleanProperty getExternalisable() {
+		return this.externalisable;
 	}
 
 	public boolean isModal() {
@@ -102,6 +124,15 @@ public abstract class AbstractWindow extends AbstractHud {
 			// prefent layouting errors
 			this.window.setResizableBorderWidth(3);
 
+			final ExternalizeIcon extIcon = new ExternalizeIcon(this);
+			extIcon.setVisible(this.externalisable.get());
+			this.externalisable.addListener(new ChangeListener<Boolean>() {
+				@Override
+				public void changed(final ObservableValue<? extends Boolean> observable, final Boolean oldValue, final Boolean newValue) {
+					extIcon.visibleProperty().set(newValue);
+				}
+			});
+			this.window.getRightIcons().add(extIcon);
 			if (this.minimizeVisible) {
 				this.window.getRightIcons().add(new AdjustedMinimizeIcon(this));
 			}
@@ -150,16 +181,16 @@ public abstract class AbstractWindow extends AbstractHud {
 	 */
 	public void setSize(final double width, final double height) {
 		assert this.init : "Not init";
-		if (Platform.isFxApplicationThread()) {
-			this.window.setPrefSize(width, height);
-		} else {
-			Platform.runLater(new Runnable() {
-				@Override
-				public void run() {
-					AbstractWindow.this.window.setPrefSize(width, height);
-				}
-			});
-		}
+	if (Platform.isFxApplicationThread()) {
+		this.window.setPrefSize(width, height);
+	} else {
+		Platform.runLater(new Runnable() {
+			@Override
+			public void run() {
+				AbstractWindow.this.window.setPrefSize(width, height);
+			}
+		});
+	}
 
 	}
 
@@ -191,8 +222,8 @@ public abstract class AbstractWindow extends AbstractHud {
 	 */
 	public void setEnforceMinimumSize(final boolean minimumEnforced) {
 		assert this.init : "Window is not init yet";
-		this.minimumEnforced = minimumEnforced;
-		this.applyEnforcedMinimumSize();
+	this.minimumEnforced = minimumEnforced;
+	this.applyEnforcedMinimumSize();
 	}
 
 	private void applyEnforcedMinimumSize() {
@@ -221,8 +252,8 @@ public abstract class AbstractWindow extends AbstractHud {
 	 */
 	public void setEnforceMaximumSize(final boolean maximumEnforced) {
 		assert this.init : "Window is not init yet";
-		this.maximumEnforced = maximumEnforced;
-		this.applyEnforcedMaximumSize();
+	this.maximumEnforced = maximumEnforced;
+	this.applyEnforcedMaximumSize();
 	}
 
 	private void applyEnforcedMaximumSize() {
@@ -299,5 +330,34 @@ public abstract class AbstractWindow extends AbstractHud {
 
 	public Window getInnerWindow() {
 		return this.window;
+	}
+
+	public void externalize() {
+		final ScrollPane content = this.getInnerScroll();
+		this.getInnerWindow().getContentPane().getChildren().remove(content);
+
+		final double width = this.getInnerScroll().widthProperty().get();
+		final double height = this.getInnerScroll().heightProperty().get();
+
+		final Parent parent = this.getNode().getParent();
+		if (parent instanceof Group) {
+			final Group castedParent = (Group) parent;
+			castedParent.getChildren().remove(this.getNode());
+		}
+
+		final Scene scene = new Scene(content);
+		final Stage stage = new Stage(StageStyle.DECORATED);
+		stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
+			@Override
+			public void handle(final WindowEvent event) {
+				if (AbstractWindow.this.getResponsibleGuiManager() != null) {
+					AbstractWindow.this.getResponsibleGuiManager().detachHudAsync(AbstractWindow.this);
+				}
+			}
+		});
+		stage.setScene(scene);
+		stage.setWidth(width);
+		stage.setHeight(height);
+		stage.show();
 	}
 }

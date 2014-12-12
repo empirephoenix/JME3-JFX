@@ -30,7 +30,7 @@ import com.jme3x.jfx.cursor.ICursorDisplayProvider;
 import com.sun.javafx.cursor.CursorType;
 
 public class GuiManager {
-	private static final Logger logger = LoggerFactory.getLogger(GuiManager.class);
+	private static final Logger	logger			= LoggerFactory.getLogger(GuiManager.class);
 
 	private JmeFxContainer		jmefx;
 	private Group				highLevelGroup;
@@ -90,9 +90,9 @@ public class GuiManager {
 
 	private void initRootGroup() {
 		/*
-		 *
+		 * 
 		 * Group baseHighLevelGroup = new Group(); Scene baseScene = new Scene(baseHighLevelGroup); baseScene.setFill(new Color(0, 0, 0, 0)); switchRootGroup(baseHighLevelGroup); }
-		 *
+		 * 
 		 * private void switchRootGroup(Group newRootGroup) {
 		 */
 		final Semaphore waitForInit = new Semaphore(0);
@@ -123,7 +123,7 @@ public class GuiManager {
 					}
 				});
 
-				Scene scene = new Scene(GuiManager.this.highLevelGroup);
+				final Scene scene = new Scene(GuiManager.this.highLevelGroup);
 				scene.setFill(new Color(0, 0, 0, 0));
 				GuiManager.this.jmefx.setScene(scene, GuiManager.this.highLevelGroup);
 				waitForInit.release();
@@ -148,7 +148,7 @@ public class GuiManager {
 	 */
 	public void detachHudAsync(final AbstractHud hud) {
 		if (hud == null) {
-			logger.warn("trying to remove null hud!");
+			GuiManager.logger.warn("trying to remove null hud!");
 			return;
 		}
 		final Runnable attachTask = new Runnable() {
@@ -157,7 +157,7 @@ public class GuiManager {
 				if (!hud.isAttached()) {
 					return;
 				}
-				logger.debug("Detaching {}", hud);
+				GuiManager.logger.debug("Detaching {}", hud);
 				GuiManager.this.attachedHuds.remove(hud);
 				GuiManager.this.highLevelGroup.getChildren().remove(hud.getNode());
 				hud.setAttached(false, null);
@@ -178,10 +178,10 @@ public class GuiManager {
 				if (hud.isAttached()) {
 					return;
 				}
-				logger.debug("Attaching {}", hud);
+				GuiManager.logger.debug("Attaching {}", hud);
 				assert !GuiManager.this.attachedHuds.contains(hud) : "Duplicated attach of " + hud + " isAttached state error?";
 				if (!hud.isInitialized()) {
-					logger.warn("Late init of {} call initialize early to prevent microlags", hud.getClass().getName());
+					GuiManager.logger.warn("Late init of {} call initialize early to prevent microlags", hud.getClass().getName());
 					hud.precache();
 				}
 				GuiManager.this.attachedHuds.add(hud);
@@ -263,7 +263,7 @@ public class GuiManager {
 			}
 		}
 		if (!switchToModal && orderedModalWindows.size() > 0) {
-			logger.warn("TODO FocusDenied sound/visual representation");
+			GuiManager.logger.warn("TODO FocusDenied sound/visual representation");
 		}
 
 	}
