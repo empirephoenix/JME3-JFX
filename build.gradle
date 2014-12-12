@@ -6,8 +6,6 @@ apply plugin: 'maven'
 apply plugin: 'eclipse'
 apply plugin: "sonar-runner"
 
-
-
 /////////////////git version logic///////////////
 def cmd = "git show -s --pretty=format:%ct_%h"//"git rev-parse --short HEAD"
 def proc = cmd.execute()
