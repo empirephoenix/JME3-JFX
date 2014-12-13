@@ -12,10 +12,7 @@ import jfxtras.scene.control.window.Window;
  * 
  */
 public class AdjustedMinimizeIcon extends MinimizeIcon {
-
-	public static final String	DEFAULT_STYLE_CLASS	= "window-minimize-icon";
-
-	private final Window		w;
+	private final Window	w;
 
 	public AdjustedMinimizeIcon(final AbstractWindow abstractWindow) {
 		super(abstractWindow.getInnerWindow());

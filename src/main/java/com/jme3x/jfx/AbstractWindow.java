@@ -6,16 +6,22 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
 import jfxtras.scene.control.window.Window;
+import jfxtras.scene.control.window.WindowIcon;
 
 public abstract class AbstractWindow extends AbstractHud {
 	private Region					inner;
@@ -28,8 +34,14 @@ public abstract class AbstractWindow extends AbstractHud {
 	private boolean					modal			= false;
 	private boolean					useInnerScroll	= true;
 	private String					title			= "";
+
+	// externalizable logic
 	private SimpleBooleanProperty	externalisable	= new SimpleBooleanProperty(false);
 	private SimpleBooleanProperty	externalized	= new SimpleBooleanProperty();
+	protected double				dragDeltax;
+	protected double				dragDeltay;
+	private Stage					externalStage;
+	private Parent					internalParent;
 
 	public void setMinimizeVisible(final boolean visible) {
 		assert !this.init : "Cannot change this after window is precached";
@@ -85,8 +97,8 @@ public abstract class AbstractWindow extends AbstractHud {
 
 	}
 
-	public SimpleBooleanProperty getExternalized() {
-		return this.externalized;
+	public boolean getExternalized() {
+		return this.externalized.get();
 	}
 
 	/**
@@ -99,6 +111,27 @@ public abstract class AbstractWindow extends AbstractHud {
 
 	public void setExternalisable(final boolean externalisable) {
 		this.externalisable.set(externalisable);
+	}
+
+	/**
+	 * externalized Makes this window appear on its own, only allowed before attaching only allowed if not attached
+	 * 
+	 * @param externalized
+	 */
+	// TODO use listener on property instead!
+	public void setExternalized(final boolean externalized) {
+		System.out.println("Externalized set to " + externalized);
+		if (this.attached().getValue()) {
+			if (this.externalized.get() != externalized) {
+				if (externalized) {
+					this.externalize();
+				} else {
+					this.internalize();
+				}
+			}
+		} else {
+			this.externalized.set(externalized);
+		}
 	}
 
 	public SimpleBooleanProperty getExternalisable() {
@@ -332,22 +365,75 @@ public abstract class AbstractWindow extends AbstractHud {
 		return this.window;
 	}
 
-	public void externalize() {
-		final ScrollPane content = this.getInnerScroll();
+	private void externalize() {
+		this.externalized.set(true);
+		Region content = null;
+		if (this.useInnerScroll) {
+			content = this.getInnerScroll();
+		} else {
+			content = this.inner;
+		}
 		this.getInnerWindow().getContentPane().getChildren().remove(content);
 
 		final double width = this.getInnerScroll().widthProperty().get();
 		final double height = this.getInnerScroll().heightProperty().get();
 
-		final Parent parent = this.getNode().getParent();
-		if (parent instanceof Group) {
-			final Group castedParent = (Group) parent;
+		this.internalParent = this.getNode().getParent();
+		if (this.internalParent instanceof Group) {
+			final Group castedParent = (Group) this.internalParent;
 			castedParent.getChildren().remove(this.getNode());
 		}
 
-		final Scene scene = new Scene(content);
-		final Stage stage = new Stage(StageStyle.DECORATED);
-		stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
+		final BorderPane overlaylogic = new BorderPane();
+		final jfxtras.scene.layout.HBox menuIconHolder = new jfxtras.scene.layout.HBox();
+		final WindowIcon close = new WindowIcon();
+		close.getStyleClass().setAll("window-close-icon");
+		close.setMinSize(25, 25);
+		final WindowIcon minimize = new WindowIcon();
+		minimize.getStyleClass().setAll("window-minimize-icon");
+		minimize.setMinSize(25, 25);
+		final WindowIcon internalize = new WindowIcon();
+		internalize.getStyleClass().setAll("window-rotate-icon");
+		internalize.setMinSize(25, 25);
+		menuIconHolder.getChildren().addAll(internalize, minimize, close);
+		menuIconHolder.getStyleClass().setAll("window-titlebar");
+
+		final StackPane menu = new StackPane();
+		menu.getChildren().add(menuIconHolder);
+		final Label titleLbl = new Label(this.getTitle());
+		menu.getChildren().add(titleLbl);
+		StackPane.setAlignment(titleLbl, Pos.CENTER);
+		StackPane.setAlignment(menuIconHolder, Pos.CENTER_RIGHT);
+		overlaylogic.setTop(menu);
+		overlaylogic.setCenter(content);
+
+		final Scene scene = new Scene(overlaylogic);
+		menu.minWidthProperty().bind(scene.widthProperty());
+		this.externalStage = new Stage(StageStyle.UNDECORATED);
+
+		minimize.setOnAction(new EventHandler<ActionEvent>() {
+			@Override
+			public void handle(final ActionEvent event) {
+				AbstractWindow.this.externalStage.setIconified(true);
+			}
+		});
+
+		close.setOnAction(new EventHandler<ActionEvent>() {
+
+			@Override
+			public void handle(final ActionEvent event) {
+				AbstractWindow.this.externalStage.close();
+			}
+		});
+
+		internalize.setOnAction(new EventHandler<ActionEvent>() {
+			@Override
+			public void handle(final ActionEvent event) {
+				AbstractWindow.this.setExternalized(false);
+			}
+		});
+
+		this.externalStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
 			@Override
 			public void handle(final WindowEvent event) {
 				if (AbstractWindow.this.getResponsibleGuiManager() != null) {
@@ -355,9 +441,59 @@ public abstract class AbstractWindow extends AbstractHud {
 				}
 			}
 		});
-		stage.setScene(scene);
-		stage.setWidth(width);
-		stage.setHeight(height);
-		stage.show();
+
+		menu.setOnMousePressed(new EventHandler<MouseEvent>() {
+			@Override
+			public void handle(final MouseEvent mouseEvent) {
+				// record a delta distance for the drag and drop operation.
+				AbstractWindow.this.dragDeltax = AbstractWindow.this.externalStage.getX() - mouseEvent.getScreenX();
+				AbstractWindow.this.dragDeltay = AbstractWindow.this.externalStage.getY() - mouseEvent.getScreenY();
+			}
+		});
+		menu.setOnMouseDragged(new EventHandler<MouseEvent>() {
+			@Override
+			public void handle(final MouseEvent mouseEvent) {
+				AbstractWindow.this.externalStage.setX(mouseEvent.getScreenX() + AbstractWindow.this.dragDeltax);
+				AbstractWindow.this.externalStage.setY(mouseEvent.getScreenY() + AbstractWindow.this.dragDeltay);
+			}
+		});
+		menu.setAlignment(Pos.CENTER_RIGHT);
+
+		this.externalStage.setTitle(this.title);
+		this.externalStage.setScene(scene);
+		this.externalStage.setWidth(width);
+		this.externalStage.setHeight(height);
+
+		// TODO eww
+		overlaylogic
+				.setStyle("-fx-glass-color: rgba(85, 132, 160, 0.9);"
+						+ "-fx-alignment: center;"
+						+ "-fx-background-color: linear-gradient(to bottom, derive(-fx-glass-color, 50%), -fx-glass-color);    -fx-border-color: derive(-fx-glass-color, -60%);    -fx-border-width: 2;    -fx-background-insets: 1;    -fx-border-radius: 3;    -fx-background-radius: 3;    -fx-font-size: 18;");
+		this.externalStage.show();
+	}
+
+	private void internalize() {
+		this.externalized.set(false);
+		Region content = null;
+		if (this.useInnerScroll) {
+			content = this.getInnerScroll();
+		} else {
+			content = this.inner;
+		}
+		if (this.externalStage != null) {
+			this.externalStage.close();
+		}
+		this.getInnerWindow().getContentPane().getChildren().add(content);
+
+		if (this.internalParent != null) {
+			// reattach to previous parent!
+			if (this.internalParent instanceof Group) {
+				final Group casted = (Group) this.internalParent;
+				casted.getChildren().add(this.getNode());
+			}
+		} else {
+			// Fallback for externalized started windows
+			this.getResponsibleGuiManager().getRootGroup().getChildren().add(this.getNode());
+		}
 	}
 }
