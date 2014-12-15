@@ -6,7 +6,6 @@ import com.jme3.app.SimpleApplication;
 import com.jme3.math.ColorRGBA;
 import com.jme3.system.AppSettings;
 import com.jme3x.jfx.cursor.proton.ProtonCursorProvider;
-import com.sun.media.jfxmediaimpl.platform.Platform;
 
 public class Test extends SimpleApplication {
 	private static boolean	assertionsEnabled;
@@ -30,7 +29,6 @@ public class Test extends SimpleApplication {
 
 	@Override
 	public void simpleInitApp() {
-		final Platform initplat = Platform.getPlatformInstance();
 
 		this.setPauseOnLostFocus(false);
 		this.flyCam.setDragToRotate(true);
@@ -47,6 +45,8 @@ public class Test extends SimpleApplication {
 		testguiManager.attachHudAsync(testhud);
 
 		final FXMLWindow testwindow = new FXMLWindow("com/jme3x/jfx/loading_screen.fxml");
+		testwindow.setExternalisable(true);
+		testwindow.setExternalized(true);
 		testwindow.precache();
 		testwindow.setTitleAsync("TestTitle");
 		testguiManager.attachHudAsync(testwindow);

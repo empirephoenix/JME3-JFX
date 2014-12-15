@@ -6,7 +6,6 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -16,7 +15,6 @@ import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Region;
-import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
@@ -90,8 +88,8 @@ public abstract class AbstractWindow extends AbstractHud {
 		windowHeight = Math.max(this.inner.getPrefHeight(), this.inner.getMinHeight());
 	}
 
-	final double newPosx = sceneWidth / 2 - windowWidth / 2;
-	final double newPosy = sceneHeight / 2 - windowHeight / 2;
+	final double newPosx = (sceneWidth / 2) - (windowWidth / 2);
+	final double newPosy = (sceneHeight / 2) - (windowHeight / 2);
 	this.setLayoutX((int) newPosx);
 	this.setLayoutY((int) newPosy);
 
@@ -124,9 +122,9 @@ public abstract class AbstractWindow extends AbstractHud {
 		if (this.attached().getValue()) {
 			if (this.externalized.get() != externalized) {
 				if (externalized) {
-					this.externalize();
+					this.externalizeDoNotCallUglyAPI();
 				} else {
-					this.internalize();
+					this.internalizeDoNotCallUglyAPI();
 				}
 			}
 		} else {
@@ -365,7 +363,7 @@ public abstract class AbstractWindow extends AbstractHud {
 		return this.window;
 	}
 
-	private void externalize() {
+	public void externalizeDoNotCallUglyAPI() {
 		this.externalized.set(true);
 		Region content = null;
 		if (this.useInnerScroll) {
@@ -396,19 +394,17 @@ public abstract class AbstractWindow extends AbstractHud {
 		internalize.getStyleClass().setAll("window-rotate-icon");
 		internalize.setMinSize(25, 25);
 		menuIconHolder.getChildren().addAll(internalize, minimize, close);
-		menuIconHolder.getStyleClass().setAll("window-titlebar");
 
-		final StackPane menu = new StackPane();
-		menu.getChildren().add(menuIconHolder);
+		final BorderPane menu = new BorderPane();
+		menu.getStyleClass().setAll("window-titlebar");
+		menu.setRight(menuIconHolder);
 		final Label titleLbl = new Label(this.getTitle());
-		menu.getChildren().add(titleLbl);
-		StackPane.setAlignment(titleLbl, Pos.CENTER);
-		StackPane.setAlignment(menuIconHolder, Pos.CENTER_RIGHT);
+		titleLbl.setStyle("-fx-text-fill:WHITE;");
+		menu.setCenter(titleLbl);
 		overlaylogic.setTop(menu);
 		overlaylogic.setCenter(content);
 
 		final Scene scene = new Scene(overlaylogic);
-		menu.minWidthProperty().bind(scene.widthProperty());
 		this.externalStage = new Stage(StageStyle.UNDECORATED);
 
 		minimize.setOnAction(new EventHandler<ActionEvent>() {
@@ -457,7 +453,6 @@ public abstract class AbstractWindow extends AbstractHud {
 				AbstractWindow.this.externalStage.setY(mouseEvent.getScreenY() + AbstractWindow.this.dragDeltay);
 			}
 		});
-		menu.setAlignment(Pos.CENTER_RIGHT);
 
 		this.externalStage.setTitle(this.title);
 		this.externalStage.setScene(scene);
@@ -466,13 +461,12 @@ public abstract class AbstractWindow extends AbstractHud {
 
 		// TODO eww
 		overlaylogic
-				.setStyle("-fx-glass-color: rgba(85, 132, 160, 0.9);"
-						+ "-fx-alignment: center;"
-						+ "-fx-background-color: linear-gradient(to bottom, derive(-fx-glass-color, 50%), -fx-glass-color);    -fx-border-color: derive(-fx-glass-color, -60%);    -fx-border-width: 2;    -fx-background-insets: 1;    -fx-border-radius: 3;    -fx-background-radius: 3;    -fx-font-size: 18;");
+		.setStyle("-fx-glass-color: rgba(85, 132, 160, 0.9);"
+				+ "-fx-background-color: linear-gradient(to bottom, derive(-fx-glass-color, 50%), -fx-glass-color);    -fx-border-color: derive(-fx-glass-color, -60%);    -fx-border-width: 2;    -fx-background-insets: 1;    -fx-border-radius: 3;    -fx-background-radius: 3;    -fx-font-size: 18;");
 		this.externalStage.show();
 	}
 
-	private void internalize() {
+	public void internalizeDoNotCallUglyAPI() {
 		this.externalized.set(false);
 		Region content = null;
 		if (this.useInnerScroll) {

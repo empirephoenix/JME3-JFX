@@ -159,6 +159,12 @@ public class GuiManager {
 				}
 				GuiManager.logger.debug("Detaching {}", hud);
 				GuiManager.this.attachedHuds.remove(hud);
+				if (hud instanceof AbstractWindow) {
+					AbstractWindow casted = (AbstractWindow) hud;
+					if (casted.getExternalized()) {
+						casted.internalizeDoNotCallUglyAPI();
+					}
+				}
 				GuiManager.this.highLevelGroup.getChildren().remove(hud.getNode());
 				hud.setAttached(false, null);
 			}
@@ -187,6 +193,18 @@ public class GuiManager {
 				GuiManager.this.attachedHuds.add(hud);
 				GuiManager.this.highLevelGroup.getChildren().add(hud.getNode());
 				hud.setAttached(true, GuiManager.this);
+				if (hud instanceof AbstractWindow) {
+					AbstractWindow casted = (AbstractWindow) hud;
+					if (casted.getExternalized()) {
+						Platform.runLater(new Runnable() {
+							@Override
+							public void run() {
+								casted.externalizeDoNotCallUglyAPI();
+							}
+						});
+					}
+				}
+
 			}
 		};
 		FxPlatformExecutor.runOnFxApplication(attachTask);
@@ -262,7 +280,7 @@ public class GuiManager {
 				currentOrder.add(other);
 			}
 		}
-		if (!switchToModal && orderedModalWindows.size() > 0) {
+		if (!switchToModal && (orderedModalWindows.size() > 0)) {
 			GuiManager.logger.warn("TODO FocusDenied sound/visual representation");
 		}
 
