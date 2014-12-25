@@ -457,7 +457,7 @@ public abstract class AbstractWindow extends AbstractHud {
 		this.externalStage.setTitle(this.title);
 		this.externalStage.setScene(scene);
 		this.externalStage.setWidth(width);
-		this.externalStage.setHeight(height);
+		this.externalStage.setHeight(height + 25);
 
 		// TODO eww
 		overlaylogic
