@@ -8,6 +8,11 @@ import java.nio.IntBuffer;
 import java.util.concurrent.Semaphore;
 
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.geometry.Bounds;
+import javafx.scene.Group;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.PixelFormat;
 import javafx.scene.image.PixelReader;
@@ -22,7 +27,7 @@ import com.sun.javafx.perf.PerformanceTracker;
  * 
  */
 public class PopupSnapper {
-
+    
 	private Window	window;
 	private Scene	scene;
 	WritableImage	img;
@@ -32,8 +37,15 @@ public class PopupSnapper {
 
 	public PopupSnapper(final JmeFxContainer containReference, final Window window, final Scene scene) {
 		this.window = window;
-		this.scene = scene;
+		Parent root = scene.getRoot();
+		scene.setRoot(new Group());
+		
+		Scene s = new Scene(root,scene.getWidth(),scene.getHeight(),scene.getFill());
+		
+		this.scene = s;
 		this.jmeFXcontainerReference = containReference;
+		
+		
 	}
 
 	public void paint(final IntBuffer buf, final int pWidth, final int pHeight) {
@@ -123,11 +135,13 @@ public class PopupSnapper {
 
 	public void start() {
 
-	    PerformanceTracker.getSceneTracker(scene).setOnRenderedFrameTask(new Runnable () {
-	        @Override
-	        public void run() {
-	            if (ignoreRepaintHeight == scene.getHeight()) {
-	                ignoreRepaintHeight = -1;
+	    Runnable run = new Runnable () {
+            @Override
+            public void run() {
+                System.out.println(ignoreRepaintHeight + " v " + scene.getHeight());
+                
+                if (ignoreRepaintHeight == scene.getHeight()) {
+                    ignoreRepaintHeight = -1;
                     return;
                 }
                 Platform.runLater(new Runnable() {
@@ -137,13 +151,27 @@ public class PopupSnapper {
                         repaint();
                     }
                 });
-	        }
-	    });
+            }
+        };
+	    
+	    PerformanceTracker.getSceneTracker(window.getScene()).setOnRenderedFrameTask(run);
+	    PerformanceTracker.getSceneTracker(scene).setOnRenderedFrameTask(run);
 
+	    scene.getRoot().boundsInLocalProperty().addListener(new ChangeListener<Bounds>() {
+	        @Override
+	        public void changed(ObservableValue<? extends Bounds> observable, Bounds oldValue, Bounds newValue) {
+	            
+	            run.run();
+	        }
+        });
+	    
 		this.jmeFXcontainerReference.activeSnappers.add(this);
 	}
 
 	public void stop() {
 		this.jmeFXcontainerReference.activeSnappers.remove(this);
+		Parent root = scene.getRoot();
+		scene.setRoot(new Group());
+		window.getScene().setRoot(root);
 	}
 }

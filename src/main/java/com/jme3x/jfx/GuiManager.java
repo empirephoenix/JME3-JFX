@@ -30,9 +30,10 @@ import com.jme3x.jfx.cursor.ICursorDisplayProvider;
 import com.sun.javafx.cursor.CursorType;
 
 public class GuiManager {
+
 	private static final Logger	logger			= LoggerFactory.getLogger(GuiManager.class);
 
-	private JmeFxContainer		jmefx;
+	private JmeFxScreenContainer		jmefx;
 	private Group				highLevelGroup;
 
 	/**
@@ -45,7 +46,7 @@ public class GuiManager {
 		return this.highLevelGroup;
 	}
 
-	public JmeFxContainer getjmeFXContainer() {
+	public JmeFxScreenContainer getjmeFXContainer() {
 		return this.jmefx;
 
 	}

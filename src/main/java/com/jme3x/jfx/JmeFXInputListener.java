@@ -9,8 +9,6 @@ import java.util.BitSet;
 
 import javafx.application.Platform;
 
-import org.lwjgl.opengl.Display;
-
 import com.jme3.input.RawInputListener;
 import com.jme3.input.awt.AwtKeyInput;
 import com.jme3.input.event.JoyAxisEvent;
@@ -118,8 +116,8 @@ public class JmeFXInputListener implements RawInputListener {
 				if (JmeFXInputListener.this.jfxdndHandler != null) {
 					JmeFXInputListener.this.jfxdndHandler.mouseUpdate(x, y, JmeFXInputListener.this.mouseButtonState[0]);
 				}
-				JmeFXInputListener.this.jmeFxContainer.scenePeer.mouseEvent(ftype, fbutton, JmeFXInputListener.this.mouseButtonState[0], JmeFXInputListener.this.mouseButtonState[1], JmeFXInputListener.this.mouseButtonState[2], x, y, Display.getX()
-						+ x, Display.getY() + y, JmeFXInputListener.this.keyStateSet.get(KeyEvent.VK_SHIFT), JmeFXInputListener.this.keyStateSet.get(KeyEvent.VK_CONTROL), JmeFXInputListener.this.keyStateSet.get(KeyEvent.VK_ALT),
+				JmeFXInputListener.this.jmeFxContainer.scenePeer.mouseEvent(ftype, fbutton, JmeFXInputListener.this.mouseButtonState[0], JmeFXInputListener.this.mouseButtonState[1], JmeFXInputListener.this.mouseButtonState[2], x, y, jmeFxContainer.getXPosition()
+						+ x, jmeFxContainer.getYPosition() + y, JmeFXInputListener.this.keyStateSet.get(KeyEvent.VK_SHIFT), JmeFXInputListener.this.keyStateSet.get(KeyEvent.VK_CONTROL), JmeFXInputListener.this.keyStateSet.get(KeyEvent.VK_ALT),
 						JmeFXInputListener.this.keyStateSet.get(KeyEvent.VK_META), wheelRotation, false);
 			}
 		});
@@ -167,7 +165,7 @@ public class JmeFXInputListener implements RawInputListener {
 			evt.setConsumed();
 			this.jmeFxContainer.grabFocus();
 		}
-
+;
 		int type;
 		if (evt.isPressed()) {
 			type = AbstractEvents.MOUSEEVENT_PRESSED;
@@ -184,7 +182,7 @@ public class JmeFXInputListener implements RawInputListener {
 					JmeFXInputListener.this.jfxdndHandler.mouseUpdate(x, y, JmeFXInputListener.this.mouseButtonState[0]);
 				}
 				JmeFXInputListener.this.jmeFxContainer.scenePeer.mouseEvent(type, button, JmeFXInputListener.this.mouseButtonState[0], JmeFXInputListener.this.mouseButtonState[1], JmeFXInputListener.this.mouseButtonState[2], x, y,
-						Display.getX() + x, Display.getY() + y, JmeFXInputListener.this.keyStateSet.get(KeyEvent.VK_SHIFT), JmeFXInputListener.this.keyStateSet.get(KeyEvent.VK_CONTROL), JmeFXInputListener.this.keyStateSet.get(KeyEvent.VK_ALT),
+				        jmeFxContainer.getXPosition() + x, jmeFxContainer.getYPosition() + y, JmeFXInputListener.this.keyStateSet.get(KeyEvent.VK_SHIFT), JmeFXInputListener.this.keyStateSet.get(KeyEvent.VK_CONTROL), JmeFXInputListener.this.keyStateSet.get(KeyEvent.VK_ALT),
 						JmeFXInputListener.this.keyStateSet.get(KeyEvent.VK_META), 0, button == AbstractEvents.MOUSEEVENT_SECONDARY_BUTTON);
 			}
 		});

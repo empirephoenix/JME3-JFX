@@ -113,14 +113,14 @@ public class JmeFxDNDHandler implements HostDragStartListener {
 				if (this.dragImage != null) {
 					this.dragImage.relocate(x, y);
 					// only add once it has a valid position
-					if (!this.jmeFxContainer.getRootNode().getChildren().contains(this.dragImage)) {
-						this.jmeFxContainer.getRootNode().getChildren().add(this.dragImage);
+					if (!this.jmeFxContainer.getRootChildren().contains(this.dragImage)) {
+						this.jmeFxContainer.getRootChildren().add(this.dragImage);
 					}
 				}
 				this.overtarget = this.dropTarget.handleDragOver(x, y, x, y, TransferMode.COPY);
 			} else {
 				if (this.dragImage != null) {
-					this.jmeFxContainer.getRootNode().getChildren().remove(this.dragImage);
+					this.jmeFxContainer.getRootChildren().remove(this.dragImage);
 					this.dragImage = null;
 				}
 				logger.debug("Drag released!");

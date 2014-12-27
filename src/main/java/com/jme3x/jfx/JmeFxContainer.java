@@ -1,9 +1,7 @@
 package com.jme3x.jfx;
 
-import java.awt.Point;
 import java.awt.event.KeyEvent;
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.util.BitSet;
@@ -12,38 +10,37 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Semaphore;
 import java.util.function.Function;
 
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.scene.Camera;
 import javafx.scene.Group;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.layout.Pane;
+import javafx.stage.PopupWindow;
 import javafx.stage.Window;
 import javafx.stage.WindowEvent;
 
-import org.lwjgl.opengl.Display;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.jme3.app.Application;
-import com.jme3.app.state.AbstractAppState;
-import com.jme3.asset.AssetManager;
 import com.jme3.input.RawInputListener;
-import com.jme3.scene.Node;
-import com.jme3.scene.Spatial.CullHint;
 import com.jme3.texture.Image;
 import com.jme3.texture.Image.Format;
 import com.jme3.texture.Texture2D;
-import com.jme3.ui.Picture;
 import com.jme3.util.BufferUtils;
 import com.jme3x.jfx.cursor.ICursorDisplayProvider;
 import com.jme3x.jfx.util.FormatUtils;
-import com.jme3x.jfx.util.JFXUtils;
 import com.sun.glass.ui.Pixels;
 import com.sun.javafx.application.PlatformImpl;
 import com.sun.javafx.cursor.CursorType;
@@ -60,214 +57,91 @@ import com.sun.javafx.stage.EmbeddedWindow;
  *
  * @author abies / Artur Biesiadowski
  */
-public class JmeFxContainer {
-	private static final Logger logger = LoggerFactory.getLogger(JmeFxContainer.class);
 
-	EmbeddedStageInterface		stagePeer;
-	EmbeddedSceneInterface		scenePeer;
-	volatile EmbeddedWindow		stage;
-	HostInterface				hostContainer;
-	JmeFXInputListener			inputListener;
-	int							pWidth;
-	int							pHeight;
-	volatile Scene				scene;
-	Image						jmeImage;
-	Texture2D					tex;
-	ByteBuffer					jmeData;
-	int							alphaByteOffset	= 3;
-	ByteBuffer					fxData;
-	boolean						fxDataReady		= false;
-	int							oldX			= -1;
-	int							oldY			= -1;
-	boolean						focus;
-	Application					app;
-	boolean						fullScreenSuppport;
-	CompletableFuture<Format>	nativeFormat	= new CompletableFuture<Format>();
-	ICursorDisplayProvider		cursorDisplayProvider;
-	private Group				rootNode;
+public abstract class JmeFxContainer {
 
-	private final Picture		picture;
-	private Function<ByteBuffer, Void> reorderData;
+    private static final Logger logger = LoggerFactory.getLogger(JmeFxContainer.class);
+    
+	EmbeddedStageInterface             stagePeer;
+	EmbeddedSceneInterface             scenePeer;
+	protected volatile EmbeddedWindow  stage;
+	HostInterface                      hostContainer;
+	JmeFXInputListener                 inputListener;
+	int                                pWidth;
+	int                                pHeight;
+	volatile Scene                     scene;
+	Image                              jmeImage;
+	Texture2D                          tex;
+	ByteBuffer                         jmeData;
+	int                                alphaByteOffset = 3;
+	ByteBuffer                         fxData;
+	boolean                            fxDataReady = false;
+	int                                oldX = -1;
+	int                                oldY = -1;
+	boolean                            focus;
+	Application                        app;
+	boolean                            fullScreenSuppport;
+	CompletableFuture<Format>          nativeFormat = new CompletableFuture<Format>();
+	ICursorDisplayProvider             cursorDisplayProvider;
+	private Parent                     rootNode;
 
-	/** Indent the window position to account for window decoration by Ronn */
-	private int					windowOffsetX;
-	private int					windowOffsetY;
+    private Function<ByteBuffer, Void>  reorderData;
 
-	public static JmeFxContainer install(final Application app, final Node guiNode, final boolean fullScreenSupport, final ICursorDisplayProvider cursorDisplayProvider) {
-		final JmeFxContainer ctr = new JmeFxContainer(app.getAssetManager(), app, fullScreenSupport, cursorDisplayProvider);
+    /** Indent the window position to account for window decoration by Ronn */
+    private int                         windowOffsetX;
+    private int                         windowOffsetY;
+
+
+	public static JmeFxScreenContainer install(final Application app, final com.jme3.scene.Node guiNode, final boolean fullScreenSupport, final ICursorDisplayProvider cursorDisplayProvider) {
+		final JmeFxScreenContainer ctr = new JmeFxScreenContainer(app.getAssetManager(), app, fullScreenSupport, cursorDisplayProvider);
 		guiNode.attachChild(ctr.getJmeNode());
 		ctr.inputListener = new JmeFXInputListener(ctr);
 		app.getInputManager().addRawInputListener(ctr.inputListener);
 
-		if (fullScreenSupport) {
-			ctr.installSceneAccessorHack();
+		if(fullScreenSupport) {
+			installSceneAccessorHack();
 		}
 
 		return ctr;
+	}
+	
+	public static JmeFxTextureContainer createTextureContainer(Application app,int width, int height) {
+	    final JmeFxTextureContainer ctr = new JmeFxTextureContainer(app,width,height);
+	    
+	    installSceneAccessorHack();
+	    
+	    return ctr;
 	}
 
 	public JmeFXInputListener getInputListener() {
 		return this.inputListener;
 	}
 
-	private JmeFxContainer(final AssetManager assetManager, final Application app, final boolean fullScreenSupport, final ICursorDisplayProvider cursorDisplayProvider) {
+	protected JmeFxContainer() {
 		this.initFx();
-
-		final Point decorationSize = JFXUtils.getWindowDecorationSize();
-
-		this.windowOffsetX = (int) decorationSize.getX();
-		this.windowOffsetY = (int) decorationSize.getY();
-		this.cursorDisplayProvider = cursorDisplayProvider;
-		this.app = app;
-		this.fullScreenSuppport = fullScreenSupport;
-
-		app.getStateManager().attach(new AbstractAppState() {
-
-			@Override
-			public void cleanup() {
-				Platform.exit();
-				super.cleanup();
-			}
-		});
-
-		this.hostContainer = new JmeFXHostInterfaceImpl(this);
-		this.picture = new Picture("JavaFXContainer", true) {
-
-			@Override
-			public void updateLogicalState(final float tpf) {
-
-				final EmbeddedStageInterface currentStage = JmeFxContainer.this.getStagePeer();
-				try {
-
-					if (currentStage == null) {
-						return;
-					}
-
-					final int currentWidth = Display.getWidth();
-					final int currentHeight = Display.getHeight();
-
-					if (currentWidth != JmeFxContainer.this.getpWidth() || currentHeight != JmeFxContainer.this.getpHeight()) {
-						JmeFxContainer.this.handleResize();
-					}
-
-					final int x = Display.getX() + (Display.isFullscreen() ? 0 : JmeFxContainer.this.getWindowOffsetX());
-					final int y = Display.getY() + (Display.isFullscreen() ? 0 : JmeFxContainer.this.getWindowOffsetY());
-
-					if (JmeFxContainer.this.getOldX() != x || JmeFxContainer.this.getOldY() != y) {
-
-						JmeFxContainer.this.setOldX(x);
-						JmeFxContainer.this.setOldY(y);
-
-						Platform.runLater(() -> currentStage.setLocation(x, y));
-					}
-
-				} finally {
-					super.updateLogicalState(tpf);
-				}
-			}
-		};
-
-		this.picture.move(0, 0, -1);
-		this.picture.setPosition(0, 0);
-
-		this.handleResize();
-
-		this.tex = new Texture2D(this.jmeImage);
-		this.picture.setTexture(assetManager, this.tex, true);
 	}
 
-	private int getOldX() {
-		return this.oldX;
+	
+	protected EmbeddedSceneInterface getScenePeer() {
+		return scenePeer;
 	}
 
-	private int getOldY() {
-		return this.oldY;
+	protected EmbeddedStageInterface getStagePeer() {
+		return stagePeer;
 	}
 
-	private void setOldX(final int oldX) {
-		this.oldX = oldX;
-	}
-
-	private void setOldY(final int oldY) {
-		this.oldY = oldY;
-	}
-
-	private int getpHeight() {
-		return this.pHeight;
-	}
-
-	private int getpWidth() {
-		return this.pWidth;
-	}
-
-	private EmbeddedStageInterface getStagePeer() {
-		return this.stagePeer;
-	}
-
-	private void handleResize() {
-
-		try {
-			this.imageExchange.acquire();
-			dispose();
-
-			this.pWidth = Display.getWidth();
-			this.pHeight = Display.getHeight();
-			if (this.pWidth < 64) {
-				this.pWidth = 64;
-			}
-			if (this.pHeight < 64) {
-				this.pHeight = 64;
-			}
-			this.picture.setWidth(this.pWidth);
-			this.picture.setHeight(this.pHeight);
-			this.jmeData = BufferUtils.createByteBuffer(this.pWidth * this.pHeight * 4);
-			this.fxData = BufferUtils.createByteBuffer(this.pWidth * this.pHeight * 4);
-			//TODO 3.1 : use new Image(this.nativeFormat.get(), this.pWidth, this.pHeight, this.jmeData, com.jme3.texture.image.ColorSpace.sRGB);
-			this.jmeImage = new Image(this.nativeFormat.get(), this.pWidth, this.pHeight, this.jmeData);
-			//HACK pre-3.1 to support gamma correction with jme pre-implementation of ColorSpace
-			try {
-				Class<?> classColorSpace = Class.forName("com.jme3.texture.image.ColorSpace");
-				Method m = Image.class.getMethod("setColorSpace", classColorSpace);
-				m.invoke(this.jmeImage, classColorSpace.getField("sRGB").get(null));
-			} catch(Throwable exc) {
-				// ignore jme 3.1 not available
-			}
-			//HACK pre-3.1 End
-			if (this.tex != null) {
-				this.tex.setImage(this.jmeImage);
-			}
-
-			if (this.stagePeer != null) {
-				Platform.runLater(new Runnable() {
-
-					@Override
-					public void run() {
-						JmeFxContainer.this.stagePeer.setSize(JmeFxContainer.this.pWidth, JmeFxContainer.this.pHeight);
-						JmeFxContainer.this.scenePeer.setSize(JmeFxContainer.this.pWidth, JmeFxContainer.this.pHeight);
-						JmeFxContainer.this.hostContainer.repaint();
-					}
-				});
-			}
-
-		} catch (final Exception exc) {
-			exc.printStackTrace();
-		} finally {
-			this.imageExchange.release();
-		}
-	}
-
-	public Picture getJmeNode() {
-		return this.picture;
-	}
+	
 
 	public int getWindowX() {
-		return this.oldX;
-	}
+        return 0;
+    }
 
-	public int getWindowY() {
-		return this.oldY;
-	}
+    public int getWindowY() {
+        return 0;
+    }
+	
 
+	
 	private void initFx() {
 		PlatformImpl.startup(new Runnable() {
 
@@ -324,8 +198,12 @@ public class JmeFxContainer {
 	public EmbeddedWindow getStage() {
 		return this.stage;
 	}
+	
+	public void setScene(final Scene newScene) {
+	    setScene(newScene,newScene.getRoot());
+	}
 
-	public void setScene(final Scene newScene, final Group highLevelGroup) {
+	public void setScene(final Scene newScene, final Parent highLevelGroup) {
 		this.rootNode = highLevelGroup;
 		FxPlatformExecutor.runOnFxApplication(new Runnable() {
 
@@ -339,20 +217,12 @@ public class JmeFxContainer {
 	/*
 	 * Called on JavaFX app thread.
 	 */
-	private void setSceneImpl(final Scene newScene) {
-		if (this.stage != null && newScene == null) {
+
+	protected void setSceneImpl(final Scene newScene) {
+		if(this.stage != null && newScene == null) {
 			this.stage.hide();
 			this.stage = null;
 		}
-
-		this.app.enqueue(new Callable<Void>() {
-
-			@Override
-			public Void call() {
-				JmeFxContainer.this.picture.setCullHint(newScene == null ? CullHint.Always : CullHint.Never);
-				return null;
-			}
-		});
 
 		this.scene = newScene;
 		if (this.stage == null && newScene != null) {
@@ -364,10 +234,13 @@ public class JmeFxContainer {
 				this.stage.show();
 			}
 		}
+		
+		sceneContainerMap.put(stage, this);
 	}
 
-	private final Semaphore	imageExchange	= new Semaphore(1);
-	public CursorType		lastcursor;
+
+	protected final Semaphore imageExchange = new Semaphore(1);
+	public CursorType lastcursor;
 
 	void paintComponent() {
 		if (this.scenePeer == null) {
@@ -501,9 +374,17 @@ public class JmeFxContainer {
 
 	Map<Window, PopupSnapper>	snappers		= new IdentityHashMap<>();
 	List<PopupSnapper>			activeSnappers	= new CopyOnWriteArrayList<>();
+	static Map<Window,JmeFxContainer> sceneContainerMap = new ConcurrentHashMap<>();
 
-	private void installSceneAccessorHack() {
+	
+	static boolean sceneAccessorHackInstalled;
+	
+	static void installSceneAccessorHack() {
 
+	    if ( sceneAccessorHackInstalled ) {
+	        return;
+	    }
+	    
 		try {
 			final Field f = SceneHelper.class.getDeclaredField("sceneAccessor");
 			f.setAccessible(true);
@@ -529,6 +410,7 @@ public class JmeFxContainer {
 				@Override
 				public Scene createPopupScene(final Parent root) {
 					final Scene scene = orig.createPopupScene(root);
+					
 					scene.windowProperty().addListener(new ChangeListener<Window>() {
 
 						@Override
@@ -537,11 +419,15 @@ public class JmeFxContainer {
 
 								@Override
 								public void handle(final WindowEvent event) {
-									if (Display.isFullscreen()) {
-										final PopupSnapper ps = new PopupSnapper(JmeFxContainer.this, window, scene);
-										JmeFxContainer.this.snappers.put(window, ps);
-										ps.start();
+									JmeFxContainer container = sceneContainerMap.get(((PopupWindow)window).getOwnerWindow());
+									if ( container != null ) {
+    									final PopupSnapper ps = new PopupSnapper(container, window, scene);
+    									synchronized(container.snappers) {
+    									    container.snappers.put(window, ps);
+    									}
+    									ps.start();
 									}
+									
 								}
 							});
 						};
@@ -555,10 +441,15 @@ public class JmeFxContainer {
 
 								@Override
 								public void handle(final WindowEvent event) {
-									if (Display.isFullscreen()) {
-										final PopupSnapper ps = JmeFxContainer.this.snappers.remove(window);
-										if (ps == null) {
-											logger.warn("Cannot find snapper for window " + window);
+								    JmeFxContainer container = sceneContainerMap.get(((PopupWindow)window).getOwnerWindow());
+                                    if ( container != null ) {
+                                        
+										final PopupSnapper ps;
+										synchronized(container.snappers) {
+										    ps = container.snappers.remove(window);
+										}
+										if(ps == null) {
+											System.out.println("Cannot find snapper for window " + window);
 										} else {
 											ps.stop();
 										}
@@ -579,6 +470,8 @@ public class JmeFxContainer {
 		} catch (final Exception exc) {
 			exc.printStackTrace();
 		}
+		
+		sceneAccessorHackInstalled = true;
 	}
 
 	/**
@@ -590,7 +483,7 @@ public class JmeFxContainer {
 		this.inputListener.setEverListeningRawInputListener(rawInputListenerAdapter);
 	}
 
-	public Group getRootNode() {
+	public Parent getRootNode() {
 		return this.rootNode;
 	}
 
@@ -634,4 +527,20 @@ public class JmeFxContainer {
 		dispose();
 		super.finalize();
 	}
+
+	public ObservableList<Node> getRootChildren() {
+	    if ( this.rootNode instanceof Group ) {
+	        return ((Group)this.rootNode).getChildren();
+	    } else if ( this.rootNode instanceof Pane ) {
+	        return ((Pane)this.rootNode).getChildren();
+	    } else {
+	        return FXCollections.emptyObservableList();
+	    }
+	}
+
+    public abstract int getXPosition();
+    
+    public abstract int getYPosition();
+
+
 }

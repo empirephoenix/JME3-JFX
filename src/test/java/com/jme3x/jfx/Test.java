@@ -34,7 +34,7 @@ public class Test extends SimpleApplication {
 		this.flyCam.setDragToRotate(true);
 		this.viewPort.setBackgroundColor(ColorRGBA.Red);
 
-		final GuiManager testguiManager = new GuiManager(this.guiNode, this.assetManager, this, false, new ProtonCursorProvider(this, this.assetManager, this.inputManager));
+		final GuiManager testguiManager = new GuiManager(this.guiNode, this.assetManager, this, true, new ProtonCursorProvider(this, this.assetManager, this.inputManager));
 		/**
 		 * 2d gui, use the default input provider
 		 */
