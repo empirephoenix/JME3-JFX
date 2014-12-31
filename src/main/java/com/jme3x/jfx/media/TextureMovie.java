@@ -119,6 +119,9 @@ public class TextureMovie {
                     final VideoDataBuffer argbFrame = frame.convertToFormat(VideoFormat.ARGB);
                     frame.releaseFrame();
 
+                    if ( argbFrame == null ) {
+                        return;
+                    }
                     int expectedWidth, expectedHeight;
                     int xOffset;
                     int xSize;
@@ -235,8 +238,6 @@ public class TextureMovie {
 
             @Override
             public void releaseVideoFrames() {
-                // TODO Auto-generated method stub
-
             }
         };
     }
