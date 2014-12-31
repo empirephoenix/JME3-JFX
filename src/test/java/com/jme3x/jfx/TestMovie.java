@@ -34,8 +34,8 @@ public class TestMovie extends SimpleApplication {
 	public void simpleInitApp() {
 		//getInputManager().setCursorVisible(true);
 		//getFlyByCamera().setEnabled(false);
-
-		final Media media = new Media("http://download.oracle.com/otndocs/products/javafx/oow2010-2.flv");
+        final Media media = new Media("http://download.oracle.com/otndocs/products/javafx/oow2010-2.flv");
+		//final Media media = new Media("file:///archive/movies/kamera/kotywalka1.mp4");
 		//final Media media = new Media("http://techslides.com/demos/sample-videos/small.mp4");
 		//final Media media = new Media(new File("/home/dwayne/tmp/small.mp4").toURI().toASCIIString());
 		//final Media media = new Media(new File("/home/dwayne/tmp/output.mp4").toURI().toASCIIString());
@@ -55,8 +55,9 @@ public class TestMovie extends SimpleApplication {
 
 		final Geometry screen1 = new Geometry("Screen1", new Quad(20, 20));
 
-		final Material s1mat = new Material(this.assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+		final Material s1mat = new Material(this.assetManager, "com/jme3x/jfx/media/MovieShader.j3md");
 		s1mat.setTexture("ColorMap", this.textureMovie.getTexture());
+		s1mat.setInt("SwizzleMode", textureMovie.useShaderSwizzle());
 		screen1.setMaterial(s1mat);
 		this.rootNode.attachChild(screen1);
 

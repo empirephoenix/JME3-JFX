@@ -33,6 +33,9 @@ import com.sun.media.jfxmedia.events.VideoRendererListener;
  */
 public class TextureMovie {
 
+    public static final int NO_SWIZZLE = 0;
+    public static final int SWIZZLE_RB = 1;
+    
     public enum LetterboxMode {
         /**
          * This mode uses entire texture including some garbage data on right
@@ -68,6 +71,10 @@ public class TextureMovie {
 
     private Texture2D texture;
     private Application app;
+    
+    private Function<ByteBuffer, Void> reorderData;
+    private Format format;
+    private int swizzleMode = NO_SWIZZLE;
 
     public TextureMovie(final Application app, javafx.scene.media.MediaPlayer mediaPlayer) {
         this(app, mediaPlayer, LetterboxMode.VALID_LETTERBOX);
@@ -83,6 +90,15 @@ public class TextureMovie {
         this.jPlayer = mediaPlayer;
         this.mode = mode;
 
+        try {
+            format = Format.valueOf("ARGB8");
+            reorderData = null;
+        } catch(Exception exc) {
+            format = Format.ABGR8;
+            swizzleMode = SWIZZLE_RB;
+            reorderData = FormatUtils::reorder_ARGB82ABGR8;
+        }
+                
         try {
             Method m1 = jPlayer.getClass().getDeclaredMethod("retrieveJfxPlayer");
             m1.setAccessible(true);
@@ -106,7 +122,6 @@ public class TextureMovie {
     private VideoRendererListener createVrListener() {
         return new VideoRendererListener() {
 
-            private Function<ByteBuffer, Void> reorderData;
 
             @Override
             public void videoFrameUpdated(NewFrameEvent event) {
@@ -172,9 +187,9 @@ public class TextureMovie {
                     bottomRightCorner.set((xOffset + argbFrame.getWidth()) / (float) expectedWidth, (yOffset + argbFrame.getHeight()) / (float) expectedHeight);
 
                     ByteBuffer src = argbFrame.getBuffer();
-                    if (this.reorderData != null) {
+                    if (reorderData != null) {
                         src.position(0);
-                        this.reorderData.apply(src);
+                        reorderData.apply(src);
                         src.position(0);
                     }
 
@@ -194,15 +209,7 @@ public class TextureMovie {
                                 bb.put(i + 3, (byte) (letterboxColor.r * 255));
                             }
                             bb.position(0);
-                            Format format = Format.ABGR8;
-
-                            try {
-                                format = Format.valueOf("ARGB8");
-                                reorderData = null;
-                            } catch(Exception exc) {
-                                format = Format.ABGR8;
-                                reorderData = FormatUtils::reorder_ARGB82ABGR8;
-                            }
+                            
                             image = new Image(format, expectedWidth, expectedHeight, bb);
                             texture.setImage(image);
                             if (image0 != null && image0 != emptyImage) {
@@ -285,6 +292,11 @@ public class TextureMovie {
             cPlayer.getVideoRenderControl().addVideoRendererListener(vrListener);
         }
         return texture;
+    }
+    
+    public int useShaderSwizzle() {
+        reorderData = null;
+        return swizzleMode;
     }
 
 }
