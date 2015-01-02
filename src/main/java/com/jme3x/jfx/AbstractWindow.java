@@ -363,6 +363,9 @@ public abstract class AbstractWindow extends AbstractHud {
 		return this.window;
 	}
 
+	/**
+	 * Use setExternalised(true) instead!
+	 */
 	public void externalizeDoNotCallUglyAPI() {
 		this.externalized.set(true);
 		Region content = null;
@@ -406,6 +409,7 @@ public abstract class AbstractWindow extends AbstractHud {
 
 		final Scene scene = new Scene(overlaylogic);
 		this.externalStage = new Stage(StageStyle.UNDECORATED);
+		ResizeHelper.addResizeListener(this.externalStage);
 
 		minimize.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
@@ -466,6 +470,9 @@ public abstract class AbstractWindow extends AbstractHud {
 		this.externalStage.show();
 	}
 
+	/**
+	 * Use setExternalised(false) instead!
+	 */
 	public void internalizeDoNotCallUglyAPI() {
 		this.externalized.set(false);
 		Region content = null;
