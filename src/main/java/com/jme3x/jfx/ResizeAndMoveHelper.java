@@ -8,19 +8,20 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
-//created by Alexander Berg http://stackoverflow.com/questions/19455059/allow-user-to-resize-an-undecorated-stage
-public class ResizeHelper {
+//based on work by Alexander Berg http://stackoverflow.com/questions/19455059/allow-user-to-resize-an-undecorated-stage
+public class ResizeAndMoveHelper {
 
-	public static void addResizeListener(final Stage stage) {
-		final ResizeListener resizeListener = new ResizeListener(stage);
+	public static void addResizeListener(final Stage stage, final BorderPane menu) {
+		final ResizeListener resizeListener = new ResizeListener(stage, menu);
 		stage.getScene().addEventHandler(MouseEvent.MOUSE_MOVED, resizeListener);
 		stage.getScene().addEventHandler(MouseEvent.MOUSE_PRESSED, resizeListener);
 		stage.getScene().addEventHandler(MouseEvent.MOUSE_DRAGGED, resizeListener);
 		final ObservableList<Node> children = stage.getScene().getRoot().getChildrenUnmodifiable();
 		for (final Node child : children) {
-			ResizeHelper.addListenerDeeply(child, resizeListener);
+			ResizeAndMoveHelper.addListenerDeeply(child, resizeListener);
 		}
 	}
 
@@ -32,20 +33,47 @@ public class ResizeHelper {
 			final Parent parent = (Parent) node;
 			final ObservableList<Node> children = parent.getChildrenUnmodifiable();
 			for (final Node child : children) {
-				ResizeHelper.addListenerDeeply(child, listener);
+				ResizeAndMoveHelper.addListenerDeeply(child, listener);
 			}
 		}
 	}
 
 	static class ResizeListener implements EventHandler<MouseEvent> {
-		private Stage	stage;
-		private Cursor	cursorEvent	= Cursor.DEFAULT;
-		private int		border		= 4;
-		private double	startX		= 0;
-		private double	startY		= 0;
+		private Stage		stage;
+		private Cursor		cursorEvent	= Cursor.DEFAULT;
+		private int			border		= 4;
+		private double		startX		= 0;
+		private double		startY		= 0;
 
-		public ResizeListener(final Stage stage) {
+		protected double	dragDeltax;
+		protected double	dragDeltay;
+
+		private BorderPane	menu;
+		protected boolean	resizing;
+
+		public ResizeListener(final Stage stage, final BorderPane menu) {
 			this.stage = stage;
+			this.menu = menu;
+
+			menu.setOnMouseDragged(new EventHandler<MouseEvent>() {
+				@Override
+				public void handle(final MouseEvent mouseEvent) {
+					if (!ResizeListener.this.resizing) {
+						stage.setX(mouseEvent.getScreenX() + ResizeListener.this.dragDeltax);
+						stage.setY(mouseEvent.getScreenY() + ResizeListener.this.dragDeltay);
+					}
+				}
+			});
+
+			menu.setOnMousePressed(new EventHandler<MouseEvent>() {
+				@Override
+				public void handle(final MouseEvent mouseEvent) {
+					// record a delta distance for the drag and drop operation.
+					ResizeListener.this.resizing = false;
+					ResizeListener.this.dragDeltax = stage.getX() - mouseEvent.getScreenX();
+					ResizeListener.this.dragDeltay = stage.getY() - mouseEvent.getScreenY();
+				}
+			});
 		}
 
 		@Override
@@ -56,6 +84,7 @@ public class ResizeHelper {
 			final double mouseEventX = mouseEvent.getSceneX(), mouseEventY = mouseEvent.getSceneY(), sceneWidth = scene.getWidth(), sceneHeight = scene.getHeight();
 
 			if (MouseEvent.MOUSE_MOVED.equals(mouseEventType) == true) {
+				this.resizing = true;
 				if (mouseEventX < this.border && mouseEventY < this.border) {
 					this.cursorEvent = Cursor.NW_RESIZE;
 				} else if (mouseEventX < this.border && mouseEventY > sceneHeight - this.border) {
@@ -73,7 +102,9 @@ public class ResizeHelper {
 				} else if (mouseEventY > sceneHeight - this.border) {
 					this.cursorEvent = Cursor.S_RESIZE;
 				} else {
+					this.resizing = false;
 					this.cursorEvent = Cursor.DEFAULT;
+
 				}
 				scene.setCursor(this.cursorEvent);
 			} else if (MouseEvent.MOUSE_PRESSED.equals(mouseEventType) == true) {

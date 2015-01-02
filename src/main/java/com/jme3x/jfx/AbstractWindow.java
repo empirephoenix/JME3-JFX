@@ -12,7 +12,6 @@ import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Region;
 import javafx.stage.Stage;
@@ -36,14 +35,12 @@ public abstract class AbstractWindow extends AbstractHud {
 	// externalizable logic
 	private SimpleBooleanProperty	externalisable	= new SimpleBooleanProperty(false);
 	private SimpleBooleanProperty	externalized	= new SimpleBooleanProperty();
-	protected double				dragDeltax;
-	protected double				dragDeltay;
 	private Stage					externalStage;
 	private Parent					internalParent;
 
 	public void setMinimizeVisible(final boolean visible) {
 		assert !this.init : "Cannot change this after window is precached";
-		this.minimizeVisible = visible;
+	this.minimizeVisible = visible;
 	}
 
 	public String getTitle() {
@@ -53,7 +50,7 @@ public abstract class AbstractWindow extends AbstractHud {
 
 	public void setUseInnerScroll(final boolean useInnerScroll) {
 		assert !this.init : "Cannot change this after window is precached";
-		this.useInnerScroll = useInnerScroll;
+	this.useInnerScroll = useInnerScroll;
 	}
 
 	public void setResizeable(final boolean b) {
@@ -75,23 +72,23 @@ public abstract class AbstractWindow extends AbstractHud {
 	@Deprecated
 	public void center() {
 		assert this.init : "Needs to be init to center";
-		final double sceneWidth = this.getNode().getScene().getWidth();
-		final double sceneHeight = this.getNode().getScene().getHeight();
+	final double sceneWidth = this.getNode().getScene().getWidth();
+	final double sceneHeight = this.getNode().getScene().getHeight();
 
-		double windowWidth = this.inner.getWidth();
-		if (windowWidth == 0) {
-			windowWidth = Math.max(this.inner.getPrefWidth(), this.inner.getMinWidth());
-		}
+	double windowWidth = this.inner.getWidth();
+	if (windowWidth == 0) {
+		windowWidth = Math.max(this.inner.getPrefWidth(), this.inner.getMinWidth());
+	}
 
-		double windowHeight = this.inner.getHeight();
-		if (windowHeight == 0) {
-			windowHeight = Math.max(this.inner.getPrefHeight(), this.inner.getMinHeight());
-		}
+	double windowHeight = this.inner.getHeight();
+	if (windowHeight == 0) {
+		windowHeight = Math.max(this.inner.getPrefHeight(), this.inner.getMinHeight());
+	}
 
-		final double newPosx = (sceneWidth / 2) - (windowWidth / 2);
-		final double newPosy = (sceneHeight / 2) - (windowHeight / 2);
-		this.setLayoutX((int) newPosx);
-		this.setLayoutY((int) newPosy);
+	final double newPosx = (sceneWidth / 2) - (windowWidth / 2);
+	final double newPosy = (sceneHeight / 2) - (windowHeight / 2);
+	this.setLayoutX((int) newPosx);
+	this.setLayoutY((int) newPosy);
 
 	}
 
@@ -104,7 +101,7 @@ public abstract class AbstractWindow extends AbstractHud {
 	 */
 	public void setModal(final boolean value) {
 		assert !this.init : "modality must be set before init";
-		this.modal = value;
+	this.modal = value;
 	}
 
 	public void setExternalisable(final boolean externalisable) {
@@ -212,16 +209,16 @@ public abstract class AbstractWindow extends AbstractHud {
 	 */
 	public void setSize(final double width, final double height) {
 		assert this.init : "Not init";
-		if (Platform.isFxApplicationThread()) {
-			this.window.setPrefSize(width, height);
-		} else {
-			Platform.runLater(new Runnable() {
-				@Override
-				public void run() {
-					AbstractWindow.this.window.setPrefSize(width, height);
-				}
-			});
-		}
+	if (Platform.isFxApplicationThread()) {
+		this.window.setPrefSize(width, height);
+	} else {
+		Platform.runLater(new Runnable() {
+			@Override
+			public void run() {
+				AbstractWindow.this.window.setPrefSize(width, height);
+			}
+		});
+	}
 
 	}
 
@@ -253,8 +250,8 @@ public abstract class AbstractWindow extends AbstractHud {
 	 */
 	public void setEnforceMinimumSize(final boolean minimumEnforced) {
 		assert this.init : "Window is not init yet";
-		this.minimumEnforced = minimumEnforced;
-		this.applyEnforcedMinimumSize();
+	this.minimumEnforced = minimumEnforced;
+	this.applyEnforcedMinimumSize();
 	}
 
 	private void applyEnforcedMinimumSize() {
@@ -283,8 +280,8 @@ public abstract class AbstractWindow extends AbstractHud {
 	 */
 	public void setEnforceMaximumSize(final boolean maximumEnforced) {
 		assert this.init : "Window is not init yet";
-		this.maximumEnforced = maximumEnforced;
-		this.applyEnforcedMaximumSize();
+	this.maximumEnforced = maximumEnforced;
+	this.applyEnforcedMaximumSize();
 	}
 
 	private void applyEnforcedMaximumSize() {
@@ -441,22 +438,6 @@ public abstract class AbstractWindow extends AbstractHud {
 			}
 		});
 
-		menu.setOnMousePressed(new EventHandler<MouseEvent>() {
-			@Override
-			public void handle(final MouseEvent mouseEvent) {
-				// record a delta distance for the drag and drop operation.
-				AbstractWindow.this.dragDeltax = AbstractWindow.this.externalStage.getX() - mouseEvent.getScreenX();
-				AbstractWindow.this.dragDeltay = AbstractWindow.this.externalStage.getY() - mouseEvent.getScreenY();
-			}
-		});
-		// menu.setOnMouseDragged(new EventHandler<MouseEvent>() {
-		// @Override
-		// public void handle(final MouseEvent mouseEvent) {
-		// AbstractWindow.this.externalStage.setX(mouseEvent.getScreenX() + AbstractWindow.this.dragDeltax);
-		// AbstractWindow.this.externalStage.setY(mouseEvent.getScreenY() + AbstractWindow.this.dragDeltay);
-		// }
-		// });
-
 		this.externalStage.setTitle(this.title);
 		this.externalStage.setScene(scene);
 		this.externalStage.setWidth(width);
@@ -464,9 +445,9 @@ public abstract class AbstractWindow extends AbstractHud {
 
 		// TODO eww
 		overlaylogic
-				.setStyle("-fx-glass-color: rgba(85, 132, 160, 0.9);"
-						+ "-fx-background-color: linear-gradient(to bottom, derive(-fx-glass-color, 50%), -fx-glass-color);    -fx-border-color: derive(-fx-glass-color, -60%);    -fx-border-width: 2;    -fx-background-insets: 1;    -fx-border-radius: 3;    -fx-background-radius: 3;    -fx-font-size: 18;");
-		ResizeHelper.addResizeListener(this.externalStage);
+		.setStyle("-fx-glass-color: rgba(85, 132, 160, 0.9);"
+				+ "-fx-background-color: linear-gradient(to bottom, derive(-fx-glass-color, 50%), -fx-glass-color);    -fx-border-color: derive(-fx-glass-color, -60%);    -fx-border-width: 2;    -fx-background-insets: 1;    -fx-border-radius: 3;    -fx-background-radius: 3;    -fx-font-size: 18;");
+		ResizeAndMoveHelper.addResizeListener(this.externalStage, menu);
 		this.externalStage.show();
 	}
 
