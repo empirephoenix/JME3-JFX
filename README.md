@@ -9,7 +9,7 @@ http://opensource.org/licenses/BSD-3-Clause
 Binary releases are available at :
 
  * https://bintray.com/empirephoenix/VGS-OSS-Releases/jfx/view/files/com/jme3x/jfx ( [maven repo](http://dl.bintray.com/empirephoenix/VGS-OSS-Releases) )
- * https://bintray.com/jmonkeyengine/contrib ( [maven repo](http://dl.bintray.com/davidb/jme3stuff) )
+ * https://bintray.com/jmonkeyengine/contrib ( [maven repo](http://dl.bintray.com/jmonkeyengine/contrib) )
 
 also it can be used as maven repository (see 'set me up' button).
 
