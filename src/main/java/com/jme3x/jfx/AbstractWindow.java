@@ -449,13 +449,13 @@ public abstract class AbstractWindow extends AbstractHud {
 				AbstractWindow.this.dragDeltay = AbstractWindow.this.externalStage.getY() - mouseEvent.getScreenY();
 			}
 		});
-		menu.setOnMouseDragged(new EventHandler<MouseEvent>() {
-			@Override
-			public void handle(final MouseEvent mouseEvent) {
-				AbstractWindow.this.externalStage.setX(mouseEvent.getScreenX() + AbstractWindow.this.dragDeltax);
-				AbstractWindow.this.externalStage.setY(mouseEvent.getScreenY() + AbstractWindow.this.dragDeltay);
-			}
-		});
+		// menu.setOnMouseDragged(new EventHandler<MouseEvent>() {
+		// @Override
+		// public void handle(final MouseEvent mouseEvent) {
+		// AbstractWindow.this.externalStage.setX(mouseEvent.getScreenX() + AbstractWindow.this.dragDeltax);
+		// AbstractWindow.this.externalStage.setY(mouseEvent.getScreenY() + AbstractWindow.this.dragDeltay);
+		// }
+		// });
 
 		this.externalStage.setTitle(this.title);
 		this.externalStage.setScene(scene);
