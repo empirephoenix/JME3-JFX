@@ -85,7 +85,6 @@ public class ResizeAndMoveHelper {
 
 			if (MouseEvent.MOUSE_MOVED.equals(mouseEventType) == true) {
 				if (mouseEventX < this.border && mouseEventY < this.border) {
-					this.resizing = true;
 					this.cursorEvent = Cursor.NW_RESIZE;
 				} else if (mouseEventX < this.border && mouseEventY > sceneHeight - this.border) {
 					this.cursorEvent = Cursor.SW_RESIZE;
