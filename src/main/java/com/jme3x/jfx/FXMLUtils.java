@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
+import com.jme3x.jfx.window.FXMLWindow;
+
 import javafx.fxml.FXML;
 
 public class FXMLUtils {

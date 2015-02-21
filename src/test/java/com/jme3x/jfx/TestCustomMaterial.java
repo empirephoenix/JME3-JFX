@@ -6,6 +6,7 @@ import com.jme3.app.SimpleApplication;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3x.jfx.cursor.proton.ProtonCursorProvider;
+import com.jme3x.jfx.window.FXMLWindow;
 
 public class TestCustomMaterial extends SimpleApplication {
 	private static boolean	assertionsEnabled;
@@ -43,7 +44,7 @@ public class TestCustomMaterial extends SimpleApplication {
 
 		final FXMLWindow testwindow = new FXMLWindow("com/jme3x/jfx/loading_screen.fxml");
 		testwindow.precache();
-		testwindow.setTitleAsync("TestTitle");
+		testwindow.titleProperty().set("TestTitle");
 		testguiManager.attachHudAsync(testwindow);
 
 		Display.setResizable(true);

@@ -1,9 +1,11 @@
-package com.jme3x.jfx;
+package com.jme3x.jfx.window;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ResourceBundle;
+
+import com.jme3x.jfx.FXMLUtils;
 
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.JavaFXBuilderFactory;
@@ -71,8 +73,7 @@ public class FXMLWindow<ControllerType> extends AbstractWindow {
 
 	@Override
 	protected void afterInit() {
-		this.setEnforceMinimumSize(true);
-		this.setEnforceMaximumSize(true);
+		this.minSizeEnforcedProperty().set(true);
 	}
 
 }

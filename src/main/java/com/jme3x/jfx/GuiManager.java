@@ -27,20 +27,21 @@ import com.jme3.scene.Node;
 import com.jme3.texture.Texture;
 import com.jme3.ui.Picture;
 import com.jme3x.jfx.cursor.ICursorDisplayProvider;
+import com.jme3x.jfx.window.AbstractWindow;
 import com.sun.javafx.cursor.CursorType;
 
 public class GuiManager {
 
-	private static final Logger	logger			= LoggerFactory.getLogger(GuiManager.class);
+	private static final Logger		logger			= LoggerFactory.getLogger(GuiManager.class);
 
-	private JmeFxScreenContainer		jmefx;
-	private Group				highLevelGroup;
+	private JmeFxScreenContainer	jmefx;
+	private Group					highLevelGroup;
 
 	/**
 	 * a list of all attached huds, using copyonwrite to allow reading from other threads in a save way
 	 */
-	private List<AbstractHud>	attachedHuds	= new CopyOnWriteArrayList<>();
-	private Material			customMaterial;
+	private List<AbstractHud>		attachedHuds	= new CopyOnWriteArrayList<>();
+	private Material				customMaterial;
 
 	public Group getRootGroup() {
 		return this.highLevelGroup;
@@ -161,10 +162,7 @@ public class GuiManager {
 				GuiManager.logger.debug("Detaching {}", hud);
 				GuiManager.this.attachedHuds.remove(hud);
 				if (hud instanceof AbstractWindow) {
-					AbstractWindow casted = (AbstractWindow) hud;
-					if (casted.getExternalized()) {
-						casted.internalizeDoNotCallUglyAPI();
-					}
+					// TODO
 				}
 				GuiManager.this.highLevelGroup.getChildren().remove(hud.getNode());
 				hud.setAttached(false, null);
@@ -195,15 +193,8 @@ public class GuiManager {
 				GuiManager.this.highLevelGroup.getChildren().add(hud.getNode());
 				hud.setAttached(true, GuiManager.this);
 				if (hud instanceof AbstractWindow) {
-					AbstractWindow casted = (AbstractWindow) hud;
-					if (casted.getExternalized()) {
-						Platform.runLater(new Runnable() {
-							@Override
-							public void run() {
-								casted.externalizeDoNotCallUglyAPI();
-							}
-						});
-					}
+					final AbstractWindow casted = (AbstractWindow) hud;
+					// TODO
 				}
 
 			}
@@ -233,7 +224,7 @@ public class GuiManager {
 				if (hud.getNode() == n) {
 					if (hud instanceof AbstractWindow) {
 						final AbstractWindow casted = (AbstractWindow) hud;
-						if (casted.isModal()) {
+						if (casted.modalProperty().get()) {
 							if (currentOrder.get(0) == casted.getNode()) {
 								switchToModal = true;
 							}

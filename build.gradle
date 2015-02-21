@@ -53,7 +53,6 @@ sourceSets.main.resources.srcDir 'src/main/java'
 def v_slf4j = '1.7.7'
 def v_jme3 = '3.0.10'
 dependencies {
-	compile group: 'org.jfxtras', name: 'jfxtras-window', version:'8.0-r2'
 	compile "org.slf4j:slf4j-api:${v_slf4j}"
 	provided "com.jme3:jme3-core:${v_jme3}"
 	provided "com.jme3:jme3-desktop:${v_jme3}"

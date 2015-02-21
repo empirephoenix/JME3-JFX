@@ -1,0 +1,82 @@
+.TitleBar{
+	-fx-background-color:GREY;
+	-fx-max-height:25px;	
+}
+
+.titleLabel{
+	-fx-font-size:20px;
+	-fx-text-fill:WHITE;
+}
+
+.leftWindowBorder{
+	-fx-background-color:BLACK;
+	-fx-max-width:2px;
+}
+
+.rightWindowBorder{
+	-fx-background-color:BLACK;
+	-fx-max-width:2px;
+}
+
+.bottomWindowBorder{
+	-fx-background-color:BLACK;
+	-fx-max-height:2px;
+}
+
+.topWindowBorder{
+	-fx-background-color:BLACK;
+	-fx-max-height:2px;
+}
+
+.bottomRightWindowCorner{
+	-fx-background-color:RED;
+	-fx-max-height:2px;
+	-fx-max-width:2px;
+}
+
+.bottomLeftWindowCorner{
+	-fx-background-color:RED;
+	-fx-max-height:2px;
+	-fx-max-width:2px;
+}
+
+.topRightWindowCorner{
+	-fx-background-color:RED;
+	-fx-max-height:2px;
+	-fx-max-width:2px;
+}
+
+.topLeftWindowCorner{
+	-fx-background-color:RED;
+	-fx-max-height:2px;
+	-fx-max-width:2px;
+}
+
+.titleBarButtons{
+	
+
+}
+.minimizeButton{
+	-fx-background-image:url("minimize.png");
+	-fx-background-size:100%;
+	-fx-min-height:25px;
+	-fx-min-width:25px;
+}
+.maximizeButton{
+	-fx-background-image:url("maximize.png");
+	-fx-background-size:100%;
+	-fx-min-height:25px;
+	-fx-min-width:25px;
+}
+.closeButton{
+	-fx-background-image:url("close.png");
+	-fx-background-size:100%;
+	-fx-min-height:25px;
+	-fx-min-width:25px;
+}
+.externalizeButton{
+	-fx-background-image:url("externalize.png");
+	-fx-background-size:100%;
+	-fx-min-height:25px;
+	-fx-min-width:25px;
+}

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.effect.*?>
+<?import javafx.scene.control.*?>
+<?import java.lang.*?>
+<?import javafx.scene.layout.*?>
+
+
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.jme3x.jfx.window.WindowController">
+   <left>
+      <Region fx:id="leftBar" prefHeight="200.0" prefWidth="200.0" styleClass="leftWindowBorder" BorderPane.alignment="CENTER" />
+   </left>
+   <right>
+      <Region fx:id="rightBar" prefHeight="200.0" prefWidth="200.0" styleClass="rightWindowBorder" BorderPane.alignment="CENTER" />
+   </right>
+   <bottom>
+      <BorderPane BorderPane.alignment="CENTER">
+         <center>
+            <Region fx:id="bottomBar" prefHeight="200.0" prefWidth="200.0" styleClass="bottomWindowBorder" BorderPane.alignment="CENTER" />
+         </center>
+         <right>
+            <Region fx:id="bottomRightBar" prefHeight="200.0" prefWidth="200.0" styleClass="bottomRightWindowCorner" BorderPane.alignment="CENTER" />
+         </right>
+         <left>
+            <Region fx:id="bottomLeftCorner" prefHeight="200.0" prefWidth="200.0" styleClass="bottomLeftWindowCorner" BorderPane.alignment="CENTER" />
+         </left>
+      </BorderPane>
+   </bottom>
+   <top>
+      <BorderPane BorderPane.alignment="CENTER">
+         <left>
+            <Region fx:id="topLeftCorner" prefHeight="200.0" prefWidth="200.0" styleClass="topRightWindowCorner" BorderPane.alignment="CENTER" />
+         </left>
+         <center>
+            <Region fx:id="topBar" prefHeight="200.0" prefWidth="200.0" styleClass="topWindowBorder" BorderPane.alignment="CENTER" />
+         </center>
+         <right>
+            <Region fx:id="topRightCorner" prefHeight="200.0" prefWidth="200.0" styleClass="topLeftWindowCorner" BorderPane.alignment="CENTER" />
+         </right>
+      </BorderPane>
+   </top>
+   <center>
+      <BorderPane fx:id="contentBorderPane" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+         <top>
+            <StackPane prefHeight="150.0" prefWidth="200.0" styleClass="TitleBar" BorderPane.alignment="CENTER">
+               <children>
+                  <Label fx:id="title" styleClass="titleLabel" text="Label" />
+                  <HBox alignment="TOP_RIGHT" prefHeight="100.0" prefWidth="200.0" styleClass="titleBarButtons">
+                     <children>
+                        <Button fx:id="externalize" mnemonicParsing="false" styleClass="externalizeButton" />
+                        <Button fx:id="minimize" mnemonicParsing="false" style="-fx-background-size: 100%;" styleClass="minimizeButton" />
+                        <Button fx:id="maximize" mnemonicParsing="false" styleClass="maximizeButton" />
+                        <Button fx:id="close" mnemonicParsing="false" styleClass="closeButton" />
+                     </children>
+                  </HBox>
+               </children>
+            </StackPane>
+         </top>
+      </BorderPane>
+   </center>
+</BorderPane>

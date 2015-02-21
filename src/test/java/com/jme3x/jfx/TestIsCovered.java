@@ -14,6 +14,7 @@ import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.system.AppSettings;
 import com.jme3x.jfx.cursor.proton.ProtonCursorProvider;
+import com.jme3x.jfx.window.FXMLWindow;
 
 public class TestIsCovered extends SimpleApplication {
 	private static boolean	assertionsEnabled;
@@ -23,8 +24,8 @@ public class TestIsCovered extends SimpleApplication {
 		if (!TestIsCovered.assertionsEnabled) {
 			throw new RuntimeException("Assertions must be enabled (vm args -ea");
 		}
-		AppSettings settings = new AppSettings(true);
-		TestIsCovered t = new TestIsCovered();
+		final AppSettings settings = new AppSettings(true);
+		final TestIsCovered t = new TestIsCovered();
 		t.setSettings(settings);
 		t.start();
 	}
@@ -52,12 +53,12 @@ public class TestIsCovered extends SimpleApplication {
 
 		final FXMLWindow<Testcontroller> testwindow = new FXMLWindow<>("com/jme3x/jfx/loading_screen.fxml");
 		testwindow.precache();
-		testwindow.setTitleAsync("TestTitle");
+		testwindow.titleProperty().set("TestTitle");
 		testguiManager.attachHudAsync(testwindow);
 
 		Display.setResizable(true);
 
-		setupFire();
+		this.setupFire();
 	}
 
 	@Override
@@ -80,25 +81,25 @@ public class TestIsCovered extends SimpleApplication {
 
 	// fire should follow the mouse when mouse is not over javafx item
 	public void setupFire() {
-		ParticleEmitter fire = new ParticleEmitter("Emitter", Type.Triangle, 30);
-		Material mat = new Material(assetManager, "Common/MatDefs/Misc/Particle.j3md");
+		final ParticleEmitter fire = new ParticleEmitter("Emitter", Type.Triangle, 30);
+		final Material mat = new Material(this.assetManager, "Common/MatDefs/Misc/Particle.j3md");
 		fire.setMaterial(mat);
-		fire.setEndColor(  new ColorRGBA(1f, 0f, 0f, 1f));   // red
+		fire.setEndColor(new ColorRGBA(1f, 0f, 0f, 1f)); // red
 		fire.setStartColor(new ColorRGBA(1f, 1f, 0f, 0.5f)); // yellow
-		fire.getParticleInfluencer().setInitialVelocity(new Vector3f(0,2,0));
+		fire.getParticleInfluencer().setInitialVelocity(new Vector3f(0, 2, 0));
 		fire.setStartSize(1.0f);
 		fire.setEndSize(0.1f);
-		fire.setGravity(0,0,0);
+		fire.setGravity(0, 0, 0);
 		fire.setLowLife(0.5f);
 		fire.setHighLife(3f);
 		fire.getParticleInfluencer().setVelocityVariation(0.3f);
-		rootNode.attachChild(fire);
-		inputManager.addMapping("mouseMove", new MouseAxisTrigger(MouseInput.AXIS_X, true),new MouseAxisTrigger(MouseInput.AXIS_X, false), new MouseAxisTrigger(MouseInput.AXIS_Y, true), new MouseAxisTrigger(MouseInput.AXIS_Y, false));
-		inputManager.addListener(new AnalogListener() {
+		this.rootNode.attachChild(fire);
+		this.inputManager.addMapping("mouseMove", new MouseAxisTrigger(MouseInput.AXIS_X, true), new MouseAxisTrigger(MouseInput.AXIS_X, false), new MouseAxisTrigger(MouseInput.AXIS_Y, true), new MouseAxisTrigger(MouseInput.AXIS_Y, false));
+		this.inputManager.addListener(new AnalogListener() {
 			@Override
-			public void onAnalog(String name, float value, float tpf) {
-				Vector2f click2d = inputManager.getCursorPosition();
-				Vector3f click3d = cam.getWorldCoordinates(new Vector2f(click2d.x, click2d.y), 0.95f).clone();
+			public void onAnalog(final String name, final float value, final float tpf) {
+				final Vector2f click2d = TestIsCovered.this.inputManager.getCursorPosition();
+				final Vector3f click3d = TestIsCovered.this.cam.getWorldCoordinates(new Vector2f(click2d.x, click2d.y), 0.95f).clone();
 				fire.setLocalTranslation(click3d);
 			}
 		}, "mouseMove");

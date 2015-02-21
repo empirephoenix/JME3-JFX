@@ -6,6 +6,7 @@ import com.jme3.app.SimpleApplication;
 import com.jme3.math.ColorRGBA;
 import com.jme3.system.AppSettings;
 import com.jme3x.jfx.cursor.proton.ProtonCursorProvider;
+import com.jme3x.jfx.window.FXMLWindow;
 
 public class Test extends SimpleApplication {
 	private static boolean	assertionsEnabled;
@@ -40,15 +41,18 @@ public class Test extends SimpleApplication {
 		 */
 		this.inputManager.addRawInputListener(testguiManager.getInputRedirector());
 
-		final FXMLHud testhud = new FXMLHud("com/jme3x/jfx/loading_screen.fxml");
-		testhud.precache();
-		testguiManager.attachHudAsync(testhud);
+		try {
+			Thread.sleep(1000);
+		} catch (final InterruptedException e) {
+			e.printStackTrace();
+		}
+		// final FXMLHud testhud = new FXMLHud("com/jme3x/jfx/loading_screen.fxml");
+		// testhud.precache();
+		// testguiManager.attachHudAsync(testhud);
 
 		final FXMLWindow testwindow = new FXMLWindow("com/jme3x/jfx/loading_screen.fxml");
-		testwindow.setExternalisable(true);
-		testwindow.setExternalized(true);
 		testwindow.precache();
-		testwindow.setTitleAsync("TestTitle");
+		testwindow.titleProperty().set("TestTitle");
 		testguiManager.attachHudAsync(testwindow);
 
 		Display.setResizable(true);

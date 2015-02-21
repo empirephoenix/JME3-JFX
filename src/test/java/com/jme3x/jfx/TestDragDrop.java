@@ -4,12 +4,9 @@ import java.net.URL;
 
 import javafx.application.Platform;
 import javafx.event.EventHandler;
-import javafx.scene.SnapshotParameters;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
-import javafx.scene.image.WritableImage;
 import javafx.scene.input.ClipboardContent;
-import javafx.scene.input.DataFormat;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.MouseEvent;
@@ -19,6 +16,7 @@ import javafx.scene.layout.Region;
 import com.jme3.app.SimpleApplication;
 import com.jme3.math.ColorRGBA;
 import com.jme3x.jfx.cursor.proton.ProtonCursorProvider;
+import com.jme3x.jfx.window.AbstractWindow;
 
 public class TestDragDrop extends SimpleApplication {
 	private static boolean	assertionsEnabled;
@@ -95,6 +93,7 @@ public class TestDragDrop extends SimpleApplication {
 					protected void afterInit() {
 						this.setSize(300, 200);
 					}
+
 				};
 
 				final AbstractWindow sourceWindow = new AbstractWindow() {
@@ -111,7 +110,7 @@ public class TestDragDrop extends SimpleApplication {
 								content.putString("Dragdropped Text");
 								// do not use snapshot!, it will destroy input handling apparently :/
 								// final WritableImage image = target.snapshot(new SnapshotParameters(), null);
-								URL dummyImage = Thread.currentThread().getContextClassLoader().getResource("com/jme3x/jfx/test.jpg");
+								final URL dummyImage = Thread.currentThread().getContextClassLoader().getResource("com/jme3x/jfx/test.jpg");
 								db.setDragView(new Image(dummyImage.toExternalForm()));
 								db.setContent(content);
 							}
