@@ -5,11 +5,11 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.ResourceBundle;
 
-import com.jme3x.jfx.FXMLUtils;
-
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.JavaFXBuilderFactory;
 import javafx.scene.layout.Region;
+
+import com.jme3x.jfx.FXMLUtils;
 
 public class FXMLWindow<ControllerType> extends AbstractWindow {
 
@@ -73,7 +73,6 @@ public class FXMLWindow<ControllerType> extends AbstractWindow {
 
 	@Override
 	protected void afterInit() {
-		this.minSizeEnforcedProperty().set(true);
 	}
 
 }

@@ -8,7 +8,6 @@ import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.layout.Region;
 
@@ -100,46 +99,46 @@ public abstract class AbstractHud {
 	public final void precache() {
 		assert !this.initialized : "Duplicate init";
 
-		if (Platform.isFxApplicationThread()) {
-			AbstractHud.this.node = AbstractHud.this.doInit();
-			if (AbstractHud.this.node != null) {
-				AbstractHud.this.node.getStylesheets().addAll(AbstractHud.this.stylesToAdd);
-			}
-			AbstractHud.this.stylesToAdd = null;
+	if (Platform.isFxApplicationThread()) {
+		AbstractHud.this.node = AbstractHud.this.doInit();
+		if (AbstractHud.this.node != null) {
+			AbstractHud.this.node.getStylesheets().addAll(AbstractHud.this.stylesToAdd);
+		}
+		AbstractHud.this.stylesToAdd = null;
 
-			// we are not initially attached
-			AbstractHud.this.attached.set(false);
-		} else {
-			final Semaphore waitForInit = new Semaphore(0);
-			Platform.runLater(new Runnable() {
-				@Override
-				public void run() {
-					try {
-						AbstractHud.this.node = AbstractHud.this.doInit();
-						if (AbstractHud.this.node != null) {
-							AbstractHud.this.node.getStylesheets().addAll(AbstractHud.this.stylesToAdd);
-						}
-						AbstractHud.this.stylesToAdd = null;
-
-						// we are not initially attached
-						AbstractHud.this.attached.set(false);
-					} finally {
-						waitForInit.release();
+		// we are not initially attached
+		AbstractHud.this.attached.set(false);
+	} else {
+		final Semaphore waitForInit = new Semaphore(0);
+		Platform.runLater(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					AbstractHud.this.node = AbstractHud.this.doInit();
+					if (AbstractHud.this.node != null) {
+						AbstractHud.this.node.getStylesheets().addAll(AbstractHud.this.stylesToAdd);
 					}
+					AbstractHud.this.stylesToAdd = null;
+
+					// we are not initially attached
+					AbstractHud.this.attached.set(false);
+				} finally {
+					waitForInit.release();
 				}
-			});
-			waitForInit.acquireUninterruptibly();
-		}
-		/**
-		 * redirect inner error
-		 */
-		if (this.getInnerError() != null) {
-			throw new RuntimeException("Error init hud", this.getInnerError());
-		}
-		AbstractHud.this.initialized = true;
+			}
+		});
+		waitForInit.acquireUninterruptibly();
+	}
+	/**
+	 * redirect inner error
+	 */
+	if (this.getInnerError() != null) {
+		throw new RuntimeException("Error init hud", this.getInnerError());
+	}
+	AbstractHud.this.initialized = true;
 	}
 
-	public Node getNode() {
+	public Region getNode() {
 		return this.node;
 	}
 

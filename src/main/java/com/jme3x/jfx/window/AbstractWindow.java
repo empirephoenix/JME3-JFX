@@ -18,23 +18,25 @@ public abstract class AbstractWindow extends AbstractHud {
 
 	private boolean					init;
 
-	public SimpleBooleanProperty	externalized	= new SimpleBooleanProperty();
-	public SimpleBooleanProperty	externalizeAble	= new SimpleBooleanProperty();
+	private SimpleBooleanProperty	externalized	= new SimpleBooleanProperty();
+	private SimpleBooleanProperty	externalizeAble	= new SimpleBooleanProperty(true);
 
-	public SimpleBooleanProperty	minimized		= new SimpleBooleanProperty();
-	public SimpleBooleanProperty	maximized		= new SimpleBooleanProperty();
-	public SimpleBooleanProperty	model			= new SimpleBooleanProperty();
+	private SimpleBooleanProperty	moveAble		= new SimpleBooleanProperty(true);
 
-	public SimpleBooleanProperty	resizable		= new SimpleBooleanProperty();
-	public SimpleBooleanProperty	innerScroll		= new SimpleBooleanProperty();
-	public SimpleBooleanProperty	minSizeEnforced	= new SimpleBooleanProperty();
-	public SimpleBooleanProperty	maxSizeEnforced	= new SimpleBooleanProperty();
+	private SimpleBooleanProperty	minimizeAble	= new SimpleBooleanProperty(true);
+	private SimpleBooleanProperty	minimized		= new SimpleBooleanProperty();
+	private SimpleBooleanProperty	maximizeAble	= new SimpleBooleanProperty(true);
+	private SimpleBooleanProperty	maximized		= new SimpleBooleanProperty();
+	private SimpleBooleanProperty	modal			= new SimpleBooleanProperty();
 
-	public SimpleStringProperty		title			= new SimpleStringProperty();
+	private SimpleBooleanProperty	resizable		= new SimpleBooleanProperty(true);
+	private SimpleBooleanProperty	innerScroll		= new SimpleBooleanProperty(false);
+
+	private SimpleStringProperty	title			= new SimpleStringProperty("Untitled Window");
 	private WindowController		controller;
 
-	public BooleanProperty minimizeableProperty() {
-		return this.minimized;
+	public BooleanProperty minimizeAbleProperty() {
+		return this.minimizeAble;
 	}
 
 	public StringProperty titleProperty() {
@@ -47,14 +49,6 @@ public abstract class AbstractWindow extends AbstractHud {
 
 	public BooleanProperty resizableProperty() {
 		return this.resizable;
-	}
-
-	public BooleanProperty minSizeEnforcedProperty() {
-		return this.minSizeEnforced;
-	}
-
-	public BooleanProperty maxSizeEnforcedProperty() {
-		return this.maxSizeEnforced;
 	}
 
 	public BooleanProperty externalized() {
@@ -92,7 +86,7 @@ public abstract class AbstractWindow extends AbstractHud {
 	}
 
 	public BooleanProperty modalProperty() {
-		return this.model;
+		return this.modal;
 	}
 
 	public Region getWindowContent() {
@@ -113,8 +107,6 @@ public abstract class AbstractWindow extends AbstractHud {
 			this.controller = fxmlLoader.getController();
 
 			this.inner = this.innerInit();
-			this.resizable.set(true);
-
 			this.controller.setWindow(this);
 
 			this.init = true;
@@ -143,7 +135,7 @@ public abstract class AbstractWindow extends AbstractHud {
 	 * 
 	 * @param title
 	 */
-	public void setLayoutX(final int x) {
+	public void setLayoutX(final double x) {
 		this.outer.setLayoutX(x);
 	}
 
@@ -156,12 +148,16 @@ public abstract class AbstractWindow extends AbstractHud {
 	 * 
 	 * @param title
 	 */
-	public void setLayoutY(final int y) {
+	public void setLayoutY(final double y) {
 		this.outer.setLayoutY(y);
 	}
 
 	public Region getInnerWindow() {
 		return this.outer;
+	}
+
+	public BooleanProperty moveAbleProperty() {
+		return this.moveAble;
 	}
 
 }
