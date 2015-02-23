@@ -66,8 +66,34 @@ public class GuiManager {
 	 * @param fullscreen
 	 * @param customMaterial
 	 *            allows to specify a own Material for the gui, requires the MaterialParamter Texture with type Texture, wich will contain the RenderTarget of jfx
+	 * 
 	 */
 	public GuiManager(final Node guiParent, final AssetManager assetManager, final Application application, final boolean fullscreen, final ICursorDisplayProvider cursorDisplayProvider, final Material customMaterial) {
+		this(guiParent, assetManager, application, fullscreen, cursorDisplayProvider, customMaterial, true);
+	}
+
+	/**
+	 * creates a new JMEFX container, this is a rather expensive operation and should only be done one time fr the 2d fullscreengui. Additionals should only be necessary for 3d guis, should be called from JME thread
+	 *
+	 * @param guiParent
+	 * @param assetManager
+	 * @param application
+	 * @param fullscreen
+	 * @param customMaterial
+	 *            allows to specify a own Material for the gui, requires the MaterialParamter Texture with type Texture, wich will contain the RenderTarget of jfx
+	 * @param useRecommendedJFXSettings
+	 *            -> apply some default settings that are recommended
+	 * 
+	 */
+	public GuiManager(final Node guiParent, final AssetManager assetManager, final Application application, final boolean fullscreen, final ICursorDisplayProvider cursorDisplayProvider, final Material customMaterial, boolean useRecommendedJFXSettings) {
+		if (useRecommendedJFXSettings) {
+
+			System.setProperty("javafx.animation.fullspeed", "true"); // reduce laggyness of animations, bad for business apps great for games
+			System.setProperty("prism.order", "sw"); // use software rendering, keep the gpu free for jme, use another core for jfx in software mode and all win
+			System.setProperty("prism.vsync", "false"); // jme should limit rendering speed anyway or?
+
+		}
+
 		this.customMaterial = customMaterial;
 		this.jmefx = JmeFxContainer.install(application, guiParent, fullscreen, cursorDisplayProvider);
 		this.initMaterial(this.jmefx.getJmeNode());
@@ -294,5 +320,17 @@ public class GuiManager {
 
 	private Material getCustomMaterial() {
 		return this.customMaterial;
+	}
+
+	float[]	insets	= new float[4];
+
+	/**
+	 * used for maximized window and window movements to restrict certains areas, eg a custom taskbar order is up right down left <br>
+	 * not a copy!
+	 * 
+	 * @return
+	 */
+	public float[] getWindowMargins() {
+		return this.insets;
 	}
 }

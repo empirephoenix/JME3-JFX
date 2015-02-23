@@ -5,7 +5,7 @@
 <?import java.lang.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.jme3x.jfx.window.WindowController">
+<BorderPane styleClass="background" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.jme3x.jfx.window.WindowController">
    <left>
       <Region fx:id="leftBar" prefHeight="200.0" prefWidth="200.0" styleClass="leftWindowBorder" BorderPane.alignment="CENTER" />
    </left>
@@ -47,7 +47,6 @@
                   <HBox fx:id="titleBar" alignment="TOP_RIGHT" styleClass="titleBarButtons">
                      <children>
                         <Button fx:id="externalize" mnemonicParsing="false" styleClass="externalizeButton" />
-                        <Button fx:id="minimize" mnemonicParsing="false" style="-fx-background-size: 100%;" styleClass="minimizeButton" />
                         <Button fx:id="maximize" mnemonicParsing="false" styleClass="maximizeButton" />
                         <Button fx:id="close" mnemonicParsing="false" styleClass="closeButton" />
                      </children>

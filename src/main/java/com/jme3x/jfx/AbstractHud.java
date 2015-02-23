@@ -6,6 +6,7 @@ import java.util.concurrent.Semaphore;
 
 import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.Scene;
@@ -19,16 +20,16 @@ import javafx.scene.layout.Region;
  * 
  */
 public abstract class AbstractHud {
-	private Throwable				innerError	= null;
-	protected Region				node;
-	private boolean					initialized;
-	private SimpleBooleanProperty	attached	= new SimpleBooleanProperty();
-	private GuiManager				responsibleGuiManager;
+	private Throwable							innerError				= null;
+	protected Region							node;
+	private boolean								initialized;
+	private SimpleBooleanProperty				attached				= new SimpleBooleanProperty();
+	private SimpleObjectProperty<GuiManager>	responsibleGuiManager	= new SimpleObjectProperty<>();
 
 	/**
 	 * Temp array for stylesheet adding before precaching
 	 */
-	protected List<String>			stylesToAdd	= new ArrayList<String>();
+	protected List<String>						stylesToAdd				= new ArrayList<String>();
 
 	/**
 	 * Internal call, for guimanager statemanagement, do not call
@@ -38,8 +39,10 @@ public abstract class AbstractHud {
 	 */
 	public void setAttached(final boolean value, final GuiManager guiManager) {
 		assert Platform.isFxApplicationThread() : "parent change outside of JFX thread?";
+
 		this.attached.set(value);
-		this.responsibleGuiManager = guiManager;
+		assert guiManager == null || this.responsibleGuiManager.get() == null : "New guiManager but already old one!?";
+		this.responsibleGuiManager.set(guiManager);
 	}
 
 	/**
@@ -48,7 +51,7 @@ public abstract class AbstractHud {
 	 * @return
 	 */
 	public GuiManager getResponsibleGuiManager() {
-		return this.responsibleGuiManager;
+		return this.responsibleGuiManager.get();
 	}
 
 	/**

@@ -1,5 +1,6 @@
 package com.jme3x.jfx.window;
 
+import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.Cursor;
@@ -15,10 +16,6 @@ public class WindowController {
 
 	@FXML
 	public Region			bottomBar;
-
-	@FXML
-	public Button			minimize;
-
 	@FXML
 	public Region			leftBar;
 
@@ -60,6 +57,9 @@ public class WindowController {
 
 	private AbstractWindow	window;
 
+	protected Vector2d		preMaximizeSize		= new Vector2d(100, 100);
+	protected Vector2d		preMaximizeLocation	= new Vector2d(0, 0);
+
 	@FXML
 	public void initialize() {
 		assert FXMLUtils.checkClassInjection(this);
@@ -86,6 +86,71 @@ public class WindowController {
 		this.initResize(this.rightBar, Cursor.E_RESIZE);
 		this.initResize(this.bottomRightBar, Cursor.SE_RESIZE);
 		this.initResize(this.topRightCorner, Cursor.NE_RESIZE);
+
+		this.title.textProperty().bind(this.window.titleProperty());
+
+		this.close.disableProperty().bind(this.window.closeAbleProperty().not());
+		this.maximize.disableProperty().bind(this.window.maximizeAbleProperty().not());
+
+		this.maximize.setOnAction(new EventHandler<ActionEvent>() {
+
+			@Override
+			public void handle(ActionEvent event) {
+				boolean oldState = WindowController.this.window.maximizedProperty().get();
+				boolean newState = !oldState;
+				WindowController.this.window.maximizedProperty().set(newState);
+
+				if (newState) {
+					WindowController.this.preMaximizeSize = new Vector2d(WindowController.this.window.getNode().getWidth(), WindowController.this.window.getNode().getHeight());
+					WindowController.this.preMaximizeLocation = new Vector2d(WindowController.this.window.getNode().getLayoutX(), WindowController.this.window.getNode().getLayoutY());
+
+					float[] margins = this.getMargins();
+
+					float heightReducer = margins[0] + margins[2];
+					float widthReducer = margins[1] + margins[3];
+
+					// bind so resizing with jme3 window works
+					WindowController.this.window.getNode().maxWidthProperty().bind(WindowController.this.window.getNode().getScene().widthProperty().subtract(widthReducer));
+					WindowController.this.window.getNode().minWidthProperty().bind(WindowController.this.window.getNode().getScene().widthProperty().subtract(widthReducer));
+					WindowController.this.window.getNode().maxHeightProperty().bind(WindowController.this.window.getNode().getScene().heightProperty().subtract(heightReducer));
+					WindowController.this.window.getNode().minHeightProperty().bind(WindowController.this.window.getNode().getScene().heightProperty().subtract(heightReducer));
+
+					WindowController.this.window.getNode().setLayoutX(margins[3]);
+					WindowController.this.window.getNode().setLayoutY(margins[0]);
+				} else {
+
+					WindowController.this.window.getNode().maxHeightProperty().unbind();
+					WindowController.this.window.getNode().minHeightProperty().unbind();
+					WindowController.this.window.getNode().maxWidthProperty().unbind();
+					WindowController.this.window.getNode().minWidthProperty().unbind();
+					// restore previous
+					WindowController.this.window.getNode().setMinSize(WindowController.this.preMaximizeSize.x, WindowController.this.preMaximizeSize.y);
+					WindowController.this.window.getNode().setMaxSize(WindowController.this.preMaximizeSize.x, WindowController.this.preMaximizeSize.y);
+
+					WindowController.this.window.getNode().setLayoutX(WindowController.this.preMaximizeLocation.x);
+					WindowController.this.window.getNode().setLayoutY(WindowController.this.preMaximizeLocation.y);
+				}
+
+			}
+
+			private float[] getMargins() {
+				float[] margins = null;
+				if (WindowController.this.window.getResponsibleGuiManager() == null) { // allow useage outside of gui manager!
+					margins = new float[4];
+				} else {
+					margins = WindowController.this.window.getResponsibleGuiManager().getWindowMargins();
+				}
+				return margins;
+			}
+		});
+
+		this.close.setOnAction(new EventHandler<ActionEvent>() {
+
+			@Override
+			public void handle(ActionEvent event) {
+				WindowController.this.window.close();
+			}
+		});
 
 	}
 

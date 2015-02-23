@@ -8,6 +8,10 @@
 	-fx-text-fill:WHITE;
 }
 
+.background{
+	-fx-background-color:WHITE;
+}
+
 .leftWindowBorder{
 	-fx-background-color:BLACK;
 	-fx-max-width:5px;
@@ -33,7 +37,7 @@
 }
 
 .bottomRightWindowCorner{
-	-fx-background-color:RED;
+	-fx-background-color:BLACK;
 	-fx-max-height:5px;
 	-fx-max-width:5px;
 	-fx-min-height:5px;
@@ -43,7 +47,7 @@
 
 
 .bottomLeftWindowCorner{
-	-fx-background-color:RED;
+	-fx-background-color:BLACK;
 	-fx-max-height:5px;
 	-fx-max-width:5px;
 	-fx-min-height:5px;
@@ -51,7 +55,7 @@
 }
 
 .topRightWindowCorner{
-	-fx-background-color:RED;
+	-fx-background-color:BLACK;
 	-fx-max-height:5px;
 	-fx-max-width:5px;
 	-fx-min-height:5px;
@@ -59,7 +63,7 @@
 }
 
 .topLeftWindowCorner{
-	-fx-background-color:RED;
+	-fx-background-color:BLACK;
 	-fx-max-height:5px;
 	-fx-max-width:5px;
 	-fx-min-height:5px;
@@ -69,12 +73,6 @@
 .titleBarButtons{
 	
 
-}
-.minimizeButton{
-	-fx-background-image:url("minimize.png");
-	-fx-background-size:100%;
-	-fx-min-height:25px;
-	-fx-min-width:25px;
 }
 .maximizeButton{
 	-fx-background-image:url("maximize.png");

@@ -23,21 +23,16 @@ public abstract class AbstractWindow extends AbstractHud {
 
 	private SimpleBooleanProperty	moveAble		= new SimpleBooleanProperty(true);
 
-	private SimpleBooleanProperty	minimizeAble	= new SimpleBooleanProperty(true);
-	private SimpleBooleanProperty	minimized		= new SimpleBooleanProperty();
 	private SimpleBooleanProperty	maximizeAble	= new SimpleBooleanProperty(true);
 	private SimpleBooleanProperty	maximized		= new SimpleBooleanProperty();
 	private SimpleBooleanProperty	modal			= new SimpleBooleanProperty();
+	private SimpleBooleanProperty	closeAble		= new SimpleBooleanProperty(true);
 
 	private SimpleBooleanProperty	resizable		= new SimpleBooleanProperty(true);
 	private SimpleBooleanProperty	innerScroll		= new SimpleBooleanProperty(false);
 
 	private SimpleStringProperty	title			= new SimpleStringProperty("Untitled Window");
 	private WindowController		controller;
-
-	public BooleanProperty minimizeAbleProperty() {
-		return this.minimizeAble;
-	}
 
 	public StringProperty titleProperty() {
 		return this.title;
@@ -122,7 +117,7 @@ public abstract class AbstractWindow extends AbstractHud {
 		if (!this.isAttached()) {
 			return;
 		}
-		System.out.println("close request");
+		this.getResponsibleGuiManager().detachHudAsync(this);
 	}
 
 	/**
@@ -158,6 +153,18 @@ public abstract class AbstractWindow extends AbstractHud {
 
 	public BooleanProperty moveAbleProperty() {
 		return this.moveAble;
+	}
+
+	public BooleanProperty closeAbleProperty() {
+		return this.closeAble;
+	}
+
+	public BooleanProperty maximizeAbleProperty() {
+		return this.maximizeAble;
+	}
+
+	public BooleanProperty maximizedProperty() {
+		return this.maximized;
 	}
 
 }
