@@ -84,8 +84,6 @@ public class JmeFXInputListener implements RawInputListener {
 			evt.setConsumed();
 		}
 
-		System.out.println("Covered");
-
 		// not sure if should be grabbing focus on mouse motion event
 		// grabFocus();
 
