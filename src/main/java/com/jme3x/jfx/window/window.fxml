@@ -13,17 +13,13 @@
       <Region fx:id="rightBar" styleClass="rightWindowBorder" BorderPane.alignment="CENTER" />
    </right>
    <bottom>
-      <BorderPane BorderPane.alignment="CENTER">
-         <center>
-            <Region fx:id="bottomBar" styleClass="bottomWindowBorder" BorderPane.alignment="CENTER" />
-         </center>
-         <right>
-            <Region fx:id="bottomRightBar" prefHeight="200.0" prefWidth="200.0" styleClass="bottomRightWindowCorner" BorderPane.alignment="CENTER" />
-         </right>
-         <left>
-            <Region fx:id="bottomLeftCorner" prefWidth="5.0" styleClass="bottomLeftWindowCorner" BorderPane.alignment="CENTER" />
-         </left>
-      </BorderPane>
+      <StackPane>
+         <children>
+            <Region fx:id="bottomBar" styleClass="bottomWindowBorder" />
+            <Region fx:id="bottomLeftCorner" prefWidth="5.0" styleClass="bottomLeftWindowCorner" StackPane.alignment="BOTTOM_LEFT" />
+            <Region fx:id="bottomRightBar" prefHeight="200.0" prefWidth="200.0" styleClass="bottomRightWindowCorner" StackPane.alignment="BOTTOM_RIGHT" />
+         </children>
+      </StackPane>
    </bottom>
    <top>
       <BorderPane BorderPane.alignment="CENTER">

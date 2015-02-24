@@ -84,6 +84,8 @@ public class JmeFXInputListener implements RawInputListener {
 			evt.setConsumed();
 		}
 
+		System.out.println("Covered");
+
 		// not sure if should be grabbing focus on mouse motion event
 		// grabFocus();
 
@@ -116,9 +118,9 @@ public class JmeFXInputListener implements RawInputListener {
 				if (JmeFXInputListener.this.jfxdndHandler != null) {
 					JmeFXInputListener.this.jfxdndHandler.mouseUpdate(x, y, JmeFXInputListener.this.mouseButtonState[0]);
 				}
-				JmeFXInputListener.this.jmeFxContainer.scenePeer.mouseEvent(ftype, fbutton, JmeFXInputListener.this.mouseButtonState[0], JmeFXInputListener.this.mouseButtonState[1], JmeFXInputListener.this.mouseButtonState[2], x, y, jmeFxContainer.getXPosition()
-						+ x, jmeFxContainer.getYPosition() + y, JmeFXInputListener.this.keyStateSet.get(KeyEvent.VK_SHIFT), JmeFXInputListener.this.keyStateSet.get(KeyEvent.VK_CONTROL), JmeFXInputListener.this.keyStateSet.get(KeyEvent.VK_ALT),
-						JmeFXInputListener.this.keyStateSet.get(KeyEvent.VK_META), wheelRotation, false);
+				JmeFXInputListener.this.jmeFxContainer.scenePeer.mouseEvent(ftype, fbutton, JmeFXInputListener.this.mouseButtonState[0], JmeFXInputListener.this.mouseButtonState[1], JmeFXInputListener.this.mouseButtonState[2], x, y,
+						JmeFXInputListener.this.jmeFxContainer.getXPosition() + x, JmeFXInputListener.this.jmeFxContainer.getYPosition() + y, JmeFXInputListener.this.keyStateSet.get(KeyEvent.VK_SHIFT),
+						JmeFXInputListener.this.keyStateSet.get(KeyEvent.VK_CONTROL), JmeFXInputListener.this.keyStateSet.get(KeyEvent.VK_ALT), JmeFXInputListener.this.keyStateSet.get(KeyEvent.VK_META), wheelRotation, false);
 			}
 		});
 	}
@@ -165,7 +167,7 @@ public class JmeFXInputListener implements RawInputListener {
 			evt.setConsumed();
 			this.jmeFxContainer.grabFocus();
 		}
-;
+		;
 		int type;
 		if (evt.isPressed()) {
 			type = AbstractEvents.MOUSEEVENT_PRESSED;
@@ -182,8 +184,9 @@ public class JmeFXInputListener implements RawInputListener {
 					JmeFXInputListener.this.jfxdndHandler.mouseUpdate(x, y, JmeFXInputListener.this.mouseButtonState[0]);
 				}
 				JmeFXInputListener.this.jmeFxContainer.scenePeer.mouseEvent(type, button, JmeFXInputListener.this.mouseButtonState[0], JmeFXInputListener.this.mouseButtonState[1], JmeFXInputListener.this.mouseButtonState[2], x, y,
-				        jmeFxContainer.getXPosition() + x, jmeFxContainer.getYPosition() + y, JmeFXInputListener.this.keyStateSet.get(KeyEvent.VK_SHIFT), JmeFXInputListener.this.keyStateSet.get(KeyEvent.VK_CONTROL), JmeFXInputListener.this.keyStateSet.get(KeyEvent.VK_ALT),
-						JmeFXInputListener.this.keyStateSet.get(KeyEvent.VK_META), 0, button == AbstractEvents.MOUSEEVENT_SECONDARY_BUTTON);
+						JmeFXInputListener.this.jmeFxContainer.getXPosition() + x, JmeFXInputListener.this.jmeFxContainer.getYPosition() + y, JmeFXInputListener.this.keyStateSet.get(KeyEvent.VK_SHIFT),
+						JmeFXInputListener.this.keyStateSet.get(KeyEvent.VK_CONTROL), JmeFXInputListener.this.keyStateSet.get(KeyEvent.VK_ALT), JmeFXInputListener.this.keyStateSet.get(KeyEvent.VK_META), 0,
+						button == AbstractEvents.MOUSEEVENT_SECONDARY_BUTTON);
 			}
 		});
 	}
@@ -222,18 +225,11 @@ public class JmeFXInputListener implements RawInputListener {
 			final char x = this.keyCharSet[fxKeycode];
 
 			final int eventType;
-			if (fxKeycode == KeyEvent.VK_BACK_SPACE ||
-					fxKeycode == KeyEvent.VK_DELETE ||
-					fxKeycode == KeyEvent.VK_KP_UP ||
-					fxKeycode == KeyEvent.VK_KP_DOWN ||
-					fxKeycode == KeyEvent.VK_KP_LEFT ||
-					fxKeycode == KeyEvent.VK_KP_RIGHT ||
-					fxKeycode == KeyEvent.VK_UP ||
-					fxKeycode == KeyEvent.VK_DOWN ||
-					fxKeycode == KeyEvent.VK_LEFT ||
-					fxKeycode == KeyEvent.VK_RIGHT)
+			if (fxKeycode == KeyEvent.VK_BACK_SPACE || fxKeycode == KeyEvent.VK_DELETE || fxKeycode == KeyEvent.VK_KP_UP || fxKeycode == KeyEvent.VK_KP_DOWN || fxKeycode == KeyEvent.VK_KP_LEFT || fxKeycode == KeyEvent.VK_KP_RIGHT
+					|| fxKeycode == KeyEvent.VK_UP || fxKeycode == KeyEvent.VK_DOWN || fxKeycode == KeyEvent.VK_LEFT || fxKeycode == KeyEvent.VK_RIGHT)
 				eventType = AbstractEvents.KEYEVENT_PRESSED;
-			else eventType = AbstractEvents.KEYEVENT_TYPED;
+			else
+				eventType = AbstractEvents.KEYEVENT_TYPED;
 
 			if (this.jmeFxContainer.focus) {
 				this.jmeFxContainer.scenePeer.keyEvent(eventType, fxKeycode, new char[] { x }, keyState);

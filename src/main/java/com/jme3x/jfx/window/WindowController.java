@@ -199,7 +199,7 @@ public class WindowController {
 	}
 
 	private void initResize(Region draggable, Cursor cursor) {
-		boolean resizeable = true;
+		boolean resizeable = this.window.resizableProperty().get();
 		final Vector2d initialMousePos = new Vector2d();
 		final Vector2d initialSize = new Vector2d();
 		final Vector2d initialPos = new Vector2d();
