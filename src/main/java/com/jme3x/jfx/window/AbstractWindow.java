@@ -29,17 +29,12 @@ public abstract class AbstractWindow extends AbstractHud {
 	private SimpleBooleanProperty	closeAble		= new SimpleBooleanProperty(true);
 
 	private SimpleBooleanProperty	resizable		= new SimpleBooleanProperty(true);
-	private SimpleBooleanProperty	innerScroll		= new SimpleBooleanProperty(false);
 
 	private SimpleStringProperty	title			= new SimpleStringProperty("Untitled Window");
 	private WindowController		controller;
 
 	public StringProperty titleProperty() {
 		return this.title;
-	}
-
-	public BooleanProperty innerScrollProperty() {
-		return this.innerScroll;
 	}
 
 	public BooleanProperty resizableProperty() {
@@ -165,6 +160,23 @@ public abstract class AbstractWindow extends AbstractHud {
 
 	public BooleanProperty maximizedProperty() {
 		return this.maximized;
+	}
+
+	public void onClose() {
+		if (this.externalized.get()) {
+			this.controller.externalStage.setScene(null);
+			this.controller.externalStage.close();
+		}
+	}
+
+	/**
+	 * Can be savely called, however usual way would be the use of the externalized property
+	 */
+	public void externalize(boolean externalize) {
+		if (this.getResponsibleGuiManager() == null) {
+			throw new RuntimeException("Window is not attached to a GUI manager, use the externalizedProperty() instead");
+		}
+		this.controller.externalize(externalize);
 	}
 
 }

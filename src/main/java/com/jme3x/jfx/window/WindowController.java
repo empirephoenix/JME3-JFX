@@ -1,14 +1,19 @@
 package com.jme3x.jfx.window;
 
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.Cursor;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Region;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 
 import com.jme3x.jfx.FXMLUtils;
 
@@ -59,6 +64,7 @@ public class WindowController {
 
 	protected Vector2d		preMaximizeSize		= new Vector2d(100, 100);
 	protected Vector2d		preMaximizeLocation	= new Vector2d(0, 0);
+	protected Stage			externalStage;
 
 	@FXML
 	public void initialize() {
@@ -152,6 +158,44 @@ public class WindowController {
 			}
 		});
 
+		this.externalize.disableProperty().bind(this.window.externalizeAbleProperty().not());
+		this.externalize.setOnAction(new EventHandler<ActionEvent>() {
+
+			@Override
+			public void handle(ActionEvent event) {
+				boolean oldState = WindowController.this.window.externalized().get();
+				WindowController.this.externalize(!oldState);
+			}
+		});
+
+		this.window.externalized().addListener(new ChangeListener<Boolean>() {
+
+			@Override
+			public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+				WindowController.this.externalize(newValue);
+			}
+		});
+
+	}
+
+	public void externalize(boolean externalized) {
+		this.window.externalized().set(externalized);
+		if (WindowController.this.externalStage != null) {
+			WindowController.this.externalStage.setScene(null);
+			WindowController.this.externalStage.close();
+		}
+
+		if (externalized) {
+			WindowController.this.window.getResponsibleGuiManager().getRootGroup().getChildren().remove(WindowController.this.window.getNode());
+			WindowController.this.externalStage = new Stage(StageStyle.UNDECORATED);
+			WindowController.this.externalStage.titleProperty().bind(WindowController.this.window.titleProperty());
+			WindowController.this.externalStage.setScene(new Scene(WindowController.this.window.getNode(), WindowController.this.window.getNode().getWidth(), WindowController.this.window.getNode().getHeight()));
+			WindowController.this.window.getNode().setLayoutX(0);
+			WindowController.this.window.getNode().setLayoutY(0);
+			WindowController.this.externalStage.show();
+		} else {
+			WindowController.this.window.getResponsibleGuiManager().getRootGroup().getChildren().add(WindowController.this.window.getNode());
+		}
 	}
 
 	private void initResize(Region draggable, Cursor cursor) {
@@ -166,11 +210,17 @@ public class WindowController {
 					initialSize.x = WindowController.this.window.getNode().getWidth();
 					initialSize.y = WindowController.this.window.getNode().getHeight();
 
-					initialPos.x = WindowController.this.window.getNode().getLayoutX();
-					initialPos.y = WindowController.this.window.getNode().getLayoutY();
+					if (WindowController.this.window.externalized().get()) {
+						initialPos.x = WindowController.this.externalStage.getX();
+						initialPos.y = WindowController.this.externalStage.getY();
 
-					initialMousePos.x = mouseEvent.getSceneX();
-					initialMousePos.y = mouseEvent.getSceneY();
+					} else {
+						initialPos.x = WindowController.this.window.getNode().getLayoutX();
+						initialPos.y = WindowController.this.window.getNode().getLayoutY();
+					}
+
+					initialMousePos.x = mouseEvent.getScreenX();
+					initialMousePos.y = mouseEvent.getScreenY();
 					draggable.setCursor(cursor);
 				}
 			}
@@ -187,7 +237,7 @@ public class WindowController {
 			@Override
 			public void handle(MouseEvent mouseEvent) {
 				if (resizeable) {
-					WindowController.this.resize(cursor, initialMousePos, new Vector2d(mouseEvent.getSceneX(), mouseEvent.getSceneY()), initialSize, initialPos);
+					WindowController.this.resize(cursor, initialMousePos, new Vector2d(mouseEvent.getScreenX(), mouseEvent.getScreenY()), initialSize, initialPos);
 				}
 			}
 		});
@@ -208,49 +258,67 @@ public class WindowController {
 
 		if (cursor == Cursor.E_RESIZE || cursor == Cursor.NE_RESIZE || cursor == Cursor.SE_RESIZE) {
 			double newXSize = initialSize.x + mouseDelta.x;
-			// // do not allow resizing to small, except there is a scrollpane embedded
-
-			if (this.window.getNode().getLayoutX() + newXSize < this.window.getNode().getScene().getWidth() && newXSize >= actualMinimumSizeX && !this.window.innerScrollProperty().get() && currentMousePos.getX() >= 0) {
-				this.window.getNode().setMinWidth(Math.max(newXSize, 5));
-				this.window.getNode().setMaxWidth(Math.max(newXSize, 5));
+			if (this.window.externalized().get()) {
+				if (newXSize >= actualMinimumSizeX) {
+					this.externalStage.setMinWidth(Math.max(newXSize, 5));
+					this.externalStage.setMaxWidth(Math.max(newXSize, 5));
+				}
+			} else {
+				if (this.window.getNode().getLayoutX() + newXSize < this.window.getNode().getScene().getWidth() && newXSize >= actualMinimumSizeX && currentMousePos.getX() >= 0) {
+					this.window.getNode().setMinWidth(Math.max(newXSize, 5));
+					this.window.getNode().setMaxWidth(Math.max(newXSize, 5));
+				}
 			}
 
 		}
 
 		if (cursor == Cursor.W_RESIZE || cursor == Cursor.NW_RESIZE || cursor == Cursor.SW_RESIZE) {
 			double newXSize = initialSize.x - mouseDelta.x;
-			// // do not allow resizing to small, except there is a scrollpane embedded
-
-			if (initialPos.x + mouseDelta.x >= 0 && newXSize >= actualMinimumSizeX && !this.window.innerScrollProperty().get() && currentMousePos.getX() >= 0) {
-				this.window.getNode().setMinWidth(Math.max(newXSize, 5));
-				this.window.getNode().setMaxWidth(Math.max(newXSize, 5));
-				this.window.setLayoutX(initialPos.x + mouseDelta.x);
+			if (this.window.externalized().get()) {
+				if (newXSize >= actualMinimumSizeX) {
+					this.externalStage.setMinWidth(Math.max(newXSize, 5));
+					this.externalStage.setMaxWidth(Math.max(newXSize, 5));
+					this.externalStage.setX(initialPos.x + mouseDelta.x);
+				}
+			} else {
+				if (initialPos.x + mouseDelta.x >= 0 && newXSize >= actualMinimumSizeX && currentMousePos.getX() >= 0) {
+					this.window.getNode().setMinWidth(Math.max(newXSize, 5));
+					this.window.getNode().setMaxWidth(Math.max(newXSize, 5));
+					this.window.setLayoutX(initialPos.x + mouseDelta.x);
+				}
 			}
-
 		}
 
 		if (cursor == Cursor.N_RESIZE || cursor == Cursor.NE_RESIZE || cursor == Cursor.NW_RESIZE) {
 			double newYSize = initialSize.y - mouseDelta.y;
-			// // do not allow resizing to small, except there is a scrollpane embedded
-			//
-			if (initialPos.y + mouseDelta.y >= 0 && newYSize >= actualMinimumSizeY && !this.window.innerScrollProperty().get() && currentMousePos.getY() >= 0) {
-				this.window.getNode().setMinHeight(Math.max(newYSize, 5));
-				this.window.getNode().setMaxHeight(Math.max(newYSize, 5));
-				this.window.setLayoutY(initialPos.y + mouseDelta.y);
+			if (this.window.externalized().get()) {
+				if (newYSize >= actualMinimumSizeY) {
+					this.externalStage.setMinHeight(Math.max(newYSize, 5));
+					this.externalStage.setMaxHeight(Math.max(newYSize, 5));
+					this.externalStage.setY(initialPos.y + mouseDelta.y);
+				}
+			} else {
+				if (initialPos.y + mouseDelta.y >= 0 && newYSize >= actualMinimumSizeY && currentMousePos.getY() >= 0) {
+					this.window.getNode().setMinHeight(Math.max(newYSize, 5));
+					this.window.getNode().setMaxHeight(Math.max(newYSize, 5));
+					this.window.setLayoutY(initialPos.y + mouseDelta.y);
+				}
 			}
-
 		}
 
 		if (cursor == Cursor.S_RESIZE || cursor == Cursor.SE_RESIZE || cursor == Cursor.SW_RESIZE) {
 			double newYSize = initialSize.y + mouseDelta.y;
-
-			// // do not allow resizing to small, except there is a scrollpane embedded
-			//
-			if (this.window.getNode().getLayoutY() + newYSize < this.window.getNode().getScene().getHeight() && newYSize >= actualMinimumSizeY && !this.window.innerScrollProperty().get() && currentMousePos.getY() >= 0) {
-				this.window.getNode().setMinHeight(Math.max(newYSize, 5));
-				this.window.getNode().setMaxHeight(Math.max(newYSize, 5));
+			if (this.window.externalized().get()) {
+				if (newYSize >= actualMinimumSizeY) {
+					this.externalStage.setMinHeight(Math.max(newYSize, 5));
+					this.externalStage.setMaxHeight(Math.max(newYSize, 5));
+				}
+			} else {
+				if (this.window.getNode().getLayoutY() + newYSize < this.window.getNode().getScene().getHeight() && newYSize >= actualMinimumSizeY && currentMousePos.getY() >= 0) {
+					this.window.getNode().setMinHeight(Math.max(newYSize, 5));
+					this.window.getNode().setMaxHeight(Math.max(newYSize, 5));
+				}
 			}
-
 		}
 
 		// sanity checks,
@@ -285,21 +353,26 @@ public class WindowController {
 			@Override
 			public void handle(MouseEvent mouseEvent) {
 				if (move) {
-					if (mouseEvent.getSceneX() < 0) {
-						return;
-					}
-					if (mouseEvent.getSceneY() < 0) {
-						return;
-					}
+					if (WindowController.this.window.externalized().get()) {
+						WindowController.this.externalStage.setX(mouseEvent.getScreenX() + dragDelta.x);
+						WindowController.this.externalStage.setY(mouseEvent.getScreenY() + dragDelta.y);
+					} else {
+						if (mouseEvent.getSceneX() < 0) {
+							return;
+						}
+						if (mouseEvent.getSceneY() < 0) {
+							return;
+						}
 
-					if (mouseEvent.getSceneX() > WindowController.this.window.getNode().getScene().getWidth()) {
-						return;
+						if (mouseEvent.getSceneX() > WindowController.this.window.getNode().getScene().getWidth()) {
+							return;
+						}
+						if (mouseEvent.getSceneY() > WindowController.this.window.getNode().getScene().getHeight()) {
+							return;
+						}
+						WindowController.this.window.getNode().setLayoutX(mouseEvent.getSceneX() + dragDelta.x);
+						WindowController.this.window.getNode().setLayoutY(Math.max(mouseEvent.getSceneY() + dragDelta.y, 0));
 					}
-					if (mouseEvent.getSceneY() > WindowController.this.window.getNode().getScene().getHeight()) {
-						return;
-					}
-					WindowController.this.window.getNode().setLayoutX(mouseEvent.getSceneX() + dragDelta.x);
-					WindowController.this.window.getNode().setLayoutY(Math.max(mouseEvent.getSceneY() + dragDelta.y, 0));
 				}
 			}
 		});

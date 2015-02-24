@@ -188,7 +188,8 @@ public class GuiManager {
 				GuiManager.logger.debug("Detaching {}", hud);
 				GuiManager.this.attachedHuds.remove(hud);
 				if (hud instanceof AbstractWindow) {
-					// TODO
+					AbstractWindow window = (AbstractWindow) hud;
+					window.onClose();
 				}
 				GuiManager.this.highLevelGroup.getChildren().remove(hud.getNode());
 				hud.setAttached(false, null);
@@ -220,7 +221,14 @@ public class GuiManager {
 				hud.setAttached(true, GuiManager.this);
 				if (hud instanceof AbstractWindow) {
 					final AbstractWindow casted = (AbstractWindow) hud;
-					// TODO
+					if (casted.externalized().get()) {
+						Platform.runLater(new Runnable() {
+							@Override
+							public void run() {
+								casted.externalize(true); // spawn as externalized window!
+							}
+						});
+					}
 				}
 
 			}
