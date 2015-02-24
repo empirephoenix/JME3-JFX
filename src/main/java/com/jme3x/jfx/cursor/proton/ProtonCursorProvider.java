@@ -24,7 +24,7 @@ import com.sun.javafx.cursor.CursorType;
  *
  */
 public class ProtonCursorProvider implements ICursorDisplayProvider {
-	private static final Logger logger = LoggerFactory.getLogger(ProtonCursorProvider.class);
+	private static final Logger							logger	= LoggerFactory.getLogger(ProtonCursorProvider.class);
 
 	private ConcurrentHashMap<CursorType, JmeCursor>	cache	= new ConcurrentHashMap<CursorType, JmeCursor>();
 	private AssetManager								assetManager;
@@ -42,7 +42,7 @@ public class ProtonCursorProvider implements ICursorDisplayProvider {
 	public void showCursor(final CursorFrame cursorFrame) {
 		CursorType cursorType = cursorFrame.getCursorType();
 		if (this.cache.get(cursorType) == null) {
-			logger.debug("Unkown Cursor! {}", cursorType);
+			ProtonCursorProvider.logger.debug("Unkown Cursor! {}", cursorType);
 			cursorType = CursorType.DEFAULT;
 		}
 
@@ -75,42 +75,62 @@ public class ProtonCursorProvider implements ICursorDisplayProvider {
 			break;
 		case E_RESIZE:
 			loaded = (JmeCursor) this.assetManager.loadAsset("com/jme3x/jfx/cursor/proton/aero_ew.cur");
+			loaded.setxHotSpot(16);
+			loaded.setyHotSpot(16);
 			break;
 		case HAND:
 			loaded = (JmeCursor) this.assetManager.loadAsset("com/jme3x/jfx/cursor/proton/aero_link.cur");
 			break;
 		case H_RESIZE:
 			loaded = (JmeCursor) this.assetManager.loadAsset("com/jme3x/jfx/cursor/proton/aero_ew.cur");
+			loaded.setxHotSpot(16);
+			loaded.setyHotSpot(16);
 			break;
 		case IMAGE:
 			break;
 		case MOVE:
 			loaded = (JmeCursor) this.assetManager.loadAsset("com/jme3x/jfx/cursor/proton/aero_move.cur");
+			loaded.setxHotSpot(16);
+			loaded.setyHotSpot(16);
 			break;
 		case NE_RESIZE:
 			loaded = (JmeCursor) this.assetManager.loadAsset("com/jme3x/jfx/cursor/proton/aero_nesw.cur");
+			loaded.setxHotSpot(16);
+			loaded.setyHotSpot(16);
 			break;
 		case NONE:
 			break;
 		case NW_RESIZE:
 			loaded = (JmeCursor) this.assetManager.loadAsset("com/jme3x/jfx/cursor/proton/aero_nwse.cur");
+			loaded.setxHotSpot(16);
+			loaded.setyHotSpot(16);
 			break;
 		case N_RESIZE:
 			loaded = (JmeCursor) this.assetManager.loadAsset("com/jme3x/jfx/cursor/proton/aero_ns.cur");
+			loaded.setxHotSpot(16);
+			loaded.setyHotSpot(16);
 			break;
 		case OPEN_HAND:
 			break;
 		case SE_RESIZE:
 			loaded = (JmeCursor) this.assetManager.loadAsset("com/jme3x/jfx/cursor/proton/aero_nwse.cur");
+			loaded.setxHotSpot(16);
+			loaded.setyHotSpot(16);
 			break;
 		case SW_RESIZE:
 			loaded = (JmeCursor) this.assetManager.loadAsset("com/jme3x/jfx/cursor/proton/aero_nesw.cur");
+			loaded.setxHotSpot(16);
+			loaded.setyHotSpot(16);
 			break;
 		case S_RESIZE:
 			loaded = (JmeCursor) this.assetManager.loadAsset("com/jme3x/jfx/cursor/proton/aero_ns.cur");
+			loaded.setxHotSpot(16);
+			loaded.setyHotSpot(16);
 			break;
 		case TEXT:
 			loaded = (JmeCursor) this.assetManager.loadAsset("com/jme3x/jfx/cursor/proton/aero_text.cur");
+			loaded.setxHotSpot(16);
+			loaded.setyHotSpot(16);
 			break;
 		case V_RESIZE:
 			loaded = (JmeCursor) this.assetManager.loadAsset("com/jme3x/jfx/cursor/proton/aero_ns.cur");
