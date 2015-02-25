@@ -172,7 +172,7 @@ public abstract class AbstractWindow extends AbstractHud {
 	/**
 	 * Can be savely called, however usual way would be the use of the externalized property
 	 */
-	public void externalize(boolean externalize) {
+	public void doNotCallMeExternalize(boolean externalize) {
 		if (this.getResponsibleGuiManager() == null) {
 			throw new RuntimeException("Window is not attached to a GUI manager, use the externalizedProperty() instead");
 		}

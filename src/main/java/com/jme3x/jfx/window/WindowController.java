@@ -164,7 +164,7 @@ public class WindowController {
 			@Override
 			public void handle(ActionEvent event) {
 				boolean oldState = WindowController.this.window.externalized().get();
-				WindowController.this.doNotCallMeExternalize(!oldState);
+				WindowController.this.window.externalized().set(!oldState);
 			}
 		});
 

@@ -225,7 +225,7 @@ public class GuiManager {
 						Platform.runLater(new Runnable() {
 							@Override
 							public void run() {
-								casted.externalize(true); // spawn as externalized window!
+								casted.doNotCallMeExternalize(true); // spawn as externalized window!
 							}
 						});
 					}
