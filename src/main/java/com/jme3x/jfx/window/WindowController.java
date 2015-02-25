@@ -189,7 +189,10 @@ public class WindowController {
 			WindowController.this.window.getResponsibleGuiManager().getRootGroup().getChildren().remove(WindowController.this.window.getNode());
 			WindowController.this.externalStage = new Stage(StageStyle.UNDECORATED);
 			WindowController.this.externalStage.titleProperty().bind(WindowController.this.window.titleProperty());
-			WindowController.this.externalStage.setScene(new Scene(WindowController.this.window.getNode(), WindowController.this.window.getNode().getWidth(), WindowController.this.window.getNode().getHeight()));
+			Vector2d cursize = new Vector2d(this.window.getNode().getWidth(), this.window.getNode().getHeight());
+			double maxMinW = Math.max(WindowController.this.window.getNode().getWidth(), this.calculateMinWidth(cursize));
+			double maxMinH = Math.max(WindowController.this.window.getNode().getHeight(), this.calculateMinHeight(cursize));
+			WindowController.this.externalStage.setScene(new Scene(WindowController.this.window.getNode(), maxMinW, maxMinH));
 			WindowController.this.window.getNode().setLayoutX(0);
 			WindowController.this.window.getNode().setLayoutY(0);
 			WindowController.this.externalStage.show();
@@ -253,8 +256,8 @@ public class WindowController {
 
 	protected void resize(Cursor cursor, Vector2d initialMousePos, Vector2d currentMousePos, Vector2d initialSize, Vector2d initialPos) {
 		Vector2d mouseDelta = currentMousePos.subtract(initialMousePos);
-		double actualMinimumSizeY = this.bottomBar.getHeight() + this.titleBar.getHeight() + this.topBar.getHeight() + this.window.getWindowContent().minHeight(initialSize.x);
-		double actualMinimumSizeX = this.leftBar.getWidth() + this.rightBar.getWidth() + this.window.getWindowContent().minWidth(initialSize.y);
+		double actualMinimumSizeY = this.calculateMinWidth(initialSize);
+		double actualMinimumSizeX = this.calculateMinHeight(initialSize);
 
 		if (cursor == Cursor.E_RESIZE || cursor == Cursor.NE_RESIZE || cursor == Cursor.SE_RESIZE) {
 			double newXSize = initialSize.x + mouseDelta.x;
@@ -326,6 +329,16 @@ public class WindowController {
 		if (this.window.getNode().getLayoutY() < 0) {
 			this.window.getNode().setLayoutY(0);
 		}
+	}
+
+	private double calculateMinHeight(Vector2d initialSize) {
+		double actualMinimumSizeX = this.leftBar.getWidth() + this.rightBar.getWidth() + this.window.getWindowContent().minWidth(initialSize.y);
+		return actualMinimumSizeX;
+	}
+
+	private double calculateMinWidth(Vector2d initialSize) {
+		double actualMinimumSizeY = this.bottomBar.getHeight() + this.titleBar.getHeight() + this.topBar.getHeight() + this.window.getWindowContent().minHeight(initialSize.x);
+		return actualMinimumSizeY;
 	}
 
 	private void initDragging() {
