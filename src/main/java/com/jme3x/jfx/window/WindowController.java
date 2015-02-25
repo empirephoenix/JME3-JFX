@@ -172,7 +172,9 @@ public class WindowController {
 
 			@Override
 			public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-				WindowController.this.externalize(newValue);
+				if (WindowController.this.window.attached().getValue()) {
+					WindowController.this.externalize(newValue);
+				}
 			}
 		});
 
