@@ -338,12 +338,12 @@ public class WindowController {
 	}
 
 	private double calculateMinHeight(Vector2d initialSize) {
-		double actualMinimumSizeX = this.leftBar.getWidth() + this.rightBar.getWidth() + this.window.getWindowContent().minWidth(initialSize.y);
+		double actualMinimumSizeX = this.leftBar.getMinWidth() + this.rightBar.getMinWidth() + this.window.getWindowContent().minWidth(initialSize.y);
 		return actualMinimumSizeX;
 	}
 
 	private double calculateMinWidth(Vector2d initialSize) {
-		double actualMinimumSizeY = this.bottomBar.getHeight() + this.titleBar.getHeight() + this.topBar.getHeight() + this.window.getWindowContent().minHeight(initialSize.x);
+		double actualMinimumSizeY = this.bottomBar.getMinHeight() + this.titleBar.getMinHeight() + this.topBar.getMinHeight() + this.window.getWindowContent().minHeight(initialSize.x);
 		return actualMinimumSizeY;
 	}
 

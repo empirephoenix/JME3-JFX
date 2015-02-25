@@ -222,12 +222,7 @@ public class GuiManager {
 				if (hud instanceof AbstractWindow) {
 					final AbstractWindow casted = (AbstractWindow) hud;
 					if (casted.externalized().get()) {
-						Platform.runLater(new Runnable() {
-							@Override
-							public void run() {
-								casted.doNotCallMeExternalize(true); // spawn as externalized window!
-							}
-						});
+						casted.doNotCallMeExternalize(true); // spawn as externalized window!
 					}
 				}
 
