@@ -176,7 +176,7 @@ public abstract class AbstractWindow extends AbstractHud {
 		if (this.getResponsibleGuiManager() == null) {
 			throw new RuntimeException("Window is not attached to a GUI manager, use the externalizedProperty() instead");
 		}
-		this.controller.externalize(externalize);
+		this.controller.doNotCallMeExternalize(externalize);
 	}
 
 }

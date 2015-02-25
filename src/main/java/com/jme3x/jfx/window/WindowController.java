@@ -164,7 +164,7 @@ public class WindowController {
 			@Override
 			public void handle(ActionEvent event) {
 				boolean oldState = WindowController.this.window.externalized().get();
-				WindowController.this.externalize(!oldState);
+				WindowController.this.doNotCallMeExternalize(!oldState);
 			}
 		});
 
@@ -173,15 +173,19 @@ public class WindowController {
 			@Override
 			public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
 				if (WindowController.this.window.attached().getValue()) {
-					WindowController.this.externalize(newValue);
+					WindowController.this.doNotCallMeExternalize(newValue);
 				}
 			}
 		});
 
 	}
 
-	public void externalize(boolean externalized) {
-		this.window.externalized().set(externalized);
+	/**
+	 * use the externalizedproperty instead!
+	 * 
+	 * @param externalized
+	 */
+	public void doNotCallMeExternalize(boolean externalized) {
 		if (WindowController.this.externalStage != null) {
 			WindowController.this.externalStage.setScene(null);
 			WindowController.this.externalStage.close();
