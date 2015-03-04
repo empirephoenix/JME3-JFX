@@ -51,7 +51,7 @@ public class Test extends SimpleApplication {
 		testguiManager.attachHudAsync(testhud);
 
 		final FXMLWindow testwindow = new FXMLWindow("com/jme3x/jfx/loading_screen.fxml");
-		testwindow.externalized().set(true);
+		// testwindow.externalized().set(true);
 		testwindow.precache();
 		testwindow.titleProperty().set("TestTitle");
 		testguiManager.attachHudAsync(testwindow);

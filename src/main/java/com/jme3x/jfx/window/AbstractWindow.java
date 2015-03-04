@@ -51,23 +51,23 @@ public abstract class AbstractWindow extends AbstractHud {
 	@Deprecated
 	public void center() {
 		assert this.init : "Needs to be init to center";
-		final double sceneWidth = this.getNode().getScene().getWidth();
-		final double sceneHeight = this.getNode().getScene().getHeight();
+	final double sceneWidth = this.getNode().getScene().getWidth();
+	final double sceneHeight = this.getNode().getScene().getHeight();
 
-		double windowWidth = this.inner.getWidth();
-		if (windowWidth == 0) {
-			windowWidth = Math.max(this.inner.getPrefWidth(), this.inner.getMinWidth());
-		}
+	double windowWidth = this.inner.getWidth();
+	if (windowWidth == 0) {
+		windowWidth = Math.max(this.inner.getPrefWidth(), this.inner.getMinWidth());
+	}
 
-		double windowHeight = this.inner.getHeight();
-		if (windowHeight == 0) {
-			windowHeight = Math.max(this.inner.getPrefHeight(), this.inner.getMinHeight());
-		}
+	double windowHeight = this.inner.getHeight();
+	if (windowHeight == 0) {
+		windowHeight = Math.max(this.inner.getPrefHeight(), this.inner.getMinHeight());
+	}
 
-		final double newPosx = (sceneWidth / 2) - (windowWidth / 2);
-		final double newPosy = (sceneHeight / 2) - (windowHeight / 2);
-		this.setLayoutX((int) newPosx);
-		this.setLayoutY((int) newPosy);
+	final double newPosx = (sceneWidth / 2) - (windowWidth / 2);
+	final double newPosy = (sceneHeight / 2) - (windowHeight / 2);
+	this.setLayoutX((int) newPosx);
+	this.setLayoutY((int) newPosy);
 
 	}
 

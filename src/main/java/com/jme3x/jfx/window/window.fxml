@@ -16,8 +16,8 @@
       <StackPane>
          <children>
             <Region fx:id="bottomBar" styleClass="bottomWindowBorder" />
-            <Region fx:id="bottomLeftCorner" prefWidth="5.0" styleClass="bottomLeftWindowCorner" StackPane.alignment="BOTTOM_LEFT" />
-            <Region fx:id="bottomRightBar" prefHeight="200.0" prefWidth="200.0" styleClass="bottomRightWindowCorner" StackPane.alignment="BOTTOM_RIGHT" />
+            <Region fx:id="bottomLeftCorner" styleClass="bottomLeftWindowCorner" StackPane.alignment="BOTTOM_LEFT" />
+            <Region fx:id="bottomRightBar" styleClass="bottomRightWindowCorner" StackPane.alignment="BOTTOM_RIGHT" />
          </children>
       </StackPane>
    </bottom>
@@ -40,7 +40,7 @@
             <StackPane fx:id="titleBar" styleClass="TitleBar" BorderPane.alignment="CENTER">
                <children>
                   <Label fx:id="title" alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" styleClass="titleLabel" text="Label" wrapText="true" />
-                  <HBox fx:id="titleBar" alignment="TOP_RIGHT" styleClass="titleBarButtons">
+                  <HBox fx:id="titleButtonBar" alignment="TOP_RIGHT" styleClass="titleBarButtons">
                      <children>
                         <Button fx:id="externalize" mnemonicParsing="false" styleClass="externalizeButton" />
                         <Button fx:id="maximize" mnemonicParsing="false" styleClass="maximizeButton" />

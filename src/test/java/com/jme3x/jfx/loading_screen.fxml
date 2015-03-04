@@ -11,9 +11,10 @@
 <?import javafx.scene.text.*?>
 <?import javafx.scene.web.*?>
 
-<StackPane fx:id="rootObject" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="400.0" minWidth="400.0" prefHeight="500.0" prefWidth="500.0" style="-fx-background-color: ff00f6" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.jme3x.jfx.Testcontroller">
+
+<StackPane fx:id="rootObject" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" style="-fx-background-color: ff00f6" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.jme3x.jfx.Testcontroller">
       <children>
-        <BorderPane prefHeight="200.0" prefWidth="200.0" style="-fx-background-image: url(http://i.imgur.com/OMPAX.png);">
+        <BorderPane style="-fx-background-image: url(http://i.imgur.com/OMPAX.png);">
           <bottom>
             <BorderPane prefHeight="200.0" prefWidth="200.0">
               <center>
@@ -54,11 +55,14 @@
               </center>
             </BorderPane>
           </top>
-<left><TextField text="I'm a textfield" BorderPane.alignment="CENTER" />
+<left>
+            <TextField text="I'm a textfield" BorderPane.alignment="CENTER" />
 </left>
-<center><WebView fx:id="website" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER" />
+<center>
+            <WebView fx:id="website" minHeight="400.0" minWidth="400.0" prefHeight="-1.0" prefWidth="-1.0" BorderPane.alignment="CENTER" />
 </center>
-<right><ProgressBar prefWidth="200.0" BorderPane.alignment="CENTER" />
+<right>
+            <ProgressBar prefWidth="200.0" BorderPane.alignment="CENTER" />
 </right>
         </BorderPane>
         <ProgressIndicator fx:id="loading_indicator" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="150.0" prefWidth="150.0" progress="0.3" StackPane.alignment="BOTTOM_CENTER">

@@ -55,6 +55,9 @@ public class WindowController {
 	public Region			titleBar;
 
 	@FXML
+	public Region			titleButtonBar;
+
+	@FXML
 	public Region			topBar;
 
 	@FXML
@@ -65,7 +68,6 @@ public class WindowController {
 	protected Vector2d		preMaximizeSize		= new Vector2d(100, 100);
 	protected Vector2d		preMaximizeLocation	= new Vector2d(0, 0);
 	protected Stage			externalStage;
-	protected float[]		margins;
 
 	@FXML
 	public void initialize() {
@@ -110,21 +112,10 @@ public class WindowController {
 				if (newState) {
 					WindowController.this.maximize();
 				} else {
-
-					WindowController.this.window.getNode().maxHeightProperty().unbind();
-					WindowController.this.window.getNode().minHeightProperty().unbind();
-					WindowController.this.window.getNode().maxWidthProperty().unbind();
-					WindowController.this.window.getNode().minWidthProperty().unbind();
-					// restore previous
-					WindowController.this.window.getNode().setMinSize(WindowController.this.preMaximizeSize.x, WindowController.this.preMaximizeSize.y);
-					WindowController.this.window.getNode().setMaxSize(WindowController.this.preMaximizeSize.x, WindowController.this.preMaximizeSize.y);
-
-					WindowController.this.window.getNode().setLayoutX(WindowController.this.preMaximizeLocation.x);
-					WindowController.this.window.getNode().setLayoutY(WindowController.this.preMaximizeLocation.y);
+					WindowController.this.deMaximize();
 				}
 
 			}
-
 		});
 
 		this.close.setOnAction(new EventHandler<ActionEvent>() {
@@ -157,14 +148,27 @@ public class WindowController {
 
 	}
 
+	private void deMaximize() {
+		WindowController.this.window.getNode().maxHeightProperty().unbind();
+		WindowController.this.window.getNode().minHeightProperty().unbind();
+		WindowController.this.window.getNode().maxWidthProperty().unbind();
+		WindowController.this.window.getNode().minWidthProperty().unbind();
+		// restore previous
+		WindowController.this.window.getNode().setMinSize(WindowController.this.preMaximizeSize.x, WindowController.this.preMaximizeSize.y);
+		WindowController.this.window.getNode().setMaxSize(WindowController.this.preMaximizeSize.x, WindowController.this.preMaximizeSize.y);
+
+		WindowController.this.window.getNode().setLayoutX(WindowController.this.preMaximizeLocation.x);
+		WindowController.this.window.getNode().setLayoutY(WindowController.this.preMaximizeLocation.y);
+	}
+
 	private void maximize() {
 		WindowController.this.preMaximizeSize = new Vector2d(WindowController.this.window.getNode().getWidth(), WindowController.this.window.getNode().getHeight());
 		WindowController.this.preMaximizeLocation = new Vector2d(WindowController.this.window.getNode().getLayoutX(), WindowController.this.window.getNode().getLayoutY());
 
-		WindowController.this.margins = WindowController.this.getMargins();
+		float[] margins = WindowController.this.getMargins();
 
-		float heightReducer = WindowController.this.margins[0] + WindowController.this.margins[2];
-		float widthReducer = WindowController.this.margins[1] + WindowController.this.margins[3];
+		float heightReducer = margins[0] + margins[2];
+		float widthReducer = margins[1] + margins[3];
 
 		// bind so resizing with jme3 window works
 		WindowController.this.window.getNode().maxWidthProperty().bind(WindowController.this.window.getNode().getScene().widthProperty().subtract(widthReducer));
@@ -172,8 +176,8 @@ public class WindowController {
 		WindowController.this.window.getNode().maxHeightProperty().bind(WindowController.this.window.getNode().getScene().heightProperty().subtract(heightReducer));
 		WindowController.this.window.getNode().minHeightProperty().bind(WindowController.this.window.getNode().getScene().heightProperty().subtract(heightReducer));
 
-		WindowController.this.window.getNode().setLayoutX(WindowController.this.margins[3]);
-		WindowController.this.window.getNode().setLayoutY(WindowController.this.margins[0]);
+		WindowController.this.window.getNode().setLayoutX(margins[3]);
+		WindowController.this.window.getNode().setLayoutY(margins[0]);
 	}
 
 	private float[] getMargins() {
@@ -195,19 +199,19 @@ public class WindowController {
 		if (WindowController.this.externalStage != null) {
 			WindowController.this.externalStage.setScene(null);
 			WindowController.this.externalStage.close();
-			this.margins = this.getMargins();
 		}
 
 		if (externalized) {
-			this.margins = new float[4];
-			this.maximize();
+			if (this.window.maximizedProperty().get()) {
+				this.deMaximize();
+			}
 
 			WindowController.this.window.getResponsibleGuiManager().getRootGroup().getChildren().remove(WindowController.this.window.getNode());
 			WindowController.this.externalStage = new Stage(StageStyle.UNDECORATED);
 			WindowController.this.externalStage.titleProperty().bind(WindowController.this.window.titleProperty());
 			Vector2d cursize = new Vector2d(this.window.getNode().getWidth(), this.window.getNode().getHeight());
-			double maxMinW = Math.max(WindowController.this.window.getNode().getWidth(), this.calculateMinWidth(cursize));
-			double maxMinH = Math.max(WindowController.this.window.getNode().getHeight(), this.calculateMinHeight(cursize));
+			double maxMinW = Math.max(WindowController.this.window.getNode().getWidth(), this.window.getNode().getMinWidth());
+			double maxMinH = Math.max(WindowController.this.window.getNode().getHeight(), this.window.getNode().getMinHeight());
 			WindowController.this.externalStage.setScene(new Scene(WindowController.this.window.getNode(), maxMinW, maxMinH));
 			WindowController.this.window.getNode().setLayoutX(0);
 			WindowController.this.window.getNode().setLayoutY(0);
@@ -272,16 +276,17 @@ public class WindowController {
 
 	protected void resize(Cursor cursor, Vector2d initialMousePos, Vector2d currentMousePos, Vector2d initialSize, Vector2d initialPos) {
 		Vector2d mouseDelta = currentMousePos.subtract(initialMousePos);
-		double actualMinimumSizeY = this.calculateMinWidth(initialSize);
-		double actualMinimumSizeX = this.calculateMinHeight(initialSize);
+		double actualMinimumSizeX = this.calculateMinWidth(initialSize);
+		double actualMinimumSizeY = this.calculateMinHeight(initialSize);
 
 		if (cursor == Cursor.E_RESIZE || cursor == Cursor.NE_RESIZE || cursor == Cursor.SE_RESIZE) {
 			double newXSize = initialSize.x + mouseDelta.x;
+			if (newXSize < actualMinimumSizeX) {
+				newXSize = actualMinimumSizeX;
+			}
 			if (this.window.externalized().get()) {
-				if (newXSize >= actualMinimumSizeX) {
-					this.externalStage.setMinWidth(Math.max(newXSize, 5));
-					this.externalStage.setMaxWidth(Math.max(newXSize, 5));
-				}
+				this.externalStage.setMinWidth(Math.max(newXSize, 5));
+				this.externalStage.setMaxWidth(Math.max(newXSize, 5));
 			} else {
 				if (this.window.getNode().getLayoutX() + newXSize < this.window.getNode().getScene().getWidth() && newXSize >= actualMinimumSizeX && currentMousePos.getX() >= 0) {
 					this.window.getNode().setMinWidth(Math.max(newXSize, 5));
@@ -293,14 +298,15 @@ public class WindowController {
 
 		if (cursor == Cursor.W_RESIZE || cursor == Cursor.NW_RESIZE || cursor == Cursor.SW_RESIZE) {
 			double newXSize = initialSize.x - mouseDelta.x;
+			if (newXSize < actualMinimumSizeX) {
+				return;
+			}
 			if (this.window.externalized().get()) {
-				if (newXSize >= actualMinimumSizeX) {
-					this.externalStage.setMinWidth(Math.max(newXSize, 5));
-					this.externalStage.setMaxWidth(Math.max(newXSize, 5));
-					this.externalStage.setX(initialPos.x + mouseDelta.x);
-				}
+				this.externalStage.setMinWidth(Math.max(newXSize, 5));
+				this.externalStage.setMaxWidth(Math.max(newXSize, 5));
+				this.externalStage.setX(initialPos.x + mouseDelta.x);
 			} else {
-				if (initialPos.x + mouseDelta.x >= 0 && newXSize >= actualMinimumSizeX && currentMousePos.getX() >= 0) {
+				if (initialPos.x + mouseDelta.x >= 0 && currentMousePos.getX() >= 0) {
 					this.window.getNode().setMinWidth(Math.max(newXSize, 5));
 					this.window.getNode().setMaxWidth(Math.max(newXSize, 5));
 					this.window.setLayoutX(initialPos.x + mouseDelta.x);
@@ -310,14 +316,15 @@ public class WindowController {
 
 		if (cursor == Cursor.N_RESIZE || cursor == Cursor.NE_RESIZE || cursor == Cursor.NW_RESIZE) {
 			double newYSize = initialSize.y - mouseDelta.y;
+			if (newYSize < actualMinimumSizeY) {
+				return;
+			}
 			if (this.window.externalized().get()) {
-				if (newYSize >= actualMinimumSizeY) {
-					this.externalStage.setMinHeight(Math.max(newYSize, 5));
-					this.externalStage.setMaxHeight(Math.max(newYSize, 5));
-					this.externalStage.setY(initialPos.y + mouseDelta.y);
-				}
+				this.externalStage.setMinHeight(Math.max(newYSize, 5));
+				this.externalStage.setMaxHeight(Math.max(newYSize, 5));
+				this.externalStage.setY(initialPos.y + mouseDelta.y);
 			} else {
-				if (initialPos.y + mouseDelta.y >= 0 && newYSize >= actualMinimumSizeY && currentMousePos.getY() >= 0) {
+				if (initialPos.y + mouseDelta.y >= 0 && currentMousePos.getY() >= 0) {
 					this.window.getNode().setMinHeight(Math.max(newYSize, 5));
 					this.window.getNode().setMaxHeight(Math.max(newYSize, 5));
 					this.window.setLayoutY(initialPos.y + mouseDelta.y);
@@ -327,13 +334,14 @@ public class WindowController {
 
 		if (cursor == Cursor.S_RESIZE || cursor == Cursor.SE_RESIZE || cursor == Cursor.SW_RESIZE) {
 			double newYSize = initialSize.y + mouseDelta.y;
+			if (newYSize < actualMinimumSizeX) {
+				newYSize = actualMinimumSizeX;
+			}
 			if (this.window.externalized().get()) {
-				if (newYSize >= actualMinimumSizeY) {
-					this.externalStage.setMinHeight(Math.max(newYSize, 5));
-					this.externalStage.setMaxHeight(Math.max(newYSize, 5));
-				}
+				this.externalStage.setMinHeight(Math.max(newYSize, 5));
+				this.externalStage.setMaxHeight(Math.max(newYSize, 5));
 			} else {
-				if (this.window.getNode().getLayoutY() + newYSize < this.window.getNode().getScene().getHeight() && newYSize >= actualMinimumSizeY && currentMousePos.getY() >= 0) {
+				if (this.window.getNode().getLayoutY() + newYSize < this.window.getNode().getScene().getHeight() && currentMousePos.getY() >= 0) {
 					this.window.getNode().setMinHeight(Math.max(newYSize, 5));
 					this.window.getNode().setMaxHeight(Math.max(newYSize, 5));
 				}
@@ -347,14 +355,20 @@ public class WindowController {
 		}
 	}
 
-	private double calculateMinHeight(Vector2d initialSize) {
-		double actualMinimumSizeX = this.leftBar.getMinWidth() + this.rightBar.getMinWidth() + this.window.getWindowContent().minWidth(initialSize.y);
-		return actualMinimumSizeX;
+	private double calculateMinWidth(Vector2d initialSize) {
+		double lb = this.leftBar.getMinWidth();
+		double rb = this.rightBar.getMinWidth();
+		double contentw = this.window.getWindowContent().minWidth(initialSize.y);
+		double tbminW = this.topBar.getMinWidth();
+		return lb + rb + Math.max(contentw, tbminW);
 	}
 
-	private double calculateMinWidth(Vector2d initialSize) {
-		double actualMinimumSizeY = this.bottomBar.getMinHeight() + this.titleBar.getMinHeight() + this.topBar.getMinHeight() + this.window.getWindowContent().minHeight(initialSize.x);
-		return actualMinimumSizeY;
+	private double calculateMinHeight(Vector2d initialSize) {
+		double bbh = this.bottomBar.getMinHeight();
+		double tbh = this.titleBar.getMinHeight();
+		double tb = this.topBar.getMinHeight();
+		double content = this.window.getWindowContent().minHeight(initialSize.x);
+		return bbh + tbh + tb + content;
 	}
 
 	private void initDragging() {
