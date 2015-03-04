@@ -282,7 +282,7 @@ public class WindowController {
 		if (cursor == Cursor.E_RESIZE || cursor == Cursor.NE_RESIZE || cursor == Cursor.SE_RESIZE) {
 			double newXSize = initialSize.x + mouseDelta.x;
 			if (newXSize < actualMinimumSizeX) {
-				newXSize = actualMinimumSizeX;
+				return;
 			}
 			if (this.window.externalized().get()) {
 				this.externalStage.setMinWidth(Math.max(newXSize, 5));
@@ -335,7 +335,7 @@ public class WindowController {
 		if (cursor == Cursor.S_RESIZE || cursor == Cursor.SE_RESIZE || cursor == Cursor.SW_RESIZE) {
 			double newYSize = initialSize.y + mouseDelta.y;
 			if (newYSize < actualMinimumSizeX) {
-				newYSize = actualMinimumSizeX;
+				return;
 			}
 			if (this.window.externalized().get()) {
 				this.externalStage.setMinHeight(Math.max(newYSize, 5));
