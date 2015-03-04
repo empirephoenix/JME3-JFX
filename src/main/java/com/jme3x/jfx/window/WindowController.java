@@ -65,6 +65,7 @@ public class WindowController {
 	protected Vector2d		preMaximizeSize		= new Vector2d(100, 100);
 	protected Vector2d		preMaximizeLocation	= new Vector2d(0, 0);
 	protected Stage			externalStage;
+	protected float[]		margins;
 
 	@FXML
 	public void initialize() {
@@ -107,22 +108,7 @@ public class WindowController {
 				WindowController.this.window.maximizedProperty().set(newState);
 
 				if (newState) {
-					WindowController.this.preMaximizeSize = new Vector2d(WindowController.this.window.getNode().getWidth(), WindowController.this.window.getNode().getHeight());
-					WindowController.this.preMaximizeLocation = new Vector2d(WindowController.this.window.getNode().getLayoutX(), WindowController.this.window.getNode().getLayoutY());
-
-					float[] margins = this.getMargins();
-
-					float heightReducer = margins[0] + margins[2];
-					float widthReducer = margins[1] + margins[3];
-
-					// bind so resizing with jme3 window works
-					WindowController.this.window.getNode().maxWidthProperty().bind(WindowController.this.window.getNode().getScene().widthProperty().subtract(widthReducer));
-					WindowController.this.window.getNode().minWidthProperty().bind(WindowController.this.window.getNode().getScene().widthProperty().subtract(widthReducer));
-					WindowController.this.window.getNode().maxHeightProperty().bind(WindowController.this.window.getNode().getScene().heightProperty().subtract(heightReducer));
-					WindowController.this.window.getNode().minHeightProperty().bind(WindowController.this.window.getNode().getScene().heightProperty().subtract(heightReducer));
-
-					WindowController.this.window.getNode().setLayoutX(margins[3]);
-					WindowController.this.window.getNode().setLayoutY(margins[0]);
+					WindowController.this.maximize();
 				} else {
 
 					WindowController.this.window.getNode().maxHeightProperty().unbind();
@@ -139,15 +125,6 @@ public class WindowController {
 
 			}
 
-			private float[] getMargins() {
-				float[] margins = null;
-				if (WindowController.this.window.getResponsibleGuiManager() == null) { // allow useage outside of gui manager!
-					margins = new float[4];
-				} else {
-					margins = WindowController.this.window.getResponsibleGuiManager().getWindowMargins();
-				}
-				return margins;
-			}
 		});
 
 		this.close.setOnAction(new EventHandler<ActionEvent>() {
@@ -180,6 +157,35 @@ public class WindowController {
 
 	}
 
+	private void maximize() {
+		WindowController.this.preMaximizeSize = new Vector2d(WindowController.this.window.getNode().getWidth(), WindowController.this.window.getNode().getHeight());
+		WindowController.this.preMaximizeLocation = new Vector2d(WindowController.this.window.getNode().getLayoutX(), WindowController.this.window.getNode().getLayoutY());
+
+		WindowController.this.margins = WindowController.this.getMargins();
+
+		float heightReducer = WindowController.this.margins[0] + WindowController.this.margins[2];
+		float widthReducer = WindowController.this.margins[1] + WindowController.this.margins[3];
+
+		// bind so resizing with jme3 window works
+		WindowController.this.window.getNode().maxWidthProperty().bind(WindowController.this.window.getNode().getScene().widthProperty().subtract(widthReducer));
+		WindowController.this.window.getNode().minWidthProperty().bind(WindowController.this.window.getNode().getScene().widthProperty().subtract(widthReducer));
+		WindowController.this.window.getNode().maxHeightProperty().bind(WindowController.this.window.getNode().getScene().heightProperty().subtract(heightReducer));
+		WindowController.this.window.getNode().minHeightProperty().bind(WindowController.this.window.getNode().getScene().heightProperty().subtract(heightReducer));
+
+		WindowController.this.window.getNode().setLayoutX(WindowController.this.margins[3]);
+		WindowController.this.window.getNode().setLayoutY(WindowController.this.margins[0]);
+	}
+
+	private float[] getMargins() {
+		float[] margins = null;
+		if (WindowController.this.window.getResponsibleGuiManager() == null) { // allow useage outside of gui manager!
+			margins = new float[4];
+		} else {
+			margins = WindowController.this.window.getResponsibleGuiManager().getWindowMargins();
+		}
+		return margins;
+	}
+
 	/**
 	 * use the externalizedproperty instead!
 	 * 
@@ -189,9 +195,13 @@ public class WindowController {
 		if (WindowController.this.externalStage != null) {
 			WindowController.this.externalStage.setScene(null);
 			WindowController.this.externalStage.close();
+			this.margins = this.getMargins();
 		}
 
 		if (externalized) {
+			this.margins = new float[4];
+			this.maximize();
+
 			WindowController.this.window.getResponsibleGuiManager().getRootGroup().getChildren().remove(WindowController.this.window.getNode());
 			WindowController.this.externalStage = new Stage(StageStyle.UNDECORATED);
 			WindowController.this.externalStage.titleProperty().bind(WindowController.this.window.titleProperty());

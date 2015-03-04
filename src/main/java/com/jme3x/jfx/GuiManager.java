@@ -220,10 +220,17 @@ public class GuiManager {
 				GuiManager.this.highLevelGroup.getChildren().add(hud.getNode());
 				hud.setAttached(true, GuiManager.this);
 				if (hud instanceof AbstractWindow) {
-					final AbstractWindow casted = (AbstractWindow) hud;
-					if (casted.externalized().get()) {
-						casted.doNotCallMeExternalize(true); // spawn as externalized window!
-					}
+					// TODO find way to calculate size without render 1 frame
+					Platform.runLater(new Runnable() {
+						@Override
+						public void run() {
+							final AbstractWindow casted = (AbstractWindow) hud;
+							if (casted.externalized().get()) {
+								casted.doNotCallMeExternalize(true); // spawn as externalized window!
+							}
+						}
+					});
+
 				}
 
 			}
