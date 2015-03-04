@@ -68,6 +68,7 @@ public class WindowController {
 	protected Vector2d		preMaximizeSize		= new Vector2d(100, 100);
 	protected Vector2d		preMaximizeLocation	= new Vector2d(0, 0);
 	protected Stage			externalStage;
+	private Vector2d		preExternalizeSize;
 
 	@FXML
 	public void initialize() {
@@ -205,18 +206,31 @@ public class WindowController {
 			if (this.window.maximizedProperty().get()) {
 				this.deMaximize();
 			}
+			Vector2d cursize = new Vector2d(this.window.getNode().getWidth(), this.window.getNode().getHeight());
+			double preminW = Math.max(cursize.x, this.calculateMinWidth(cursize));
+			double preminH = Math.max(cursize.y, this.calculateMinHeight(cursize));
+			this.preExternalizeSize = new Vector2d(preminW, preminH);
+
+			double actualMinimumSizeX = this.calculateMinWidth(cursize);
+			double actualMinimumSizeY = this.calculateMinHeight(cursize);
+
+			this.window.getNode().setMinWidth(actualMinimumSizeX);
+			this.window.getNode().setMinHeight(actualMinimumSizeY);
 
 			WindowController.this.window.getResponsibleGuiManager().getRootGroup().getChildren().remove(WindowController.this.window.getNode());
 			WindowController.this.externalStage = new Stage(StageStyle.UNDECORATED);
 			WindowController.this.externalStage.titleProperty().bind(WindowController.this.window.titleProperty());
-			Vector2d cursize = new Vector2d(this.window.getNode().getWidth(), this.window.getNode().getHeight());
-			double maxMinW = Math.max(WindowController.this.window.getNode().getWidth(), this.window.getNode().getMinWidth());
-			double maxMinH = Math.max(WindowController.this.window.getNode().getHeight(), this.window.getNode().getMinHeight());
+			double maxMinW = Math.max(WindowController.this.window.getNode().getWidth(), this.calculateMinWidth(cursize));
+			double maxMinH = Math.max(WindowController.this.window.getNode().getHeight(), this.calculateMinHeight(cursize));
 			WindowController.this.externalStage.setScene(new Scene(WindowController.this.window.getNode(), maxMinW, maxMinH));
 			WindowController.this.window.getNode().setLayoutX(0);
 			WindowController.this.window.getNode().setLayoutY(0);
 			WindowController.this.externalStage.show();
 		} else {
+			this.window.getNode().setMinWidth(this.preExternalizeSize.x);
+			this.window.getNode().setMaxWidth(this.preExternalizeSize.x);
+			this.window.getNode().setMinHeight(this.preExternalizeSize.y);
+			this.window.getNode().setMaxHeight(this.preExternalizeSize.y);
 			WindowController.this.window.getResponsibleGuiManager().getRootGroup().getChildren().add(WindowController.this.window.getNode());
 		}
 	}
