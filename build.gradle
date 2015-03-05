@@ -4,7 +4,9 @@ apply plugin: 'com.jfrog.bintray'
 apply plugin: 'java'
 apply plugin: 'maven'
 apply plugin: 'eclipse'
+apply plugin: 'idea'
 apply plugin: "sonar-runner"
+
 
 /////////////////git version logic///////////////
 def cmd = "git show -s --pretty=format:%ct_%h"//"git rev-parse --short HEAD"
@@ -18,9 +20,9 @@ def env = System.getenv()
 def mainBuildVersion = "1";
 //jenkins part
 def buildVersion = (env.BUILD_NUMBER) ?
-	mainBuildVersion+"."+env.BUILD_NUMBER+"."+gitTimestamp+"-"+gitRevision
-	: mainBuildVersion+".dev."+gitTimestamp+"-"+gitRevision
-	;
+		mainBuildVersion+"."+env.BUILD_NUMBER+"."+gitTimestamp+"-"+gitRevision
+		: mainBuildVersion+".dev."+gitTimestamp+"-"+gitRevision
+;
 print("Build is based on " + buildVersion);
 /////////////////git version logic///////////////
 
@@ -40,9 +42,7 @@ repositories {
 	maven { url "http://updates.jmonkeyengine.org/maven/"}
 }
 
-configurations {
-	provided
-}
+configurations { provided }
 
 sourceSets {
 	main { compileClasspath += configurations.provided }
@@ -66,9 +66,7 @@ task packageSources(type: Jar) {
 }
 
 artifacts {
-	archives(packageSources) {
-		type = 'jar'
-	}
+	archives(packageSources) { type = 'jar' }
 }
 
 eclipse {
@@ -77,28 +75,27 @@ eclipse {
 		noExportConfigurations += [configurations.provided]
 	}
 }
-
-buildscript {
-	repositories {
-		jcenter()
-	}
-	dependencies {
-		classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:0.5'
+idea {
+	module {
+		scopes.PROVIDED.plus += [configurations.provided]
 	}
 }
 
+buildscript {
+	repositories { jcenter() }
+	dependencies { classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:0.5' }
+}
+
 jar {
- 	manifest {
-   	   attributes("Implementation-Version": buildVersion)
-   	}
+	manifest { attributes("Implementation-Version": buildVersion) }
 }
 
 sonarRunner {
 	sonarProperties {
-     	property "sonar.host.url", sonarUrl
-      	property "sonar.jdbc.url", sonarDBUrl
-      	property "sonar.jdbc.driverClassName", sonarDBDriver
-      	property "sonar.jdbc.username", sonarDBUser
+		property "sonar.host.url", sonarUrl
+		property "sonar.jdbc.url", sonarDBUrl
+		property "sonar.jdbc.driverClassName", sonarDBDriver
+		property "sonar.jdbc.username", sonarDBUser
 		property "sonar.jdbc.password", sonarDBPw
 		property "sonar.login",sonarUser
 		property "sonar.password",sonarPw
@@ -111,11 +108,11 @@ uploadArchives {
 	repositories {
 		mavenDeployer {
 			repository(url: "$targetRepository/releases") {
-				 authentication(userName: targetRepository_user, password: targetRepository_password)
+				authentication(userName: targetRepository_user, password: targetRepository_password)
 			}
-		 }
+		}
 	}
-}	
+}
 
 
 bintray {
