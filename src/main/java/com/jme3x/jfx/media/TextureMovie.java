@@ -188,7 +188,7 @@ public class TextureMovie {
                     upperLeftCorner.set(xOffset / (float) expectedWidth, yOffset / (float) expectedHeight);
                     bottomRightCorner.set((xOffset + argbFrame.getWidth()) / (float) expectedWidth, (yOffset + argbFrame.getHeight()) / (float) expectedHeight);
 
-                    ByteBuffer src = argbFrame.getBuffer();
+                    ByteBuffer src = argbFrame.getBufferForPlane(0);
                     if (reorderData != null) {
                         src.position(0);
                         reorderData.apply(src);

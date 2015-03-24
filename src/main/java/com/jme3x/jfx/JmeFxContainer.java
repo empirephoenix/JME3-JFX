@@ -41,6 +41,7 @@ import com.jme3.texture.Texture2D;
 import com.jme3.util.BufferUtils;
 import com.jme3x.jfx.cursor.ICursorDisplayProvider;
 import com.jme3x.jfx.util.FormatUtils;
+import com.sun.glass.ui.Accessible;
 import com.sun.glass.ui.Pixels;
 import com.sun.javafx.application.PlatformImpl;
 import com.sun.javafx.cursor.CursorType;
@@ -400,6 +401,11 @@ public abstract class JmeFxContainer {
 				@Override
 				public void parentEffectiveOrientationInvalidated(final Scene scene) {
 					orig.parentEffectiveOrientationInvalidated(scene);
+				}
+				
+				@Override
+				public Accessible getAccessible(Scene scene) {    
+				    return null;
 				}
 
 				@Override
