@@ -12,6 +12,7 @@ import com.jme3.texture.Image.Format;
 import com.jme3.texture.Texture2D;
 import com.jme3.util.BufferUtils;
 import com.jme3x.jfx.util.FormatUtils;
+import com.jme3x.jfx.util.ImageExchanger;
 import com.sun.media.jfxmedia.control.VideoDataBuffer;
 import com.sun.media.jfxmedia.control.VideoFormat;
 import com.sun.media.jfxmedia.events.NewFrameEvent;
@@ -75,6 +76,7 @@ public class TextureMovie {
     private Function<ByteBuffer, Void> reorderData;
     private Format format;
     private int swizzleMode = NO_SWIZZLE;
+    private ImageExchanger imageExchanger;
 
     public TextureMovie(final Application app, javafx.scene.media.MediaPlayer mediaPlayer) {
         this(app, mediaPlayer, LetterboxMode.VALID_LETTERBOX);
@@ -192,34 +194,38 @@ public class TextureMovie {
                         reorderData.apply(src);
                         src.position(0);
                     }
+                    Image image = texture.getImage();
 
-                    app.enqueue(()->{
-                        Image image = texture.getImage();
+                    if (image.getWidth() != expectedWidth || image.getHeight() != expectedHeight) {
+                        System.out.println("resize : " + expectedWidth + " x " + expectedHeight);
+                        ImageExchanger old = imageExchanger;
+                        
+                        imageExchanger = new ImageExchanger(expectedWidth,expectedHeight,format,app);
+                        
 
-                        if (image.getWidth() != expectedWidth || image.getHeight() != expectedHeight) {
-                            System.out.println("resize : " + expectedWidth + " x " + expectedHeight);
-                            Image image0 = image;
-
-                            ByteBuffer bb = BufferUtils.createByteBuffer(expectedHeight * expectedWidth * 4);
-
-                            for (int i = 0; i < bb.limit(); i += 4) {
-                                bb.put(i, (byte) (letterboxColor.a * 255));
-                                bb.put(i + 1, (byte) (letterboxColor.b * 255));
-                                bb.put(i + 2, (byte) (letterboxColor.g * 255));
-                                bb.put(i + 3, (byte) (letterboxColor.r * 255));
-                            }
-                            bb.position(0);
-                            
-                            image = new Image(format, expectedWidth, expectedHeight, bb);
-                            texture.setImage(image);
-                            if (image0 != null && image0 != emptyImage) {
-                                image0.dispose();
-                                ByteBuffer bb0 = image0.getData(0);
-                                if (bb0 != null) BufferUtils.destroyDirectBuffer(bb0);
-                            }
+                        ByteBuffer bb = imageExchanger.getFxData();
+                        
+                        for (int i = 0; i < bb.limit(); i += 4) {
+                            bb.put(i, (byte) (letterboxColor.a * 255));
+                            bb.put(i + 1, (byte) (letterboxColor.b * 255));
+                            bb.put(i + 2, (byte) (letterboxColor.g * 255));
+                            bb.put(i + 3, (byte) (letterboxColor.r * 255));
                         }
-
-                        ByteBuffer bb = image.getData(0);
+                        bb.position(0);
+                        
+                        texture.setImage(imageExchanger.getImage());
+                        if ( old != null ) {
+                            // need to to that only after next succesful frame
+                            System.out.println("Leaking memory due to size change");
+                            //old.dispose();
+                        }
+                        
+                    }
+                    
+                    imageExchanger.startUpdate();
+                    
+                    try {
+                        ByteBuffer bb = imageExchanger.getFxData();
                         bb.clear();
                         for (int y = 0; y < ySize; y++) {
                             int ty = expectedHeight - (y + yOffset) - 1;
@@ -228,15 +234,15 @@ public class TextureMovie {
                             bb.put(src);
                             src.limit(src.capacity());
                         }
-
+    
                         bb.position(bb.limit());
                         bb.flip();
-
-                        image.setUpdateNeeded();
+    
                         if (argbFrame!= null) argbFrame.releaseFrame();
-                        return null;
-                    });
-
+                    } finally {
+                        imageExchanger.flushUpdate();
+                    }
+                    
                 } catch (Exception exc) {
                     exc.printStackTrace();
                     System.exit(0);
