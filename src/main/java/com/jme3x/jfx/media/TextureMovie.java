@@ -21,16 +21,20 @@ import com.sun.media.jfxmedia.events.VideoRendererListener;
 /**
  *
  * Example usage
- *
- * PlatformImpl.startup(() -> {}); media = new
- * Media("http://download.oracle.com/otndocs/products/javafx/oow2010-2.flv"); mp
- * = new javafx.scene.media.MediaPlayer(media); mp.play(); tm = new
- * TextureMovie(mp, LetterboxMode.VALID_LETTERBOX);
- * tm.setLetterboxColor(ColorRGBA.Black); texture = tm.getTexture();
- *
- * material.setTexture("ColorMap",texture); Please be sure you do not lose
- * reference to TextureMove while you need the result texture - if it ever gets
- * garbage collected, movie can stop playing.
+ * 
+ * <pre>
+ * PlatformImpl.startup(() -&gt; {});
+ * media = new Media(&quot;http://download.oracle.com/otndocs/products/javafx/oow2010-2.flv&quot;);
+ * mp = new javafx.scene.media.MediaPlayer(media);
+ * mp.play();
+ * tm = new TextureMovie(mp, LetterboxMode.VALID_LETTERBOX);
+ * tm.setLetterboxColor(ColorRGBA.Black);
+ * texture = tm.getTexture();
+ * material.setTexture(&quot;ColorMap&quot;, texture);
+ * </pre>
+ * 
+ * Please be sure you do not lose reference to TextureMove while you need the
+ * result texture - if it ever gets garbage collected, movie can stop playing.
  */
 public class TextureMovie {
 

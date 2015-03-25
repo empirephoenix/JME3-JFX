@@ -20,8 +20,8 @@ public class ImageExchanger {
 
     public ImageExchanger(int width, int height, Image.Format format, Application app) {
         this.app = app;
-        this.jmeData = BufferUtils.createByteBuffer(width * height * 4);
-        this.fxData = BufferUtils.createByteBuffer(width * height * 4);
+        this.jmeData = BufferUtils.createByteBuffer(width * height * format.getBitsPerPixel()/8);
+        this.fxData = BufferUtils.createByteBuffer(width * height * format.getBitsPerPixel()/8);
 
         this.jmeImage = new Image(format, width, height, this.jmeData);
         // HACK pre-3.1 to support gamma correction with jme pre-implementation
@@ -42,6 +42,10 @@ public class ImageExchanger {
 
     public ByteBuffer getFxData() {
         return fxData;
+    }
+    
+    public ByteBuffer getJmeData() {
+        return jmeData;
     }
 
     public void startUpdate() throws InterruptedException {
