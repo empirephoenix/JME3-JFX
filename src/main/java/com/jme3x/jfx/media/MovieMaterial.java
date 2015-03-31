@@ -117,9 +117,13 @@ public class MovieMaterial {
                     if (!running || frame == null) {
                         return;
                     }
-
+                    if ( frame.getFormat() == null ) {
+                        // early return for end-of-movie null frames
+                        return;
+                    }
                     if ( frame.getPlaneCount() != 3 ) {
                         System.out.println("MovieMaterial supports 3-plane YCrCb only at the moment, got " + frame);
+                        return;
                     }
                     
                     frame.holdFrame();
@@ -163,6 +167,10 @@ public class MovieMaterial {
     }
 
     private void updateTexture(Texture2D tex, ByteBuffer buf, int stride) {
+        if ( buf == null ) {
+            tex.setImage(emptyImage);
+            return;
+        }
         if (tex.getImage().getData(0).capacity() != buf.capacity()) {
             Image img = new Image(Format.Luminance8, stride, buf.capacity() / stride, buf);
             tex.setImage(img);
@@ -203,7 +211,6 @@ public class MovieMaterial {
     private void init() {
 
         textureLuma = new Texture2D(emptyImage);
-        
         textureCr = new Texture2D(emptyImage);
         textureCb = new Texture2D(emptyImage);
 
