@@ -12,6 +12,10 @@ apply plugin: "sonar-runner"
 def cmd = "git show -s --pretty=format:%ct_%h"//"git rev-parse --short HEAD"
 def proc = cmd.execute()
 String[] gitInfos = proc.text.trim().split('_')
+//allow build with no cmd git installed
+if( gitInfos.length < 2 ) {
+	gitInfos = [(new Date()).getTime().toString(), "2" ]
+}
 String gitRevision = gitInfos[1]
 SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd_HHmmss")
 String gitTimestamp = format.format(new Date(Long.parseLong(gitInfos[0])*1000));
