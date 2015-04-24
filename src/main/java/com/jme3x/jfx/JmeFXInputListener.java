@@ -119,6 +119,7 @@ public class JmeFXInputListener implements RawInputListener {
 				JmeFXInputListener.this.jmeFxContainer.scenePeer.mouseEvent(ftype, fbutton, JmeFXInputListener.this.mouseButtonState[0], JmeFXInputListener.this.mouseButtonState[1], JmeFXInputListener.this.mouseButtonState[2], x, y,
 						JmeFXInputListener.this.jmeFxContainer.getXPosition() + x, JmeFXInputListener.this.jmeFxContainer.getYPosition() + y, JmeFXInputListener.this.keyStateSet.get(KeyEvent.VK_SHIFT),
 						JmeFXInputListener.this.keyStateSet.get(KeyEvent.VK_CONTROL), JmeFXInputListener.this.keyStateSet.get(KeyEvent.VK_ALT), JmeFXInputListener.this.keyStateSet.get(KeyEvent.VK_META), wheelRotation, false);
+
 			}
 		});
 	}
@@ -214,7 +215,6 @@ public class JmeFXInputListener implements RawInputListener {
 				return;
 			}
 		}
-
 		if (this.jmeFxContainer.focus) {
 			evt.setConsumed();
 		}

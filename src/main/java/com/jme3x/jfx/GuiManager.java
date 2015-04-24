@@ -9,8 +9,10 @@ import java.util.concurrent.Semaphore;
 import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javafx.event.EventHandler;
 import javafx.scene.Group;
 import javafx.scene.Scene;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.paint.Color;
 
 import org.slf4j.Logger;
@@ -49,7 +51,6 @@ public class GuiManager {
 
 	public JmeFxScreenContainer getjmeFXContainer() {
 		return this.jmefx;
-
 	}
 
 	public GuiManager(final Node guiParent, final AssetManager assetManager, final Application application, final boolean fullscreen, final ICursorDisplayProvider cursorDisplayProvider) {
@@ -86,6 +87,25 @@ public class GuiManager {
 	 * 
 	 */
 	public GuiManager(final Node guiParent, final AssetManager assetManager, final Application application, final boolean fullscreen, final ICursorDisplayProvider cursorDisplayProvider, final Material customMaterial, boolean useRecommendedJFXSettings) {
+		this(guiParent, assetManager, application, fullscreen, cursorDisplayProvider, customMaterial, useRecommendedJFXSettings, false);
+
+	}
+
+	/**
+	 * creates a new JMEFX container, this is a rather expensive operation and should only be done one time fr the 2d fullscreengui. Additionals should only be necessary for 3d guis, should be called from JME thread
+	 *
+	 * @param guiParent
+	 * @param assetManager
+	 * @param application
+	 * @param fullscreen
+	 * @param customMaterial
+	 *            allows to specify a own Material for the gui, requires the MaterialParamter Texture with type Texture, wich will contain the RenderTarget of jfx
+	 * @param useRecommendedJFXSettings
+	 *            -> apply some default settings that are recommended
+	 * 
+	 */
+	public GuiManager(final Node guiParent, final AssetManager assetManager, final Application application, final boolean fullscreen, final ICursorDisplayProvider cursorDisplayProvider, final Material customMaterial,
+			boolean useRecommendedJFXSettings, boolean resumeJMEFocusOnEventFail) {
 		if (useRecommendedJFXSettings) {
 
 			System.setProperty("javafx.animation.fullspeed", "true"); // reduce laggyness of animations, bad for business apps great for games
@@ -103,7 +123,7 @@ public class GuiManager {
 				cursorDisplayProvider.setup(type);
 			}
 		}
-		this.initRootGroup();
+		this.initRootGroup(resumeJMEFocusOnEventFail);
 
 	}
 
@@ -116,21 +136,26 @@ public class GuiManager {
 		jmeNode.setMaterial(this.customMaterial);
 	}
 
-	private void initRootGroup() {
-		/*
-		 * 
-		 * Group baseHighLevelGroup = new Group(); Scene baseScene = new Scene(baseHighLevelGroup); baseScene.setFill(new Color(0, 0, 0, 0)); switchRootGroup(baseHighLevelGroup); }
-		 * 
-		 * private void switchRootGroup(Group newRootGroup) {
-		 */
+	private void initRootGroup(boolean redirectFocusToJMEOnUnusedKeyEvents) {
 		final Semaphore waitForInit = new Semaphore(0);
 		Platform.runLater(new Runnable() {
 			@Override
 			public void run() {
 				GuiManager.this.highLevelGroup = new Group();
 
-				// ensure that on every focues change between windows/huds modality is preserved!
+				if (redirectFocusToJMEOnUnusedKeyEvents) {
+					GuiManager.this.highLevelGroup.addEventHandler(KeyEvent.KEY_TYPED, new EventHandler<KeyEvent>() {
+						@Override
+						public void handle(KeyEvent event) {
+							// if this is called the event was not consumed, like textfield ect. do -> transfer it back to JME!
+							GuiManager.this.jmefx.loseFocus();
+							System.out.println(event.getEventType() + " Unhandled keyevent " + event.isConsumed());
+						};
+					});
 
+				}
+
+				// ensure that on every focues change between windows/huds modality is preserved!
 				GuiManager.this.highLevelGroup.getChildren().addListener(new ListChangeListener<Object>() {
 					boolean	ignoreEvents	= false;
 
@@ -154,6 +179,7 @@ public class GuiManager {
 				final Scene scene = new Scene(GuiManager.this.highLevelGroup);
 				scene.setFill(new Color(0, 0, 0, 0));
 				GuiManager.this.jmefx.setScene(scene, GuiManager.this.highLevelGroup);
+
 				waitForInit.release();
 			}
 		});

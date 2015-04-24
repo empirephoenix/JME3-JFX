@@ -32,13 +32,13 @@ public class TestMovie extends SimpleApplication {
 
 	@Override
 	public void simpleInitApp() {
-		//getInputManager().setCursorVisible(true);
-		//getFlyByCamera().setEnabled(false);
-        final Media media = new Media("http://download.oracle.com/otndocs/products/javafx/oow2010-2.flv");
-		//final Media media = new Media("file:///archive/movies/kamera/kotywalka1.mp4");
-		//final Media media = new Media("http://techslides.com/demos/sample-videos/small.mp4");
-		//final Media media = new Media(new File("/home/dwayne/tmp/small.mp4").toURI().toASCIIString());
-		//final Media media = new Media(new File("/home/dwayne/tmp/output.mp4").toURI().toASCIIString());
+		// getInputManager().setCursorVisible(true);
+		// getFlyByCamera().setEnabled(false);
+		final Media media = new Media("http://download.oracle.com/otndocs/products/javafx/oow2010-2.flv");
+		// final Media media = new Media("file:///archive/movies/kamera/kotywalka1.mp4");
+		// final Media media = new Media("http://techslides.com/demos/sample-videos/small.mp4");
+		// final Media media = new Media(new File("/home/dwayne/tmp/small.mp4").toURI().toASCIIString());
+		// final Media media = new Media(new File("/home/dwayne/tmp/output.mp4").toURI().toASCIIString());
 
 		media.errorProperty().addListener(new ChangeListener<MediaException>() {
 
@@ -57,7 +57,7 @@ public class TestMovie extends SimpleApplication {
 
 		final Material s1mat = new Material(this.assetManager, "com/jme3x/jfx/media/MovieShader.j3md");
 		s1mat.setTexture("ColorMap", this.textureMovie.getTexture());
-		s1mat.setInt("SwizzleMode", textureMovie.useShaderSwizzle());
+		s1mat.setInt("SwizzleMode", this.textureMovie.useShaderSwizzle());
 		screen1.setMaterial(s1mat);
 		this.rootNode.attachChild(screen1);
 

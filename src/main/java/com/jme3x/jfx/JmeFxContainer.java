@@ -4,6 +4,7 @@ import java.awt.event.KeyEvent;
 import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
+import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.IdentityHashMap;
 import java.util.List;
@@ -29,9 +30,6 @@ import javafx.scene.layout.Pane;
 import javafx.stage.PopupWindow;
 import javafx.stage.Window;
 import javafx.stage.WindowEvent;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.jme3.app.Application;
 import com.jme3.input.RawInputListener;
@@ -61,37 +59,36 @@ import com.sun.javafx.stage.EmbeddedWindow;
 
 public abstract class JmeFxContainer {
 
-    private static final Logger logger = LoggerFactory.getLogger(JmeFxContainer.class);
-    
-	EmbeddedStageInterface             stagePeer;
-	EmbeddedSceneInterface             scenePeer;
-	protected volatile EmbeddedWindow  stage;
-	HostInterface                      hostContainer;
-	JmeFXInputListener                 inputListener;
-	int                                pWidth;
-	int                                pHeight;
-	volatile Scene                     scene;
-	Image                              jmeImage;
-	Texture2D                          tex;
-	ByteBuffer                         jmeData;
-	int                                alphaByteOffset = 3;
-	ByteBuffer                         fxData;
-	boolean                            fxDataReady = false;
-	int                                oldX = -1;
-	int                                oldY = -1;
-	boolean                            focus;
-	Application                        app;
-	boolean                            fullScreenSuppport;
-	CompletableFuture<Format>          nativeFormat = new CompletableFuture<Format>();
-	ICursorDisplayProvider             cursorDisplayProvider;
-	private Parent                     rootNode;
+	private List<IFocusListener>		jfxFocusListeners	= new ArrayList<>();
 
-    private Function<ByteBuffer, Void>  reorderData;
+	EmbeddedStageInterface				stagePeer;
+	EmbeddedSceneInterface				scenePeer;
+	protected volatile EmbeddedWindow	stage;
+	HostInterface						hostContainer;
+	JmeFXInputListener					inputListener;
+	int									pWidth;
+	int									pHeight;
+	volatile Scene						scene;
+	Image								jmeImage;
+	Texture2D							tex;
+	ByteBuffer							jmeData;
+	int									alphaByteOffset		= 3;
+	ByteBuffer							fxData;
+	boolean								fxDataReady			= false;
+	int									oldX				= -1;
+	int									oldY				= -1;
+	boolean								focus;
+	Application							app;
+	boolean								fullScreenSuppport;
+	CompletableFuture<Format>			nativeFormat		= new CompletableFuture<Format>();
+	ICursorDisplayProvider				cursorDisplayProvider;
+	private Parent						rootNode;
 
-    /** Indent the window position to account for window decoration by Ronn */
-    private int                         windowOffsetX;
-    private int                         windowOffsetY;
+	private Function<ByteBuffer, Void>	reorderData;
 
+	/** Indent the window position to account for window decoration by Ronn */
+	private int							windowOffsetX;
+	private int							windowOffsetY;
 
 	public static JmeFxScreenContainer install(final Application app, final com.jme3.scene.Node guiNode, final boolean fullScreenSupport, final ICursorDisplayProvider cursorDisplayProvider) {
 		final JmeFxScreenContainer ctr = new JmeFxScreenContainer(app.getAssetManager(), app, fullScreenSupport, cursorDisplayProvider);
@@ -99,19 +96,19 @@ public abstract class JmeFxContainer {
 		ctr.inputListener = new JmeFXInputListener(ctr);
 		app.getInputManager().addRawInputListener(ctr.inputListener);
 
-		if(fullScreenSupport) {
-			installSceneAccessorHack();
+		if (fullScreenSupport) {
+			JmeFxContainer.installSceneAccessorHack();
 		}
 
 		return ctr;
 	}
-	
-	public static JmeFxTextureContainer createTextureContainer(Application app,int width, int height) {
-	    final JmeFxTextureContainer ctr = new JmeFxTextureContainer(app,width,height);
-	    
-	    installSceneAccessorHack();
-	    
-	    return ctr;
+
+	public static JmeFxTextureContainer createTextureContainer(Application app, int width, int height) {
+		final JmeFxTextureContainer ctr = new JmeFxTextureContainer(app, width, height);
+
+		JmeFxContainer.installSceneAccessorHack();
+
+		return ctr;
 	}
 
 	public JmeFXInputListener getInputListener() {
@@ -122,65 +119,60 @@ public abstract class JmeFxContainer {
 		this.initFx();
 	}
 
-	
 	protected EmbeddedSceneInterface getScenePeer() {
-		return scenePeer;
+		return this.scenePeer;
 	}
 
 	protected EmbeddedStageInterface getStagePeer() {
-		return stagePeer;
+		return this.stagePeer;
 	}
 
-	
-
 	public int getWindowX() {
-        return 0;
-    }
+		return 0;
+	}
 
-    public int getWindowY() {
-        return 0;
-    }
-	
+	public int getWindowY() {
+		return 0;
+	}
 
-	
 	private void initFx() {
 		PlatformImpl.startup(new Runnable() {
 
 			@Override
 			public void run() {
-				//TODO 3.1: use Format.ARGB8 and Format.BGRA8 and remove used of exchangeData, fx2jme_ARGB82ABGR8,...
+				// TODO 3.1: use Format.ARGB8 and Format.BGRA8 and remove used of exchangeData, fx2jme_ARGB82ABGR8,...
 				switch (Pixels.getNativeFormat()) {
 				case Pixels.Format.BYTE_ARGB:
 					try {
 						JmeFxContainer.this.nativeFormat.complete(Format.valueOf("ARGB8"));
-						reorderData = null;
-						alphaByteOffset = 0;
-					} catch(Exception exc) {
+						JmeFxContainer.this.reorderData = null;
+						JmeFxContainer.this.alphaByteOffset = 0;
+					} catch (Exception exc) {
 						JmeFxContainer.this.nativeFormat.complete(Format.ABGR8);
-						reorderData = FormatUtils::reorder_ARGB82ABGR8;
-						alphaByteOffset = 0;
+						JmeFxContainer.this.reorderData = FormatUtils::reorder_ARGB82ABGR8;
+						JmeFxContainer.this.alphaByteOffset = 0;
 					}
 					break;
 				case Pixels.Format.BYTE_BGRA_PRE:
 					try {
 						JmeFxContainer.this.nativeFormat.complete(Format.valueOf("BGRA8"));
-						reorderData = null;
-						alphaByteOffset = 3;
-					} catch(Exception exc) {
+						JmeFxContainer.this.reorderData = null;
+						JmeFxContainer.this.alphaByteOffset = 3;
+					} catch (Exception exc) {
 						JmeFxContainer.this.nativeFormat.complete(Format.ABGR8);
-						reorderData = FormatUtils::reorder_BGRA82ABGR8;
-						alphaByteOffset = 0;
+						JmeFxContainer.this.reorderData = FormatUtils::reorder_BGRA82ABGR8;
+						JmeFxContainer.this.alphaByteOffset = 0;
 					}
 					break;
 				default:
 					try {
 						JmeFxContainer.this.nativeFormat.complete(Format.valueOf("ARGB8"));
-						reorderData = null;
-						alphaByteOffset = 0;
-					} catch(Exception exc) {
+						JmeFxContainer.this.reorderData = null;
+						JmeFxContainer.this.alphaByteOffset = 0;
+					} catch (Exception exc) {
 						JmeFxContainer.this.nativeFormat.complete(Format.ABGR8);
-						reorderData = FormatUtils::reorder_ARGB82ABGR8;
-						alphaByteOffset = 0;
+						JmeFxContainer.this.reorderData = FormatUtils::reorder_ARGB82ABGR8;
+						JmeFxContainer.this.alphaByteOffset = 0;
 					}
 					break;
 				}
@@ -199,9 +191,9 @@ public abstract class JmeFxContainer {
 	public EmbeddedWindow getStage() {
 		return this.stage;
 	}
-	
+
 	public void setScene(final Scene newScene) {
-	    setScene(newScene,newScene.getRoot());
+		this.setScene(newScene, newScene.getRoot());
 	}
 
 	public void setScene(final Scene newScene, final Parent highLevelGroup) {
@@ -220,7 +212,7 @@ public abstract class JmeFxContainer {
 	 */
 
 	protected void setSceneImpl(final Scene newScene) {
-		if(this.stage != null && newScene == null) {
+		if (this.stage != null && newScene == null) {
 			this.stage.hide();
 			this.stage = null;
 		}
@@ -235,13 +227,12 @@ public abstract class JmeFxContainer {
 				this.stage.show();
 			}
 		}
-		
-		sceneContainerMap.put(stage, this);
+
+		JmeFxContainer.sceneContainerMap.put(this.stage, this);
 	}
 
-
-	protected final Semaphore imageExchange = new Semaphore(1);
-	public CursorType lastcursor;
+	protected final Semaphore	imageExchange	= new Semaphore(1);
+	public CursorType			lastcursor;
 
 	void paintComponent() {
 		if (this.scenePeer == null) {
@@ -331,7 +322,7 @@ public abstract class JmeFxContainer {
 		}
 		final ByteBuffer data = this.jmeImage.getData(0);
 		data.limit(data.capacity());
-		final int alpha = data.get(alphaByteOffset + 4 * (y * this.pWidth + x));
+		final int alpha = data.get(this.alphaByteOffset + 4 * (y * this.pWidth + x));
 		data.limit(0);
 		return alpha != 0;
 	}
@@ -340,6 +331,10 @@ public abstract class JmeFxContainer {
 		if (!this.focus && this.stagePeer != null) {
 			this.stagePeer.setFocused(true, AbstractEvents.FOCUSEVENT_ACTIVATED);
 			this.focus = true;
+			for (IFocusListener jfxFocusListener : this.jfxFocusListeners) {
+				jfxFocusListener.onJFXFocusGain();
+			}
+
 		}
 	}
 
@@ -347,6 +342,9 @@ public abstract class JmeFxContainer {
 		if (this.focus && this.stagePeer != null) {
 			this.stagePeer.setFocused(false, AbstractEvents.FOCUSEVENT_DEACTIVATED);
 			this.focus = false;
+			for (IFocusListener jfxFocusListener : this.jfxFocusListeners) {
+				jfxFocusListener.onJFXFocusLoose();
+			}
 		}
 	}
 
@@ -373,19 +371,18 @@ public abstract class JmeFxContainer {
 		return embedModifiers;
 	}
 
-	Map<Window, PopupSnapper>	snappers		= new IdentityHashMap<>();
-	List<PopupSnapper>			activeSnappers	= new CopyOnWriteArrayList<>();
-	static Map<Window,JmeFxContainer> sceneContainerMap = new ConcurrentHashMap<>();
+	Map<Window, PopupSnapper>			snappers			= new IdentityHashMap<>();
+	List<PopupSnapper>					activeSnappers		= new CopyOnWriteArrayList<>();
+	static Map<Window, JmeFxContainer>	sceneContainerMap	= new ConcurrentHashMap<>();
 
-	
-	static boolean sceneAccessorHackInstalled;
-	
+	static boolean						sceneAccessorHackInstalled;
+
 	static void installSceneAccessorHack() {
 
-	    if ( sceneAccessorHackInstalled ) {
-	        return;
-	    }
-	    
+		if (JmeFxContainer.sceneAccessorHackInstalled) {
+			return;
+		}
+
 		try {
 			final Field f = SceneHelper.class.getDeclaredField("sceneAccessor");
 			f.setAccessible(true);
@@ -402,10 +399,10 @@ public abstract class JmeFxContainer {
 				public void parentEffectiveOrientationInvalidated(final Scene scene) {
 					orig.parentEffectiveOrientationInvalidated(scene);
 				}
-				
+
 				@Override
-				public Accessible getAccessible(Scene scene) {    
-				    return null;
+				public Accessible getAccessible(Scene scene) {
+					return null;
 				}
 
 				@Override
@@ -416,7 +413,7 @@ public abstract class JmeFxContainer {
 				@Override
 				public Scene createPopupScene(final Parent root) {
 					final Scene scene = orig.createPopupScene(root);
-					
+
 					scene.windowProperty().addListener(new ChangeListener<Window>() {
 
 						@Override
@@ -425,15 +422,15 @@ public abstract class JmeFxContainer {
 
 								@Override
 								public void handle(final WindowEvent event) {
-									JmeFxContainer container = sceneContainerMap.get(((PopupWindow)window).getOwnerWindow());
-									if ( container != null ) {
-    									final PopupSnapper ps = new PopupSnapper(container, window, scene);
-    									synchronized(container.snappers) {
-    									    container.snappers.put(window, ps);
-    									}
-    									ps.start();
+									JmeFxContainer container = JmeFxContainer.sceneContainerMap.get(((PopupWindow) window).getOwnerWindow());
+									if (container != null) {
+										final PopupSnapper ps = new PopupSnapper(container, window, scene);
+										synchronized (container.snappers) {
+											container.snappers.put(window, ps);
+										}
+										ps.start();
 									}
-									
+
 								}
 							});
 						};
@@ -447,14 +444,14 @@ public abstract class JmeFxContainer {
 
 								@Override
 								public void handle(final WindowEvent event) {
-								    JmeFxContainer container = sceneContainerMap.get(((PopupWindow)window).getOwnerWindow());
-                                    if ( container != null ) {
-                                        
+									JmeFxContainer container = JmeFxContainer.sceneContainerMap.get(((PopupWindow) window).getOwnerWindow());
+									if (container != null) {
+
 										final PopupSnapper ps;
-										synchronized(container.snappers) {
-										    ps = container.snappers.remove(window);
+										synchronized (container.snappers) {
+											ps = container.snappers.remove(window);
 										}
-										if(ps == null) {
+										if (ps == null) {
 											System.out.println("Cannot find snapper for window " + window);
 										} else {
 											ps.stop();
@@ -467,6 +464,8 @@ public abstract class JmeFxContainer {
 
 					return scene;
 				}
+
+				@Override
 				public void setTransientFocusContainer(final Scene scene, final javafx.scene.Node node) {
 
 				}
@@ -476,8 +475,8 @@ public abstract class JmeFxContainer {
 		} catch (final Exception exc) {
 			exc.printStackTrace();
 		}
-		
-		sceneAccessorHackInstalled = true;
+
+		JmeFxContainer.sceneAccessorHackInstalled = true;
 	}
 
 	/**
@@ -522,31 +521,34 @@ public abstract class JmeFxContainer {
 	}
 
 	public void dispose() {
-		if (this.tex != null) this.tex.setImage(null);
-		if (this.jmeImage != null) this.jmeImage.dispose();
-		if (this.jmeData != null) BufferUtils.destroyDirectBuffer(this.jmeData);
-		if (this.fxData != null) BufferUtils.destroyDirectBuffer(this.fxData);
+		if (this.tex != null)
+			this.tex.setImage(null);
+		if (this.jmeImage != null)
+			this.jmeImage.dispose();
+		if (this.jmeData != null)
+			BufferUtils.destroyDirectBuffer(this.jmeData);
+		if (this.fxData != null)
+			BufferUtils.destroyDirectBuffer(this.fxData);
 	}
 
 	@Override
 	protected void finalize() throws Throwable {
-		dispose();
+		this.dispose();
 		super.finalize();
 	}
 
 	public ObservableList<Node> getRootChildren() {
-	    if ( this.rootNode instanceof Group ) {
-	        return ((Group)this.rootNode).getChildren();
-	    } else if ( this.rootNode instanceof Pane ) {
-	        return ((Pane)this.rootNode).getChildren();
-	    } else {
-	        return FXCollections.emptyObservableList();
-	    }
+		if (this.rootNode instanceof Group) {
+			return ((Group) this.rootNode).getChildren();
+		} else if (this.rootNode instanceof Pane) {
+			return ((Pane) this.rootNode).getChildren();
+		} else {
+			return FXCollections.emptyObservableList();
+		}
 	}
 
-    public abstract int getXPosition();
-    
-    public abstract int getYPosition();
+	public abstract int getXPosition();
 
+	public abstract int getYPosition();
 
 }
