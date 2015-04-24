@@ -551,4 +551,13 @@ public abstract class JmeFxContainer {
 
 	public abstract int getYPosition();
 
+	public boolean addFocusListener(IFocusListener listener) {
+		assert Platform.isFxApplicationThread();
+		return this.jfxFocusListeners.add(listener);
+	}
+
+	public boolean removeFocusListener(IFocusListener listener) {
+		assert Platform.isFxApplicationThread();
+		return this.jfxFocusListeners.remove(listener);
+	}
 }
