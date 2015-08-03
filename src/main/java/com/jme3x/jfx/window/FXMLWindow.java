@@ -5,11 +5,10 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.ResourceBundle;
 
-import javafx.fxml.FXMLLoader;
+import com.jme3x.jfx.FXMLUtils;
+
 import javafx.fxml.JavaFXBuilderFactory;
 import javafx.scene.layout.Region;
-
-import com.jme3x.jfx.FXMLUtils;
 
 public class FXMLWindow<ControllerType> extends AbstractWindow {
 
@@ -44,14 +43,13 @@ public class FXMLWindow<ControllerType> extends AbstractWindow {
 
 	@Override
 	protected Region innerInit() throws Exception {
-		final FXMLLoader fxmlLoader = new FXMLLoader();
-		fxmlLoader.setLocation(this.location);
-		final ResourceBundle ressources = fxmlLoader.getResources();
-		fxmlLoader.setResources(this.addCustomRessources(ressources));
-		fxmlLoader.setBuilderFactory(new JavaFXBuilderFactory());
-		final Region rv = fxmlLoader.load(this.inStream);
+		FXMLUtils.SHARED_FXML_LOADER.setLocation(this.location);
+		final ResourceBundle ressources = FXMLUtils.SHARED_FXML_LOADER.getResources();
+		FXMLUtils.SHARED_FXML_LOADER.setResources(this.addCustomRessources(ressources));
+		FXMLUtils.SHARED_FXML_LOADER.setBuilderFactory(new JavaFXBuilderFactory());
+		final Region rv = FXMLUtils.SHARED_FXML_LOADER.load(this.inStream);
 		this.inStream.close();
-		this.controller = fxmlLoader.getController();
+		this.controller = FXMLUtils.SHARED_FXML_LOADER.getController();
 		if (this.controller != null) {
 			assert FXMLUtils.assertInjection(this);
 		} else {

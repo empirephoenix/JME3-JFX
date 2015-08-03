@@ -3,8 +3,6 @@ package com.jme3x.jfx;
 import java.net.URL;
 import java.util.ResourceBundle;
 
-import javafx.fxml.FXMLLoader;
-import javafx.fxml.JavaFXBuilderFactory;
 import javafx.scene.layout.Region;
 
 public class FXMLHud<ControllerType> extends AbstractHud {
@@ -18,14 +16,12 @@ public class FXMLHud<ControllerType> extends AbstractHud {
 
 	@Override
 	protected Region innerInit() throws Exception {
-		final FXMLLoader fxmlLoader = new FXMLLoader();
 		final URL location = Thread.currentThread().getContextClassLoader().getResource(this.fxml);
-		fxmlLoader.setLocation(location);
-		final ResourceBundle defaultRessources = fxmlLoader.getResources();
-		fxmlLoader.setResources(this.addCustomRessources(defaultRessources));
-		fxmlLoader.setBuilderFactory(new JavaFXBuilderFactory());
-		final Region rv = fxmlLoader.load(location.openStream());
-		this.controller = fxmlLoader.getController();
+		FXMLUtils.SHARED_FXML_LOADER.setLocation(location);
+		final ResourceBundle defaultRessources = FXMLUtils.SHARED_FXML_LOADER.getResources();
+		FXMLUtils.SHARED_FXML_LOADER.setResources(this.addCustomRessources(defaultRessources));
+		final Region rv = FXMLUtils.SHARED_FXML_LOADER.load(location.openStream());
+		this.controller = FXMLUtils.SHARED_FXML_LOADER.getController();
 		assert FXMLUtils.assertInjection(this);
 		return rv;
 	}

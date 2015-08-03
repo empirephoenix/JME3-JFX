@@ -8,8 +8,16 @@ import java.util.Comparator;
 import com.jme3x.jfx.window.FXMLWindow;
 
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.fxml.JavaFXBuilderFactory;
 
 public class FXMLUtils {
+	public static final FXMLLoader SHARED_FXML_LOADER = new FXMLLoader();
+
+	static {
+		FXMLUtils.SHARED_FXML_LOADER.setBuilderFactory(new JavaFXBuilderFactory());
+	}
+
 	/**
 	 * Utility Method that assets all @FXML injections were sucessfully done, and an attached Controller was loaded
 	 * 
