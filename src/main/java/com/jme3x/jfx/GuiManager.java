@@ -86,7 +86,8 @@ public class GuiManager {
 	 *            -> apply some default settings that are recommended
 	 * 
 	 */
-	public GuiManager(final Node guiParent, final AssetManager assetManager, final Application application, final boolean fullscreen, final ICursorDisplayProvider cursorDisplayProvider, final Material customMaterial, boolean useRecommendedJFXSettings) {
+	public GuiManager(final Node guiParent, final AssetManager assetManager, final Application application, final boolean fullscreen, final ICursorDisplayProvider cursorDisplayProvider, final Material customMaterial,
+			final boolean useRecommendedJFXSettings) {
 		this(guiParent, assetManager, application, fullscreen, cursorDisplayProvider, customMaterial, useRecommendedJFXSettings, false);
 
 	}
@@ -105,13 +106,13 @@ public class GuiManager {
 	 * 
 	 */
 	public GuiManager(final Node guiParent, final AssetManager assetManager, final Application application, final boolean fullscreen, final ICursorDisplayProvider cursorDisplayProvider, final Material customMaterial,
-			boolean useRecommendedJFXSettings, boolean resumeJMEFocusOnEventFail) {
+			final boolean useRecommendedJFXSettings, final boolean resumeJMEFocusOnEventFail) {
 		if (useRecommendedJFXSettings) {
 
 			System.setProperty("javafx.animation.fullspeed", "true"); // reduce laggyness of animations, bad for business apps great for games
 			System.setProperty("prism.order", "sw"); // use software rendering, keep the gpu free for jme, use another core for jfx in software mode and all win
 			System.setProperty("prism.vsync", "false"); // jme should limit rendering speed anyway or?
-
+			System.setProperty("sun.java2d.xrender", "f");// workaround for linux specific bug
 		}
 
 		this.customMaterial = customMaterial;
@@ -136,7 +137,7 @@ public class GuiManager {
 		jmeNode.setMaterial(this.customMaterial);
 	}
 
-	private void initRootGroup(boolean redirectFocusToJMEOnUnusedKeyEvents) {
+	private void initRootGroup(final boolean redirectFocusToJMEOnUnusedKeyEvents) {
 		final Semaphore waitForInit = new Semaphore(0);
 		Platform.runLater(new Runnable() {
 			@Override
@@ -146,7 +147,7 @@ public class GuiManager {
 				if (redirectFocusToJMEOnUnusedKeyEvents) {
 					GuiManager.this.highLevelGroup.addEventHandler(KeyEvent.KEY_TYPED, new EventHandler<KeyEvent>() {
 						@Override
-						public void handle(KeyEvent event) {
+						public void handle(final KeyEvent event) {
 							// if this is called the event was not consumed, like textfield ect. do -> transfer it back to JME!
 							GuiManager.this.jmefx.loseFocus();
 							System.out.println(event.getEventType() + " Unhandled keyevent " + event.isConsumed());
@@ -214,7 +215,7 @@ public class GuiManager {
 				GuiManager.logger.debug("Detaching {}", hud);
 				GuiManager.this.attachedHuds.remove(hud);
 				if (hud instanceof AbstractWindow) {
-					AbstractWindow window = (AbstractWindow) hud;
+					final AbstractWindow window = (AbstractWindow) hud;
 					window.onClose();
 				}
 				GuiManager.this.highLevelGroup.getChildren().remove(hud.getNode());
