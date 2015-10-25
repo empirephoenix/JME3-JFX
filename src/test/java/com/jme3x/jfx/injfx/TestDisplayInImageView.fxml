@@ -14,7 +14,7 @@
 <?import javafx.scene.layout.*?>
 
 
-<BorderPane prefHeight="400.0" prefWidth="477.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.jme3x.jfx.TestDisplayInImageView$Controller">
+<BorderPane prefHeight="400.0" prefWidth="477.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.jme3x.jfx.injfx.TestDisplayInImageView$Controller">
    <bottom>
       <GridPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="96.0" prefWidth="223.0" BorderPane.alignment="CENTER">
         <columnConstraints>
