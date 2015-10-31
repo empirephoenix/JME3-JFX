@@ -14,9 +14,11 @@ public class Test extends SimpleApplication {
 	public static void main(final String[] args) {
 		assert Test.enabled();
 		if (!Test.assertionsEnabled) {
-			throw new RuntimeException("Assertions must be enabled (vm args -ea");
+			//throw new RuntimeException("Assertions must be enabled (vm args -ea");
 		}
 		final AppSettings settings = new AppSettings(true);
+		settings.setRenderer(AppSettings.JOGL_OPENGL_FORWARD_COMPATIBLE);
+		settings.setAudioRenderer(AppSettings.JOAL);
 		// settings.setGammaCorrection(true);
 		final Test t = new Test();
 		t.setSettings(settings);
@@ -27,6 +29,8 @@ public class Test extends SimpleApplication {
 		Test.assertionsEnabled = true;
 		return true;
 	}
+
+	DisplayInfo displayInfo;
 
 	@Override
 	public void simpleInitApp() {
@@ -46,33 +50,35 @@ public class Test extends SimpleApplication {
 		} catch (final InterruptedException e) {
 			e.printStackTrace();
 		}
-		final FXMLHud testhud = new FXMLHud("com/jme3x/jfx/loading_screen.fxml");
+		final FXMLHud<?> testhud = new FXMLHud<>("com/jme3x/jfx/loading_screen.fxml");
 		testhud.precache();
 		testguiManager.attachHudAsync(testhud);
 
-		final FXMLWindow testwindow = new FXMLWindow("com/jme3x/jfx/loading_screen.fxml");
+		final FXMLWindow<?> testwindow = new FXMLWindow<>("com/jme3x/jfx/loading_screen.fxml");
 		testwindow.externalized().set(true);
 		testwindow.precache();
 		testwindow.titleProperty().set("TestTitle");
 		testguiManager.attachHudAsync(testwindow);
 
-		Display.setResizable(true);
+		//Display.setResizable(true);
+		displayInfo = DisplayInfoProvider.find(this);
 	}
 
 	@Override
 	public void simpleUpdate(final float tpf) {
-		if (Display.wasResized()) {
+		if (displayInfo != null && displayInfo.wasResized().getAndSet(false)) {
+			System.out.println("resize");
 			// keep settings in sync with the actual Display
-			int w = Display.getWidth();
-			int h = Display.getHeight();
+			int w = displayInfo.getWidth();
+			int h = displayInfo.getHeight();
 			if (w < 2) {
 				w = 2;
 			}
 			if (h < 2) {
 				h = 2;
 			}
-			this.settings.setWidth(Display.getWidth());
-			this.settings.setHeight(Display.getHeight());
+			this.settings.setWidth(w);
+			this.settings.setHeight(h);
 			this.reshape(this.settings.getWidth(), this.settings.getHeight());
 		}
 	}

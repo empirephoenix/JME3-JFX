@@ -7,8 +7,6 @@ import java.util.concurrent.Callable;
 import javafx.application.Platform;
 import javafx.scene.Scene;
 
-import org.lwjgl.opengl.Display;
-
 import com.jme3.app.Application;
 import com.jme3.app.state.AbstractAppState;
 import com.jme3.asset.AssetManager;
@@ -23,17 +21,18 @@ import com.sun.javafx.embed.EmbeddedStageInterface;
 
 public class JmeFxScreenContainer extends JmeFxContainer {
 
-    
+
 
     /** Indent the window position to account for window decoration by Ronn */
     protected int windowOffsetX;
     protected int windowOffsetY;
-    
+
     private final Picture picture;
-    
+    private final DisplayInfo displayInfo;
+
     public JmeFxScreenContainer(AssetManager assetManager, Application app, boolean fullScreenSupport, ICursorDisplayProvider cursorDisplayProvider) {
         super();
-        
+
         final Point decorationSize = JFXUtils.getWindowDecorationSize();
 
         this.windowOffsetX = (int) decorationSize.getX();
@@ -41,6 +40,7 @@ public class JmeFxScreenContainer extends JmeFxContainer {
         this.cursorDisplayProvider = cursorDisplayProvider;
         this.app = app;
         this.fullScreenSuppport = fullScreenSupport;
+        this.displayInfo = DisplayInfoProvider.find(app);
 
         app.getStateManager().attach(new AbstractAppState() {
 
@@ -63,22 +63,22 @@ public class JmeFxScreenContainer extends JmeFxContainer {
                     if(currentStage == null) {
                         return;
                     }
-                    
-                    if (stage != null && Display.isFullscreen() ) {
+
+                    if (stage != null && displayInfo.isFullscreen() ) {
                         sceneContainerMap.put(stage, JmeFxScreenContainer.this);
                     } else {
                         sceneContainerMap.remove(stage);
                     }
 
-                    final int currentWidth = Display.getWidth();
-                    final int currentHeight = Display.getHeight();
+                    final int currentWidth = displayInfo.getWidth();
+                    final int currentHeight = displayInfo.getHeight();
 
                     if(currentWidth != getpWidth() || currentHeight != getpHeight()) {
                         handleResize();
                     }
 
-                    final int x = Display.getX() + (Display.isFullscreen() ? 0 : getWindowOffsetX());
-                    final int y = Display.getY() + (Display.isFullscreen() ? 0 : getWindowOffsetY());
+                    final int x = displayInfo.getX() + (displayInfo.isFullscreen() ? 0 : getWindowOffsetX());
+                    final int y = displayInfo.getY() + (displayInfo.isFullscreen() ? 0 : getWindowOffsetY());
 
                     if(getOldX() != x || getOldY() != y) {
 
@@ -101,10 +101,10 @@ public class JmeFxScreenContainer extends JmeFxContainer {
 
         this.tex = new Texture2D(this.jmeImage);
         this.picture.setTexture(assetManager, this.tex, true);
-        
+
     }
-    
-    
+
+
     public Picture getJmeNode() {
         return this.picture;
     }
@@ -118,7 +118,7 @@ public class JmeFxScreenContainer extends JmeFxContainer {
     public int getWindowY() {
         return this.oldY;
     }
-    
+
     private int getOldX() {
         return oldX;
     }
@@ -170,7 +170,7 @@ public class JmeFxScreenContainer extends JmeFxContainer {
     public int getWindowOffsetY() {
         return windowOffsetY;
     }
-    
+
 
     private void handleResize() {
 
@@ -178,8 +178,8 @@ public class JmeFxScreenContainer extends JmeFxContainer {
             this.imageExchange.acquire();
             dispose();
 
-            this.pWidth = Display.getWidth();
-            this.pHeight = Display.getHeight();
+            this.pWidth = displayInfo.getWidth();
+            this.pHeight = displayInfo.getHeight();
             if (this.pWidth < 64) {
                 this.pWidth = 64;
             }
@@ -224,7 +224,7 @@ public class JmeFxScreenContainer extends JmeFxContainer {
         }
     }
 
-    
+
     @Override
     protected void setSceneImpl(Scene newScene) {
         super.setSceneImpl(newScene);
@@ -237,22 +237,22 @@ public class JmeFxScreenContainer extends JmeFxContainer {
             }
         });
     }
-    
+
     @Override
     public int getXPosition() {
-        if (!Display.isFullscreen()) {
-            return Display.getX();
-        }
-        return 0;
-    }
-    
-    @Override
-    public int getYPosition() {
-        if (!Display.isFullscreen()) {
-            return Display.getY();
+        if (!displayInfo.isFullscreen()) {
+            return displayInfo.getX();
         }
         return 0;
     }
 
-    
+    @Override
+    public int getYPosition() {
+        if (!displayInfo.isFullscreen()) {
+            return displayInfo.getY();
+        }
+        return 0;
+    }
+
+
 }
