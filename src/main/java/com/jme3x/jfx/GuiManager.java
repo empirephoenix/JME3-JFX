@@ -34,7 +34,7 @@ import com.sun.javafx.cursor.CursorType;
 
 public class GuiManager {
 
-	private static final Logger		logger			= LoggerFactory.getLogger(GuiManager.class);
+	private static final Logger		logger				= LoggerFactory.getLogger(GuiManager.class);
 
 	private JmeFxScreenContainer	jmefx;
 	private Group					highLevelGroup;
@@ -42,8 +42,10 @@ public class GuiManager {
 	/**
 	 * a list of all attached huds, using copyonwrite to allow reading from other threads in a save way
 	 */
-	private List<AbstractHud>		attachedHuds	= new CopyOnWriteArrayList<>();
+	private List<AbstractHud>		attachedHuds		= new CopyOnWriteArrayList<>();
 	private Material				customMaterial;
+
+	private IRememberMeService		rememberMeService	= new NOOPService();
 
 	public Group getRootGroup() {
 		return this.highLevelGroup;
@@ -218,6 +220,8 @@ public class GuiManager {
 					final AbstractWindow window = (AbstractWindow) hud;
 					window.onClose();
 				}
+				GuiManager.this.rememberMeService.onRemove(hud);
+
 				GuiManager.this.highLevelGroup.getChildren().remove(hud.getNode());
 				hud.setAttached(false, null);
 			}
@@ -244,6 +248,7 @@ public class GuiManager {
 					hud.precache();
 				}
 				GuiManager.this.attachedHuds.add(hud);
+				GuiManager.this.rememberMeService.onAttach(hud);
 				GuiManager.this.highLevelGroup.getChildren().add(hud.getNode());
 				hud.setAttached(true, GuiManager.this);
 				if (hud instanceof AbstractWindow) {
@@ -369,5 +374,13 @@ public class GuiManager {
 	 */
 	public float[] getWindowMargins() {
 		return this.insets;
+	}
+
+	public IRememberMeService getRememberMeService() {
+		return this.rememberMeService;
+	}
+
+	public void setRememberMeService(final IRememberMeService rememberMeService) {
+		this.rememberMeService = rememberMeService;
 	}
 }
