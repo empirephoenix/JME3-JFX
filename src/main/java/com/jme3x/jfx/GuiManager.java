@@ -30,6 +30,8 @@ import com.jme3.texture.Texture;
 import com.jme3.ui.Picture;
 import com.jme3x.jfx.cursor.ICursorDisplayProvider;
 import com.jme3x.jfx.window.AbstractWindow;
+import com.jme3x.jfx.windowpos.IRememberMeService;
+import com.jme3x.jfx.windowpos.NOOPService;
 import com.sun.javafx.cursor.CursorType;
 
 public class GuiManager {

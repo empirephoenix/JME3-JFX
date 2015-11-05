@@ -1,7 +1,8 @@
-package com.jme3x.jfx;
+package com.jme3x.jfx.windowpos;
 
 import javafx.stage.Stage;
 
+import com.jme3x.jfx.AbstractHud;
 import com.jme3x.jfx.window.AbstractWindow;
 
 /**
