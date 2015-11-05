@@ -1,6 +1,20 @@
-package com.jme3x.jfx;
+package com.jme3x.jfx.injfx;
 
 import java.net.URL;
+
+import com.jme3.app.SimpleApplication;
+import com.jme3.asset.AssetManager;
+import com.jme3.light.DirectionalLight;
+import com.jme3.material.Material;
+import com.jme3.math.ColorRGBA;
+import com.jme3.math.Vector3f;
+import com.jme3.renderer.queue.RenderQueue.Bucket;
+import com.jme3.scene.Geometry;
+import com.jme3.scene.Node;
+import com.jme3.scene.shape.Box;
+import com.jme3.scene.shape.Sphere;
+import com.jme3.system.AppSettings;
+import com.jme3.util.TangentBinormalGenerator;
 
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -19,21 +33,6 @@ import javafx.scene.layout.Region;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
-
-import com.jme3.app.SimpleApplication;
-import com.jme3.asset.AssetManager;
-import com.jme3.light.DirectionalLight;
-import com.jme3.material.Material;
-import com.jme3.math.ColorRGBA;
-import com.jme3.math.Vector3f;
-import com.jme3.renderer.queue.RenderQueue.Bucket;
-import com.jme3.scene.Geometry;
-import com.jme3.scene.Node;
-import com.jme3.scene.shape.Box;
-import com.jme3.scene.shape.Sphere;
-import com.jme3.system.AppSettings;
-import com.jme3.util.TangentBinormalGenerator;
-import com.jme3x.jfx.injfx.JmeForImageView;
 
 public class TestDisplayInImageView extends Application {
 
@@ -63,6 +62,19 @@ public class TestDisplayInImageView extends Application {
 
 		bindOtherControls(jme, controller);
 		jme.enqueue(TestDisplayInImageView::createScene);
+		jme.enqueue((jmeApp)->{
+			jmeApp.getStateManager().attach(new HelloPicking(controller.image));
+			
+			jmeApp.getStateManager().attach(new CameraDriverAppState());
+
+			//imagePanel.setFocusable(true);
+			//imagePanel.requestFocusInWindow();
+			CameraDriverInput driver = new CameraDriverInput();
+			driver.jme = jmeApp;
+			driver.speed = 1.0f;
+			CameraDriverInput.bindDefaults(controller.image, driver);
+			return true;
+		});
 
 		Scene scene = new Scene(root, 600, 400);
 		stage.setTitle(this.getClass().getSimpleName());
@@ -156,7 +168,20 @@ public class TestDisplayInImageView extends Application {
 		sun.setDirection(new Vector3f(1,0,-2).normalizeLocal());
 		sun.setColor(ColorRGBA.White);
 		rootNode.addLight(sun);
+		
+		rootNode.attachChild(makeFloor(jmeApp));
 		return true;
+	}
+
+	/** A floor to show that the "shot" can go through several objects. */
+	static protected Geometry makeFloor(SimpleApplication jmeApp) {
+		Box box = new Box(15, .2f, 15);
+		Geometry floor = new Geometry("the Floor", box);
+		floor.setLocalTranslation(0, -4, -5);
+		Material mat1 = new Material(jmeApp.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
+		mat1.setColor("Color", ColorRGBA.Gray);
+		floor.setMaterial(mat1);
+		return floor;
 	}
 
 	public static class Controller {
