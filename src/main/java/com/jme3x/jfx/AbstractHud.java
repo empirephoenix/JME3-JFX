@@ -7,6 +7,8 @@ import java.util.concurrent.Semaphore;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.Scene;
@@ -20,6 +22,8 @@ import javafx.scene.layout.Region;
  * 
  */
 public abstract class AbstractHud {
+
+	private SimpleStringProperty				identifyer				= new SimpleStringProperty(null);
 	private Throwable							innerError				= null;
 	protected Region							node;
 	private boolean								initialized;
@@ -43,6 +47,10 @@ public abstract class AbstractHud {
 		this.attached.set(value);
 		assert guiManager == null || this.responsibleGuiManager.get() == null : "New guiManager but already old one!?";
 		this.responsibleGuiManager.set(guiManager);
+	}
+
+	public StringProperty identifyer() {
+		return this.identifyer;
 	}
 
 	/**
