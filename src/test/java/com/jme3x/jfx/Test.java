@@ -9,7 +9,8 @@ import com.jme3x.jfx.cursor.proton.ProtonCursorProvider;
 import com.jme3x.jfx.window.FXMLWindow;
 
 public class Test extends SimpleApplication {
-	private static boolean	assertionsEnabled;
+	private static boolean assertionsEnabled;
+	private static boolean useJogl = true;
 
 	public static void main(final String[] args) {
 		assert Test.enabled();
@@ -17,8 +18,10 @@ public class Test extends SimpleApplication {
 			//throw new RuntimeException("Assertions must be enabled (vm args -ea");
 		}
 		final AppSettings settings = new AppSettings(true);
-		settings.setRenderer(AppSettings.JOGL_OPENGL_FORWARD_COMPATIBLE);
-		settings.setAudioRenderer(AppSettings.JOAL);
+		if (useJogl) {
+			settings.setRenderer(AppSettings.JOGL_OPENGL_FORWARD_COMPATIBLE);
+			settings.setAudioRenderer(AppSettings.JOAL);
+		}
 		// settings.setGammaCorrection(true);
 		final Test t = new Test();
 		t.setSettings(settings);
@@ -60,7 +63,7 @@ public class Test extends SimpleApplication {
 		testwindow.titleProperty().set("TestTitle");
 		testguiManager.attachHudAsync(testwindow);
 
-		//Display.setResizable(true);
+		if (!useJogl) Display.setResizable(true);
 		displayInfo = DisplayInfoProvider.find(this);
 	}
 
