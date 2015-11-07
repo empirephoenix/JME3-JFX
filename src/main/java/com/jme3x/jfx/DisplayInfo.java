@@ -7,6 +7,8 @@ public interface DisplayInfo {
 	int getHeight();
 	int getX();
 	int getY();
+	int getInsetX();
+	int getInsetY();
 	boolean isFullscreen();
 	AtomicBoolean wasResized();
 }

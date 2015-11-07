@@ -2,8 +2,6 @@ package com.jme3.system.jogl;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.lwjgl.opengl.Display;
-
 import com.jme3x.jfx.DisplayInfo;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.event.WindowListener;
@@ -56,12 +54,12 @@ public class DisplayInfo_Jogl implements DisplayInfo {
 
 	@Override
 	public int getWidth() {
-		return canvas.getWidth();
+		return canvas.getWidth();// + canvas.getInsets().getTotalWidth();
 	}
 
 	@Override
 	public int getHeight() {
-		return canvas.getHeight();
+		return canvas.getHeight();// + canvas.getInsets().getTotalHeight();
 	}
 
 	@Override
@@ -82,5 +80,15 @@ public class DisplayInfo_Jogl implements DisplayInfo {
 	@Override
 	public AtomicBoolean wasResized() {
 		return resized;
+	}
+
+	@Override
+	public int getInsetX() {
+		return canvas.getInsets().getLeftWidth();
+	}
+
+	@Override
+	public int getInsetY() {
+		return canvas.getInsets().getTopHeight();
 	}
 }

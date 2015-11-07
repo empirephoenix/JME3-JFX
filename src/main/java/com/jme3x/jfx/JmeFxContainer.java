@@ -86,10 +86,6 @@ public abstract class JmeFxContainer {
 
 	private Function<ByteBuffer, Void>	reorderData;
 
-	/** Indent the window position to account for window decoration by Ronn */
-	private int							windowOffsetX;
-	private int							windowOffsetY;
-
 	public static JmeFxScreenContainer install(final Application app, final com.jme3.scene.Node guiNode, final boolean fullScreenSupport, final ICursorDisplayProvider cursorDisplayProvider) {
 		final JmeFxScreenContainer ctr = new JmeFxScreenContainer(app.getAssetManager(), app, fullScreenSupport, cursorDisplayProvider);
 		guiNode.attachChild(ctr.getJmeNode());
@@ -485,34 +481,6 @@ public abstract class JmeFxContainer {
 
 	public Parent getRootNode() {
 		return this.rootNode;
-	}
-
-	/**
-	 * Indent the window position to account for window decoration.
-	 */
-	public void setWindowOffsetX(final int windowOffsetX) {
-		this.windowOffsetX = windowOffsetX;
-	}
-
-	/**
-	 * Indent the window position to account for window decoration.
-	 */
-	public void setWindowOffsetY(final int windowOffsetY) {
-		this.windowOffsetY = windowOffsetY;
-	}
-
-	/**
-	 * Indent the window position to account for window decoration.
-	 */
-	public int getWindowOffsetX() {
-		return this.windowOffsetX;
-	}
-
-	/**
-	 * Indent the window position to account for window decoration.
-	 */
-	public int getWindowOffsetY() {
-		return this.windowOffsetY;
 	}
 
 	public void dispose() {
