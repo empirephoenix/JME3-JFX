@@ -54,22 +54,22 @@ public class DisplayInfo_Jogl implements DisplayInfo {
 
 	@Override
 	public int getWidth() {
-		return canvas.getWidth();// + canvas.getInsets().getTotalWidth();
+		return canvas.getSurfaceWidth();// + canvas.getInsets().getTotalWidth();
 	}
 
 	@Override
 	public int getHeight() {
-		return canvas.getHeight();// + canvas.getInsets().getTotalHeight();
+		return canvas.getSurfaceHeight();// + canvas.getInsets().getTotalHeight();
 	}
 
 	@Override
 	public int getX() {
-		return canvas.getX();
+		return canvas.convertToPixelUnits(new int[]{canvas.getX(), 0})[0];
 	}
 
 	@Override
 	public int getY() {
-		return canvas.getY();
+		return canvas.convertToPixelUnits(new int[]{0, canvas.getY()})[1];
 	}
 
 	@Override
@@ -84,11 +84,11 @@ public class DisplayInfo_Jogl implements DisplayInfo {
 
 	@Override
 	public int getInsetX() {
-		return canvas.getInsets().getLeftWidth();
+		return canvas.convertToPixelUnits(new int[]{canvas.getInsets().getLeftWidth(), 0})[0];
 	}
 
 	@Override
 	public int getInsetY() {
-		return canvas.getInsets().getTopHeight();
+		return canvas.convertToPixelUnits(new int[]{0, canvas.getInsets().getTopHeight()})[1];
 	}
 }
