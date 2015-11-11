@@ -19,7 +19,7 @@ public class Test extends SimpleApplication {
 		}
 		final AppSettings settings = new AppSettings(true);
 		if (useJogl) {
-			settings.setRenderer(AppSettings.JOGL_OPENGL_FORWARD_COMPATIBLE);
+			settings.setRenderer(AppSettings.JOGL_OPENGL_BACKWARD_COMPATIBLE);
 			settings.setAudioRenderer(AppSettings.JOAL);
 		}
 		// settings.setGammaCorrection(true);

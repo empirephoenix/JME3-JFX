@@ -18,6 +18,7 @@ import com.jme3x.jfx.window.FXMLWindow;
 
 public class TestIsCovered extends SimpleApplication {
 	private static boolean	assertionsEnabled;
+	private static boolean	useJogl = true;
 
 	public static void main(final String[] args) {
 		assert TestIsCovered.enabled();
@@ -25,6 +26,10 @@ public class TestIsCovered extends SimpleApplication {
 			throw new RuntimeException("Assertions must be enabled (vm args -ea");
 		}
 		final AppSettings settings = new AppSettings(true);
+		if (useJogl) {
+			settings.setRenderer(AppSettings.JOGL_OPENGL_BACKWARD_COMPATIBLE);
+			settings.setAudioRenderer(AppSettings.JOAL);
+		}
 		final TestIsCovered t = new TestIsCovered();
 		t.setSettings(settings);
 		t.start();
@@ -56,28 +61,28 @@ public class TestIsCovered extends SimpleApplication {
 		testwindow.titleProperty().set("TestTitle");
 		testguiManager.attachHudAsync(testwindow);
 
-		Display.setResizable(true);
+		if (!useJogl) Display.setResizable(true);
 
 		this.setupFire();
 	}
 
-	@Override
-	public void simpleUpdate(final float tpf) {
-		if (Display.wasResized()) {
-			// keep settings in sync with the actual Display
-			int w = Display.getWidth();
-			int h = Display.getHeight();
-			if (w < 2) {
-				w = 2;
-			}
-			if (h < 2) {
-				h = 2;
-			}
-			this.settings.setWidth(Display.getWidth());
-			this.settings.setHeight(Display.getHeight());
-			this.reshape(this.settings.getWidth(), this.settings.getHeight());
-		}
-	}
+//	@Override
+//	public void simpleUpdate(final float tpf) {
+//		if (Display.wasResized()) {
+//			// keep settings in sync with the actual Display
+//			int w = Display.getWidth();
+//			int h = Display.getHeight();
+//			if (w < 2) {
+//				w = 2;
+//			}
+//			if (h < 2) {
+//				h = 2;
+//			}
+//			this.settings.setWidth(Display.getWidth());
+//			this.settings.setHeight(Display.getHeight());
+//			this.reshape(this.settings.getWidth(), this.settings.getHeight());
+//		}
+//	}
 
 	// fire should follow the mouse when mouse is not over javafx item
 	public void setupFire() {
