@@ -49,6 +49,7 @@ public class FXMLWindow<ControllerType> extends AbstractWindow {
 		final ResourceBundle ressources = fxmlLoader.getResources();
 		fxmlLoader.setResources(this.addCustomRessources(ressources));
 		fxmlLoader.setBuilderFactory(new JavaFXBuilderFactory());
+		fxmlLoader.setControllerFactory(FXMLControllerFactoryHook.getFactory());
 		final Region rv = fxmlLoader.load(this.inStream);
 		this.inStream.close();
 		this.controller = fxmlLoader.getController();

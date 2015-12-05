@@ -7,6 +7,8 @@ import javafx.fxml.FXMLLoader;
 import javafx.fxml.JavaFXBuilderFactory;
 import javafx.scene.layout.Region;
 
+import com.jme3x.jfx.window.FXMLControllerFactoryHook;
+
 public class FXMLHud<ControllerType> extends AbstractHud {
 
 	private String			fxml;
@@ -24,6 +26,7 @@ public class FXMLHud<ControllerType> extends AbstractHud {
 		final ResourceBundle defaultRessources = fxmlLoader.getResources();
 		fxmlLoader.setResources(this.addCustomRessources(defaultRessources));
 		fxmlLoader.setBuilderFactory(new JavaFXBuilderFactory());
+		fxmlLoader.setControllerFactory(FXMLControllerFactoryHook.getFactory());
 		final Region rv = fxmlLoader.load(location.openStream());
 		this.controller = fxmlLoader.getController();
 		assert FXMLUtils.assertInjection(this);
