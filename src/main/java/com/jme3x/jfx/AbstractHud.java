@@ -13,6 +13,9 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.Scene;
 import javafx.scene.layout.Region;
+import javafx.util.Callback;
+
+import com.jme3x.jfx.window.FXMLControllerFactoryHook;
 
 /**
  * represents the content of a fullscreen hud,the hud is resized to fit the screen automatically.<br>
@@ -109,6 +112,10 @@ public abstract class AbstractHud {
 	 */
 	public final void precache() {
 		assert !this.initialized : "Duplicate init";
+	final Callback<Class<?>, Void> notifier = FXMLControllerFactoryHook.getLoadNotifier();
+	if (notifier != null) {
+		notifier.call(this.getClass());
+	}
 
 	if (Platform.isFxApplicationThread()) {
 		AbstractHud.this.node = AbstractHud.this.doInit();
