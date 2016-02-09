@@ -7,8 +7,6 @@ package com.jme3x.jfx;
 import java.awt.event.KeyEvent;
 import java.util.BitSet;
 
-import javafx.application.Platform;
-
 import com.jme3.input.RawInputListener;
 import com.jme3.input.awt.AwtKeyInput;
 import com.jme3.input.event.JoyAxisEvent;
@@ -17,7 +15,10 @@ import com.jme3.input.event.KeyInputEvent;
 import com.jme3.input.event.MouseButtonEvent;
 import com.jme3.input.event.MouseMotionEvent;
 import com.jme3.input.event.TouchEvent;
+import com.jme3x.jfx.dnd.JmeFxDNDHandler;
 import com.sun.javafx.embed.AbstractEvents;
+
+import javafx.application.Platform;
 
 /**
  * Converts JMEEvents to JFXEvents
@@ -36,6 +37,7 @@ public class JmeFXInputListener implements RawInputListener {
 
 	public JmeFXInputListener(final JmeFxContainer listensOnContainer) {
 		this.jmeFxContainer = listensOnContainer;
+		this.jfxdndHandler = new JmeFxDNDHandler(listensOnContainer);
 	}
 
 	@Override
@@ -224,10 +226,11 @@ public class JmeFXInputListener implements RawInputListener {
 
 			final int eventType;
 			if (fxKeycode == KeyEvent.VK_BACK_SPACE || fxKeycode == KeyEvent.VK_DELETE || fxKeycode == KeyEvent.VK_KP_UP || fxKeycode == KeyEvent.VK_KP_DOWN || fxKeycode == KeyEvent.VK_KP_LEFT || fxKeycode == KeyEvent.VK_KP_RIGHT
-					|| fxKeycode == KeyEvent.VK_UP || fxKeycode == KeyEvent.VK_DOWN || fxKeycode == KeyEvent.VK_LEFT || fxKeycode == KeyEvent.VK_RIGHT)
+					|| fxKeycode == KeyEvent.VK_UP || fxKeycode == KeyEvent.VK_DOWN || fxKeycode == KeyEvent.VK_LEFT || fxKeycode == KeyEvent.VK_RIGHT) {
 				eventType = AbstractEvents.KEYEVENT_PRESSED;
-			else
+			} else {
 				eventType = AbstractEvents.KEYEVENT_TYPED;
+			}
 
 			if (this.jmeFxContainer.focus) {
 				this.jmeFxContainer.scenePeer.keyEvent(eventType, fxKeycode, new char[] { x }, keyState);

@@ -16,21 +16,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Semaphore;
 import java.util.function.Function;
 
-import javafx.application.Platform;
-import javafx.beans.value.ChangeListener;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.event.EventHandler;
-import javafx.scene.Camera;
-import javafx.scene.Group;
-import javafx.scene.Node;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
-import javafx.scene.layout.Pane;
-import javafx.stage.PopupWindow;
-import javafx.stage.Window;
-import javafx.stage.WindowEvent;
-
 import com.jme3.app.Application;
 import com.jme3.input.RawInputListener;
 import com.jme3.texture.Image;
@@ -50,6 +35,21 @@ import com.sun.javafx.embed.HostInterface;
 import com.sun.javafx.scene.SceneHelper;
 import com.sun.javafx.scene.SceneHelper.SceneAccessor;
 import com.sun.javafx.stage.EmbeddedWindow;
+
+import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.event.EventHandler;
+import javafx.scene.Camera;
+import javafx.scene.Group;
+import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.layout.Pane;
+import javafx.stage.PopupWindow;
+import javafx.stage.Window;
+import javafx.stage.WindowEvent;
 
 /**
  * Need to pass -Dprism.dirtyopts=false on startup
@@ -99,15 +99,13 @@ public abstract class JmeFxContainer {
 		if (fullScreenSupport) {
 			JmeFxContainer.installSceneAccessorHack();
 		}
-
 		return ctr;
 	}
 
-	public static JmeFxTextureContainer createTextureContainer(Application app, int width, int height) {
+	public static JmeFxTextureContainer createTextureContainer(final Application app, final int width, final int height) {
 		final JmeFxTextureContainer ctr = new JmeFxTextureContainer(app, width, height);
 
 		JmeFxContainer.installSceneAccessorHack();
-
 		return ctr;
 	}
 
@@ -147,7 +145,7 @@ public abstract class JmeFxContainer {
 						JmeFxContainer.this.nativeFormat.complete(Format.valueOf("ARGB8"));
 						JmeFxContainer.this.reorderData = null;
 						JmeFxContainer.this.alphaByteOffset = 0;
-					} catch (Exception exc) {
+					} catch (final Exception exc) {
 						JmeFxContainer.this.nativeFormat.complete(Format.ABGR8);
 						JmeFxContainer.this.reorderData = FormatUtils::reorder_ARGB82ABGR8;
 						JmeFxContainer.this.alphaByteOffset = 0;
@@ -158,7 +156,7 @@ public abstract class JmeFxContainer {
 						JmeFxContainer.this.nativeFormat.complete(Format.valueOf("BGRA8"));
 						JmeFxContainer.this.reorderData = null;
 						JmeFxContainer.this.alphaByteOffset = 3;
-					} catch (Exception exc) {
+					} catch (final Exception exc) {
 						JmeFxContainer.this.nativeFormat.complete(Format.ABGR8);
 						JmeFxContainer.this.reorderData = FormatUtils::reorder_BGRA82ABGR8;
 						JmeFxContainer.this.alphaByteOffset = 0;
@@ -169,7 +167,7 @@ public abstract class JmeFxContainer {
 						JmeFxContainer.this.nativeFormat.complete(Format.valueOf("ARGB8"));
 						JmeFxContainer.this.reorderData = null;
 						JmeFxContainer.this.alphaByteOffset = 0;
-					} catch (Exception exc) {
+					} catch (final Exception exc) {
 						JmeFxContainer.this.nativeFormat.complete(Format.ABGR8);
 						JmeFxContainer.this.reorderData = FormatUtils::reorder_ARGB82ABGR8;
 						JmeFxContainer.this.alphaByteOffset = 0;
@@ -311,7 +309,7 @@ public abstract class JmeFxContainer {
 
 	}
 
-	boolean[]	mouseButtonState	= new boolean[3];
+	boolean[] mouseButtonState = new boolean[3];
 
 	public boolean isCovered(final int x, final int y) {
 		if (x < 0 || x >= this.pWidth) {
@@ -331,7 +329,7 @@ public abstract class JmeFxContainer {
 		if (!this.focus && this.stagePeer != null) {
 			this.stagePeer.setFocused(true, AbstractEvents.FOCUSEVENT_ACTIVATED);
 			this.focus = true;
-			for (IFocusListener jfxFocusListener : this.jfxFocusListeners) {
+			for (final IFocusListener jfxFocusListener : this.jfxFocusListeners) {
 				jfxFocusListener.onJFXFocusGain();
 			}
 
@@ -342,13 +340,13 @@ public abstract class JmeFxContainer {
 		if (this.focus && this.stagePeer != null) {
 			this.stagePeer.setFocused(false, AbstractEvents.FOCUSEVENT_DEACTIVATED);
 			this.focus = false;
-			for (IFocusListener jfxFocusListener : this.jfxFocusListeners) {
+			for (final IFocusListener jfxFocusListener : this.jfxFocusListeners) {
 				jfxFocusListener.onJFXFocusLoose();
 			}
 		}
 	}
 
-	private final BitSet	keyStateSet	= new BitSet(0xFF);
+	private final BitSet keyStateSet = new BitSet(0xFF);
 
 	int retrieveKeyState() {
 		int embedModifiers = 0;
@@ -401,7 +399,7 @@ public abstract class JmeFxContainer {
 				}
 
 				@Override
-				public Accessible getAccessible(Scene scene) {
+				public Accessible getAccessible(final Scene scene) {
 					return null;
 				}
 
@@ -422,7 +420,7 @@ public abstract class JmeFxContainer {
 
 								@Override
 								public void handle(final WindowEvent event) {
-									JmeFxContainer container = JmeFxContainer.sceneContainerMap.get(((PopupWindow) window).getOwnerWindow());
+									final JmeFxContainer container = JmeFxContainer.sceneContainerMap.get(((PopupWindow) window).getOwnerWindow());
 									if (container != null) {
 										final PopupSnapper ps = new PopupSnapper(container, window, scene);
 										synchronized (container.snappers) {
@@ -444,7 +442,7 @@ public abstract class JmeFxContainer {
 
 								@Override
 								public void handle(final WindowEvent event) {
-									JmeFxContainer container = JmeFxContainer.sceneContainerMap.get(((PopupWindow) window).getOwnerWindow());
+									final JmeFxContainer container = JmeFxContainer.sceneContainerMap.get(((PopupWindow) window).getOwnerWindow());
 									if (container != null) {
 
 										final PopupSnapper ps;
@@ -521,14 +519,18 @@ public abstract class JmeFxContainer {
 	}
 
 	public void dispose() {
-		if (this.tex != null)
+		if (this.tex != null) {
 			this.tex.setImage(null);
-		if (this.jmeImage != null)
+		}
+		if (this.jmeImage != null) {
 			this.jmeImage.dispose();
-		if (this.jmeData != null)
+		}
+		if (this.jmeData != null) {
 			BufferUtils.destroyDirectBuffer(this.jmeData);
-		if (this.fxData != null)
+		}
+		if (this.fxData != null) {
 			BufferUtils.destroyDirectBuffer(this.fxData);
+		}
 	}
 
 	@Override
@@ -551,12 +553,12 @@ public abstract class JmeFxContainer {
 
 	public abstract int getYPosition();
 
-	public boolean addFocusListener(IFocusListener listener) {
+	public boolean addFocusListener(final IFocusListener listener) {
 		assert Platform.isFxApplicationThread();
 		return this.jfxFocusListeners.add(listener);
 	}
 
-	public boolean removeFocusListener(IFocusListener listener) {
+	public boolean removeFocusListener(final IFocusListener listener) {
 		assert Platform.isFxApplicationThread();
 		return this.jfxFocusListeners.remove(listener);
 	}

@@ -1,22 +1,18 @@
 package com.jme3x.jfx;
 
-import java.net.URL;
+import com.jme3.app.SimpleApplication;
+import com.jme3.math.ColorRGBA;
+import com.jme3x.jfx.cursor.proton.ProtonCursorProvider;
+import com.jme3x.jfx.dnd.DragLabel;
+import com.jme3x.jfx.window.AbstractWindow;
 
 import javafx.application.Platform;
 import javafx.event.EventHandler;
 import javafx.scene.control.Label;
-import javafx.scene.image.Image;
-import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DragEvent;
-import javafx.scene.input.Dragboard;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.Region;
-
-import com.jme3.app.SimpleApplication;
-import com.jme3.math.ColorRGBA;
-import com.jme3x.jfx.cursor.proton.ProtonCursorProvider;
-import com.jme3x.jfx.window.AbstractWindow;
 
 public class TestDragDrop extends SimpleApplication {
 	private static boolean	assertionsEnabled;
@@ -83,7 +79,7 @@ public class TestDragDrop extends SimpleApplication {
 
 							@Override
 							public void handle(final DragEvent event) {
-								System.out.println("Dropped " + event.getDragboard().getString());
+								System.out.println("Dropped " + event.getGestureSource());
 							}
 						});
 						return TestDragDrop.target;
@@ -100,19 +96,12 @@ public class TestDragDrop extends SimpleApplication {
 
 					@Override
 					protected Region innerInit() throws Exception {
-						final Label target = new Label("Drag source");
+						final Label target = new DragLabel("Drag source");
 						target.setOnDragDetected(new EventHandler<MouseEvent>() {
 
 							@Override
 							public void handle(final MouseEvent event) {
-								final Dragboard db = target.startDragAndDrop(TransferMode.COPY_OR_MOVE);
-								final ClipboardContent content = new ClipboardContent();
-								content.putString("Dragdropped Text");
-								// do not use snapshot!, it will destroy input handling apparently :/
-								// final WritableImage image = target.snapshot(new SnapshotParameters(), null);
-								final URL dummyImage = Thread.currentThread().getContextClassLoader().getResource("com/jme3x/jfx/test.jpg");
-								db.setDragView(new Image(dummyImage.toExternalForm()));
-								db.setContent(content);
+								// marker interface for event handling
 							}
 						});
 						return target;

@@ -6,15 +6,6 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Semaphore;
 
-import javafx.application.Platform;
-import javafx.collections.ListChangeListener;
-import javafx.collections.ObservableList;
-import javafx.event.EventHandler;
-import javafx.scene.Group;
-import javafx.scene.Scene;
-import javafx.scene.input.KeyEvent;
-import javafx.scene.paint.Color;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,9 +25,19 @@ import com.jme3x.jfx.windowpos.IRememberMeService;
 import com.jme3x.jfx.windowpos.NOOPService;
 import com.sun.javafx.cursor.CursorType;
 
-public class GuiManager {
+import javafx.application.Platform;
+import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
+import javafx.event.EventHandler;
+import javafx.scene.Group;
+import javafx.scene.Scene;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.paint.Color;
 
-	private static final Logger		logger				= LoggerFactory.getLogger(GuiManager.class);
+public class GuiManager {
+	public static final String		DRAGPROXY_SPECIAL_TOFRONT	= "dragimage:true;";
+
+	private static final Logger		logger						= LoggerFactory.getLogger(GuiManager.class);
 
 	private JmeFxScreenContainer	jmefx;
 	private Group					highLevelGroup;
@@ -44,10 +45,10 @@ public class GuiManager {
 	/**
 	 * a list of all attached huds, using copyonwrite to allow reading from other threads in a save way
 	 */
-	private List<AbstractHud>		attachedHuds		= new CopyOnWriteArrayList<>();
+	private List<AbstractHud>		attachedHuds				= new CopyOnWriteArrayList<>();
 	private Material				customMaterial;
 
-	private IRememberMeService		rememberMeService	= new NOOPService();
+	private IRememberMeService		rememberMeService			= new NOOPService();
 
 	public Group getRootGroup() {
 		return this.highLevelGroup;
@@ -162,7 +163,7 @@ public class GuiManager {
 
 				// ensure that on every focues change between windows/huds modality is preserved!
 				GuiManager.this.highLevelGroup.getChildren().addListener(new ListChangeListener<Object>() {
-					boolean	ignoreEvents	= false;
+					boolean ignoreEvents = false;
 
 					@Override
 					public void onChanged(final Change<?> c) {
@@ -318,7 +319,7 @@ public class GuiManager {
 		currentOrder.clear();
 		// put everything else somewhare + ugly hack for dragimage
 		for (final javafx.scene.Node other : others) {
-			if (!"dragimage:true;".equals(other.getStyle())) {
+			if (!GuiManager.DRAGPROXY_SPECIAL_TOFRONT.equals(other.getStyle())) {
 				currentOrder.add(other);
 			}
 		}
@@ -338,7 +339,7 @@ public class GuiManager {
 		}
 		// ugly hack to make sure the dragimage stays on front
 		for (final javafx.scene.Node other : others) {
-			if ("dragimage:true;".equals(other.getStyle())) {
+			if (GuiManager.DRAGPROXY_SPECIAL_TOFRONT.equals(other.getStyle())) {
 				currentOrder.add(other);
 			}
 		}
@@ -366,7 +367,7 @@ public class GuiManager {
 		return this.customMaterial;
 	}
 
-	float[]	insets	= new float[4];
+	float[] insets = new float[4];
 
 	/**
 	 * used for maximized window and window movements to restrict certains areas, eg a custom taskbar order is up right down left <br>

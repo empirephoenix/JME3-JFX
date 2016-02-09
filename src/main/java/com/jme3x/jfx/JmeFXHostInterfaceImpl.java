@@ -51,7 +51,7 @@ public class JmeFXHostInterfaceImpl implements HostInterface {
 
 		// 8_u60 and later fix
 		try {
-			Method scaler = embeddedScene.getClass().getMethod("setPixelScaleFactor", float.class);
+			final Method scaler = embeddedScene.getClass().getMethod("setPixelScaleFactor", float.class);
 			scaler.setAccessible(true);
 			scaler.invoke(embeddedScene, 1f);
 		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
@@ -60,10 +60,6 @@ public class JmeFXHostInterfaceImpl implements HostInterface {
 
 		if (this.jmeFxContainer.pWidth > 0 && this.jmeFxContainer.pHeight > 0) {
 			this.jmeFxContainer.scenePeer.setSize(this.jmeFxContainer.pWidth, this.jmeFxContainer.pHeight);
-		}
-
-		if (this.jmeFxContainer.scenePeer != null) {
-			this.jmeFxContainer.scenePeer.setDragStartListener(new JmeFxDNDHandler(this.jmeFxContainer));
 		}
 
 	}
@@ -83,7 +79,7 @@ public class JmeFXHostInterfaceImpl implements HostInterface {
 	public void setPreferredSize(final int width, final int height) {
 	}
 
-	int	repaintCounter	= 0;
+	int repaintCounter = 0;
 
 	@Override
 	public void repaint() {
