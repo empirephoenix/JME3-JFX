@@ -3,7 +3,6 @@ package com.jme3x.jfx.dnd;
 import java.util.HashSet;
 import java.util.function.Function;
 
-import com.jme3x.jfx.GuiManager;
 import com.jme3x.jfx.JmeFxContainer;
 
 import javafx.geometry.Bounds;
@@ -11,6 +10,9 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Label;
 import javafx.scene.input.DragEvent;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseDragEvent;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 
 /**
@@ -21,11 +23,11 @@ public class JmeFxDNDHandler {
 
 	private JmeFxContainer				jmeFxContainer;
 
-	private Node						dragging;
-
 	private Function<Exception, Void>	exceptionHandler;
 
-	private Node						dragProxy;
+	SyntDragBoard						dragAndDrop;
+
+	private Node						dragging;
 
 	public JmeFxDNDHandler(final JmeFxContainer jmeFxContainer) {
 		this.jmeFxContainer = jmeFxContainer;
@@ -43,75 +45,109 @@ public class JmeFxDNDHandler {
 		this.exceptionHandler = exceptionHandler;
 	}
 
-	public void mouseUpdate(final int x, final int y, final boolean mousePressed) {
+	public void toFront(final Node target) {
+		if (target.getParent() != null) {
+			final Parent parent = target.getParent();
+			if (parent.getParent() == null) {
+				// if this is the first child under the rootnode
+				target.toFront();
+				return;
+			}
+			this.toFront(parent);
+		}
+	}
+
+	public void mouseUpdate(final int x, final int y, final int sx, final int sy, final boolean mousePressed) {
 		if (mousePressed) {
-			if (this.dragging == null) {
+			if (this.dragAndDrop == null && this.dragging == null) {
 				final Node dragElement = this.getDragSourceAt(this.jmeFxContainer.getRootNode(), x, y);
 				if (dragElement != null) {
-					try {
-						dragElement.getOnDragDetected().handle(null);
-					} catch (final Exception e) {
-						this.exception(e);
+					this.toFront(dragElement);
+					if (dragElement.getOnMouseDragged() != null) {
+						this.dragging = dragElement;
+					} else if (dragElement.getOnDragDetected() != null) {
+						this.startDragAndDrop(x, y, dragElement, sx, sy);
 					}
-					if (dragElement instanceof DragProxyProvider) {
-						final DragProxyProvider provider = (DragProxyProvider) dragElement;
-						this.dragProxy = provider.provide();
-					} else {
-						this.dragProxy = new Label("X");
-						this.dragProxy.minHeight(64);
-						this.dragProxy.minWidth(64);
-					}
-					System.out.println("Started dragging");
-					this.dragProxy.setMouseTransparent(true);
-					this.dragProxy.setStyle(GuiManager.DRAGPROXY_SPECIAL_TOFRONT); // marker layout
-					this.dragProxy.setVisible(true);
-
-					this.jmeFxContainer.getRootChildren().add(this.dragProxy);
-					this.dragging = dragElement;
+					// allow one pulse for other event processing
+					return;
 				}
 			}
 		} else {
 			if (this.dragging != null) {
-				this.jmeFxContainer.getRootChildren().remove(this.dragProxy);
-
-				for (final Node enter : this.entered) {
-					if (enter.onDragExitedProperty() != null) {
-						final DragEvent event = new DragEvent(DragEvent.DRAG_EXITED_TARGET, null, x, y, x, x, TransferMode.COPY, null, null, null);
-						try {
-							enter.getOnDragExited().handle(event);
-						} catch (final Exception e) {
-							this.exception(e);
-						}
-					}
-				}
-				final Node dropTarget = this.getDropTargetAt(this.jmeFxContainer.getRootNode(), x, y);
-				if (dropTarget != null) {
-					final DragEvent event = new DragEvent(DragEvent.DRAG_DROPPED, null, x, y, x, x, TransferMode.COPY, this.dragging, null, null);
-					try {
-						dropTarget.getOnDragDropped().handle(event);
-					} catch (final Exception e) {
-						this.exception(e);
-					}
-				}
 				this.dragging = null;
+			}
+			if (this.dragAndDrop != null) {
+				this.drop(x, y);
 			}
 		}
 		if (this.dragging != null) {
-			if (this.dragProxy != null) {
-				this.dragProxy.setLayoutX(x);
-				this.dragProxy.setLayoutY(y);
-				this.dragProxy.toFront();
-			}
-			this.processDragEvents(this.jmeFxContainer.getRootNode(), x, y);
+			this.dragging.getOnMouseDragged().handle(new MouseEvent(this.dragging, null, null, x, y, sx, sy, MouseButton.PRIMARY, 1, false, false, false, false, true, false, false, false, false, false, null));
+		}
+		if (this.dragAndDrop != null) {
+			this.updateDragAndDrop(x, y, sx, sy);
 		}
 	}
 
-	private Node processDragEvents(final Node current, final int x, final int y) {
+	private void updateDragAndDrop(final int x, final int y, final int sx, final int sy) {
+		final Node dragProxy = this.dragAndDrop.getDragProxy();
+		if (dragProxy != null) {
+			dragProxy.setLayoutX(x);
+			dragProxy.setLayoutY(y);
+			dragProxy.toFront();
+		}
+		this.processDragEvents(this.jmeFxContainer.getRootNode(), x, y, sx, sy);
+	}
+
+	private void drop(final int x, final int y) {
+		this.jmeFxContainer.getRootChildren().remove(this.dragAndDrop.getDragProxy());
+
+		for (final Node enter : this.entered) {
+			if (enter.onDragExitedProperty() != null) {
+				final DragEvent event = new DragEvent(this.dragAndDrop, null, DragEvent.DRAG_EXITED_TARGET, null, x, y, x, x, TransferMode.COPY, null, null, null);
+				try {
+					enter.getOnDragExited().handle(event);
+				} catch (final Exception e) {
+					this.exception(e);
+				}
+			}
+		}
+		final Node dropTarget = this.getDropTargetAt(this.jmeFxContainer.getRootNode(), x, y);
+		if (dropTarget != null) {
+			this.dragAndDrop.getDataTransfer().put("targetElement", dropTarget);
+			final DragEvent event = new DragEvent(this.dragAndDrop, null, DragEvent.DRAG_DROPPED, null, x, y, x, x, TransferMode.COPY, null, null, null);
+			try {
+				dropTarget.getOnDragDropped().handle(event);
+			} catch (final Exception e) {
+				this.exception(e);
+			}
+		}
+		this.dragAndDrop = null;
+	}
+
+	private void startDragAndDrop(final int x, final int y, final Node dragElement, final double sx, final double sy) {
+		this.dragAndDrop = new SyntDragBoard();
+		this.dragAndDrop.getDataTransfer().put("sourceElement", dragElement);
+		try {
+			final MouseDragEvent pseudoDrag = new MouseDragEvent(this.dragAndDrop, null, null, x, y, sx, sy, MouseButton.PRIMARY, 1, false, false, false, false, false, false, false, false, false, null, null);
+			dragElement.getOnDragDetected().handle(pseudoDrag);
+		} catch (final Exception e) {
+			this.exception(e);
+		}
+		if (!this.dragAndDrop.hasDragProxy()) {
+			final Node dragProxy = new Label("X");
+			dragProxy.minHeight(64);
+			dragProxy.minWidth(64);
+			this.dragAndDrop.setDragProxy(dragProxy);
+		}
+		this.jmeFxContainer.getRootChildren().add(this.dragAndDrop.getDragProxy());
+	}
+
+	private Node processDragEvents(final Node current, final int x, final int y, final int sx, final int sy) {
 		final Bounds bounds = current.localToScene(current.getBoundsInLocal());
 		if (bounds.contains(x, y)) {
 			if (current.getOnDragEntered() != null && !this.entered.contains(current)) {
 				this.entered.add(current);
-				final DragEvent event = new DragEvent(DragEvent.DRAG_ENTERED_TARGET, null, x, y, x, x, TransferMode.COPY, null, null, null);
+				final DragEvent event = new DragEvent(this.dragAndDrop, null, DragEvent.DRAG_ENTERED_TARGET, null, x, y, sx, sy, TransferMode.COPY, null, null, null);
 				try {
 					current.getOnDragEntered().handle(event);
 				} catch (final Exception e) {
@@ -121,7 +157,7 @@ public class JmeFxDNDHandler {
 		} else {
 			if (this.entered.contains(current) && current.getOnDragExited() != null) {
 				this.entered.remove(current);
-				final DragEvent event = new DragEvent(DragEvent.DRAG_EXITED_TARGET, null, x, y, x, x, TransferMode.COPY, null, null, null);
+				final DragEvent event = new DragEvent(this.dragAndDrop, null, DragEvent.DRAG_EXITED_TARGET, null, x, y, sx, sy, TransferMode.COPY, null, null, null);
 				try {
 					current.getOnDragExited().handle(event);
 				} catch (final Exception e) {
@@ -133,7 +169,7 @@ public class JmeFxDNDHandler {
 		if (current instanceof Parent) {
 			final Parent p = (Parent) current;
 			for (final Node child : p.getChildrenUnmodifiable()) {
-				this.processDragEvents(child, x, y);
+				this.processDragEvents(child, x, y, sx, sy);
 			}
 		}
 
@@ -141,13 +177,17 @@ public class JmeFxDNDHandler {
 	}
 
 	private Node getDragSourceAt(final Node current, final int x, final int y) {
+		if (current.getOnMouseDragged() != null) {
+			return current;
+		}
 		if (current.getOnDragDetected() != null) {
 			return current;
 		}
 
 		if (current instanceof Parent) {
 			final Parent p = (Parent) current;
-			for (final Node child : p.getChildrenUnmodifiable()) {
+			for (int i = p.getChildrenUnmodifiable().size() - 1; i >= 0; i--) {
+				final Node child = p.getChildrenUnmodifiable().get(i);
 				final Bounds bounds = child.localToScene(child.getBoundsInLocal());
 				if (bounds.contains(x, y)) {
 					final Node found = this.getDragSourceAt(child, x, y);
@@ -155,7 +195,6 @@ public class JmeFxDNDHandler {
 						return found;
 					}
 				}
-
 			}
 		}
 
@@ -169,7 +208,8 @@ public class JmeFxDNDHandler {
 
 		if (current instanceof Parent) {
 			final Parent p = (Parent) current;
-			for (final Node child : p.getChildrenUnmodifiable()) {
+			for (int i = p.getChildrenUnmodifiable().size() - 1; i >= 0; i--) {
+				final Node child = p.getChildrenUnmodifiable().get(i);
 				final Bounds bounds = child.localToScene(child.getBoundsInLocal());
 				if (bounds.contains(x, y)) {
 					final Node found = this.getDropTargetAt(child, x, y);

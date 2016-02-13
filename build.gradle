@@ -58,6 +58,7 @@ def v_slf4j = '1.7.7'
 def v_jme3 = '3.0.10'
 dependencies {
 	compile "org.slf4j:slf4j-api:${v_slf4j}"
+	provided "org.lwjgl.lwjgl:lwjgl:2.9.0"
 	provided "com.jme3:jme3-core:${v_jme3}"
 	provided "com.jme3:jme3-desktop:${v_jme3}"
 	provided "com.jme3:jme3-lwjgl:${v_jme3}"

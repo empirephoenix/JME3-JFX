@@ -3,7 +3,7 @@ package com.jme3x.jfx;
 import com.jme3.app.SimpleApplication;
 import com.jme3.math.ColorRGBA;
 import com.jme3x.jfx.cursor.proton.ProtonCursorProvider;
-import com.jme3x.jfx.dnd.DragLabel;
+import com.jme3x.jfx.dnd.SyntDragBoard;
 import com.jme3x.jfx.window.AbstractWindow;
 
 import javafx.application.Platform;
@@ -19,7 +19,6 @@ public class TestDragDrop extends SimpleApplication {
 	public static Label		target;
 
 	public static void main(final String[] args) {
-		System.out.println("testd&d");
 		assert TestDragDrop.enabled();
 		if (!TestDragDrop.assertionsEnabled) {
 			throw new RuntimeException("Assertions must be enabled (vm args -ea");
@@ -57,7 +56,8 @@ public class TestDragDrop extends SimpleApplication {
 						TestDragDrop.target.setOnDragEntered(new EventHandler<DragEvent>() {
 							@Override
 							public void handle(final DragEvent event) {
-								TestDragDrop.target.setText("DragEnter");
+								final SyntDragBoard data = (SyntDragBoard) event.getSource();
+								TestDragDrop.target.setText("DragEnter " + data.getDataTransfer());
 							}
 						});
 
@@ -79,7 +79,8 @@ public class TestDragDrop extends SimpleApplication {
 
 							@Override
 							public void handle(final DragEvent event) {
-								System.out.println("Dropped " + event.getGestureSource());
+								final SyntDragBoard db = (SyntDragBoard) event.getSource();
+								System.out.println("Dropped " + db.getDataTransfer());
 							}
 						});
 						return TestDragDrop.target;
@@ -96,15 +97,23 @@ public class TestDragDrop extends SimpleApplication {
 
 					@Override
 					protected Region innerInit() throws Exception {
-						final Label target = new DragLabel("Drag source");
-						target.setOnDragDetected(new EventHandler<MouseEvent>() {
+						final Label source = new Label("Drag source");
+						source.setOnDragDetected(new EventHandler<MouseEvent>() {
 
 							@Override
 							public void handle(final MouseEvent event) {
-								// marker interface for event handling
+								// event source is abused to tunnel pseudo Dragboard
+								try {
+									final SyntDragBoard dragBoard = (SyntDragBoard) event.getSource();
+									dragBoard.setDragProxy(new Label("Hi there"));
+									dragBoard.getDataTransfer().put("customMessage", "Hi from dragboard content");
+								} catch (final Exception e) {
+									e.printStackTrace();
+								}
+
 							}
 						});
-						return target;
+						return source;
 					}
 
 					@Override

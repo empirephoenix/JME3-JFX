@@ -77,51 +77,50 @@ public class JmeFXInputListener implements RawInputListener {
 		if (this.jmeFxContainer.scenePeer == null) {
 			return;
 		}
-
 		final int x = evt.getX();
-		final int y = (int) Math.round(this.jmeFxContainer.getScene().getHeight()) - evt.getY();
+		final int y = (int) Math.round(JmeFXInputListener.this.jmeFxContainer.getScene().getHeight()) - evt.getY();
+		final int sx = JmeFXInputListener.this.jmeFxContainer.getXPosition() + x;
+		final int sy = JmeFXInputListener.this.jmeFxContainer.getYPosition() + y;
 
-		final boolean covered = this.jmeFxContainer.isCovered(x, y);
+		final boolean covered = JmeFXInputListener.this.jmeFxContainer.isCovered(x, y);
 		if (covered) {
 			evt.setConsumed();
 		}
-
-		// not sure if should be grabbing focus on mouse motion event
-		// grabFocus();
-
-		int type = AbstractEvents.MOUSEEVENT_MOVED;
-		int button = AbstractEvents.MOUSEEVENT_NONE_BUTTON;
-
-		final int wheelRotation = (int) Math.round(evt.getDeltaWheel() / -120.0);
-
-		if (wheelRotation != 0) {
-			type = AbstractEvents.MOUSEEVENT_WHEEL;
-			button = AbstractEvents.MOUSEEVENT_NONE_BUTTON;
-		} else if (this.mouseButtonState[0]) {
-			type = AbstractEvents.MOUSEEVENT_DRAGGED;
-			button = AbstractEvents.MOUSEEVENT_PRIMARY_BUTTON;
-		} else if (this.mouseButtonState[1]) {
-			type = AbstractEvents.MOUSEEVENT_DRAGGED;
-			button = AbstractEvents.MOUSEEVENT_SECONDARY_BUTTON;
-		} else if (this.mouseButtonState[2]) {
-			type = AbstractEvents.MOUSEEVENT_DRAGGED;
-			button = AbstractEvents.MOUSEEVENT_MIDDLE_BUTTON;
-		}
-		final int ftype = type;
-		final int fbutton = button;
-		/**
-		 * ensure drag and drop is handled before the mouse release event fires
-		 */
 		Platform.runLater(new Runnable() {
 			@Override
 			public void run() {
-				if (JmeFXInputListener.this.jfxdndHandler != null) {
-					JmeFXInputListener.this.jfxdndHandler.mouseUpdate(x, y, JmeFXInputListener.this.mouseButtonState[0]);
+
+				// not sure if should be grabbing focus on mouse motion event
+				// grabFocus();
+
+				int type = AbstractEvents.MOUSEEVENT_MOVED;
+				int button = AbstractEvents.MOUSEEVENT_NONE_BUTTON;
+
+				final int wheelRotation = (int) Math.round(evt.getDeltaWheel() / -120.0);
+
+				if (wheelRotation != 0) {
+					type = AbstractEvents.MOUSEEVENT_WHEEL;
+					button = AbstractEvents.MOUSEEVENT_NONE_BUTTON;
+				} else if (JmeFXInputListener.this.mouseButtonState[0]) {
+					button = AbstractEvents.MOUSEEVENT_PRIMARY_BUTTON;
+				} else if (JmeFXInputListener.this.mouseButtonState[1]) {
+					button = AbstractEvents.MOUSEEVENT_SECONDARY_BUTTON;
+				} else if (JmeFXInputListener.this.mouseButtonState[2]) {
+					button = AbstractEvents.MOUSEEVENT_MIDDLE_BUTTON;
 				}
+
+				final int ftype = type;
+				final int fbutton = button;
+				/**
+				 * ensure drag and drop is handled before the mouse release event fires
+				 */
+
 				JmeFXInputListener.this.jmeFxContainer.scenePeer.mouseEvent(ftype, fbutton, JmeFXInputListener.this.mouseButtonState[0], JmeFXInputListener.this.mouseButtonState[1], JmeFXInputListener.this.mouseButtonState[2], x, y,
 						JmeFXInputListener.this.jmeFxContainer.getXPosition() + x, JmeFXInputListener.this.jmeFxContainer.getYPosition() + y, JmeFXInputListener.this.keyStateSet.get(KeyEvent.VK_SHIFT),
 						JmeFXInputListener.this.keyStateSet.get(KeyEvent.VK_CONTROL), JmeFXInputListener.this.keyStateSet.get(KeyEvent.VK_ALT), JmeFXInputListener.this.keyStateSet.get(KeyEvent.VK_META), wheelRotation, false);
-
+				if (JmeFXInputListener.this.jfxdndHandler != null) {
+					JmeFXInputListener.this.jfxdndHandler.mouseUpdate(x, y, sx, sy, JmeFXInputListener.this.mouseButtonState[0]);
+				}
 			}
 		});
 	}
@@ -134,60 +133,63 @@ public class JmeFXInputListener implements RawInputListener {
 		}
 
 		// TODO: Process events in separate thread ?
-		if (this.jmeFxContainer.scenePeer == null) {
+		if (JmeFXInputListener.this.jmeFxContainer.scenePeer == null) {
 			return;
 		}
-
 		final int x = evt.getX();
-		final int y = (int) Math.round(this.jmeFxContainer.getScene().getHeight()) - evt.getY();
+		final int y = (int) Math.round(JmeFXInputListener.this.jmeFxContainer.getScene().getHeight()) - evt.getY();
+		final int sx = JmeFXInputListener.this.jmeFxContainer.getXPosition() + x;
+		final int sy = JmeFXInputListener.this.jmeFxContainer.getYPosition() + y;
 
-		int button;
-
-		switch (evt.getButtonIndex()) {
-		case 0:
-			button = AbstractEvents.MOUSEEVENT_PRIMARY_BUTTON;
-			break;
-		case 1:
-			button = AbstractEvents.MOUSEEVENT_SECONDARY_BUTTON;
-			break;
-		case 2:
-			button = AbstractEvents.MOUSEEVENT_MIDDLE_BUTTON;
-			break;
-		default:
-			return;
-		}
-
-		this.mouseButtonState[evt.getButtonIndex()] = evt.isPressed();
-
-		// seems that generating mouse release without corresponding mouse pressed is causing problems in Scene.ClickGenerator
-
-		final boolean covered = this.jmeFxContainer.isCovered(x, y);
+		final boolean covered = JmeFXInputListener.this.jmeFxContainer.isCovered(x, y);
 		if (!covered) {
-			this.jmeFxContainer.loseFocus();
+			JmeFXInputListener.this.jmeFxContainer.loseFocus();
 		} else {
 			evt.setConsumed();
-			this.jmeFxContainer.grabFocus();
+			JmeFXInputListener.this.jmeFxContainer.grabFocus();
 		}
 		;
-		int type;
-		if (evt.isPressed()) {
-			type = AbstractEvents.MOUSEEVENT_PRESSED;
-		} else if (evt.isReleased()) {
-			type = AbstractEvents.MOUSEEVENT_RELEASED;
-			// and clicked ??
-		} else {
-			return;
-		}
 		Platform.runLater(new Runnable() {
 			@Override
 			public void run() {
-				if (JmeFXInputListener.this.jfxdndHandler != null) {
-					JmeFXInputListener.this.jfxdndHandler.mouseUpdate(x, y, JmeFXInputListener.this.mouseButtonState[0]);
+
+				int button;
+
+				switch (evt.getButtonIndex()) {
+				case 0:
+					button = AbstractEvents.MOUSEEVENT_PRIMARY_BUTTON;
+					break;
+				case 1:
+					button = AbstractEvents.MOUSEEVENT_SECONDARY_BUTTON;
+					break;
+				case 2:
+					button = AbstractEvents.MOUSEEVENT_MIDDLE_BUTTON;
+					break;
+				default:
+					return;
 				}
+
+				JmeFXInputListener.this.mouseButtonState[evt.getButtonIndex()] = evt.isPressed();
+
+				// seems that generating mouse release without corresponding mouse pressed is causing problems in Scene.ClickGenerator
+
+				int type;
+				if (evt.isPressed()) {
+					type = AbstractEvents.MOUSEEVENT_PRESSED;
+				} else if (evt.isReleased()) {
+					type = AbstractEvents.MOUSEEVENT_RELEASED;
+					// and clicked ??
+				} else {
+					return;
+				}
+
 				JmeFXInputListener.this.jmeFxContainer.scenePeer.mouseEvent(type, button, JmeFXInputListener.this.mouseButtonState[0], JmeFXInputListener.this.mouseButtonState[1], JmeFXInputListener.this.mouseButtonState[2], x, y,
 						JmeFXInputListener.this.jmeFxContainer.getXPosition() + x, JmeFXInputListener.this.jmeFxContainer.getYPosition() + y, JmeFXInputListener.this.keyStateSet.get(KeyEvent.VK_SHIFT),
 						JmeFXInputListener.this.keyStateSet.get(KeyEvent.VK_CONTROL), JmeFXInputListener.this.keyStateSet.get(KeyEvent.VK_ALT), JmeFXInputListener.this.keyStateSet.get(KeyEvent.VK_META), 0,
 						button == AbstractEvents.MOUSEEVENT_SECONDARY_BUTTON);
+				if (JmeFXInputListener.this.jfxdndHandler != null) {
+					JmeFXInputListener.this.jfxdndHandler.mouseUpdate(x, y, sx, sy, JmeFXInputListener.this.mouseButtonState[0]);
+				}
 			}
 		});
 	}

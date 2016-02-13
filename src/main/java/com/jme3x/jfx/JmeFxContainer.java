@@ -248,7 +248,6 @@ public abstract class JmeFxContainer {
 			});
 			return;
 		}
-
 		try {
 
 			final ByteBuffer data = this.fxData;
@@ -301,7 +300,7 @@ public abstract class JmeFxContainer {
 					}
 					JmeFxContainer.this.jmeImage.setData(JmeFxContainer.this.jmeData);
 				} else {
-					// System.out.println("Skipping update due to contention");
+					System.out.println("Skipping update due to contention");
 				}
 				return null;
 			}
@@ -319,9 +318,7 @@ public abstract class JmeFxContainer {
 			return false;
 		}
 		final ByteBuffer data = this.jmeImage.getData(0);
-		data.limit(data.capacity());
 		final int alpha = data.get(this.alphaByteOffset + 4 * (y * this.pWidth + x));
-		data.limit(0);
 		return alpha != 0;
 	}
 

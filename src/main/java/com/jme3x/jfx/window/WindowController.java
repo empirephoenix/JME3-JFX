@@ -1,5 +1,7 @@
 package com.jme3x.jfx.window;
 
+import com.jme3x.jfx.FXMLUtils;
+
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
@@ -14,8 +16,6 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Region;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-
-import com.jme3x.jfx.FXMLUtils;
 
 public class WindowController {
 
@@ -235,6 +235,7 @@ public class WindowController {
 			WindowController.this.window.getResponsibleGuiManager().getRootGroup().getChildren().add(WindowController.this.window.getNode());
 			this.window.getResponsibleGuiManager().getRememberMeService().onAttach(this.window);
 		}
+		this.window.getResponsibleGuiManager().getRootGroup().requestLayout();
 	}
 
 	private void initResize(final Region draggable, final Cursor cursor) {
