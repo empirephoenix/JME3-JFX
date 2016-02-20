@@ -19,7 +19,7 @@ import javafx.scene.input.TransferMode;
  * Synthetic D&D manager to circumvent large amount of internal unreliable api. Reuses default eventhandlers where possible
  */
 public class JmeFxDNDHandler {
-	private HashSet<Node>				entered	= new HashSet<>();
+	private HashSet<Node>				entered			= new HashSet<>();
 
 	private JmeFxContainer				jmeFxContainer;
 
@@ -33,7 +33,7 @@ public class JmeFxDNDHandler {
 
 	private int							lastx;
 
-	private int							DRAG_TRIGGER;
+	private int							DRAG_TRIGGER	= 5;
 
 	public JmeFxDNDHandler(final JmeFxContainer jmeFxContainer) {
 		this.jmeFxContainer = jmeFxContainer;
