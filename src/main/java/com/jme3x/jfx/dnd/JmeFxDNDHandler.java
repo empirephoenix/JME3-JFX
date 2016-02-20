@@ -29,6 +29,12 @@ public class JmeFxDNDHandler {
 
 	private Node						dragging;
 
+	private int							lasty;
+
+	private int							lastx;
+
+	private int							DRAG_TRIGGER;
+
 	public JmeFxDNDHandler(final JmeFxContainer jmeFxContainer) {
 		this.jmeFxContainer = jmeFxContainer;
 	}
@@ -59,6 +65,14 @@ public class JmeFxDNDHandler {
 
 	public void mouseUpdate(final int x, final int y, final int sx, final int sy, final boolean mousePressed) {
 		if (mousePressed) {
+			if (this.lastx == -1) {
+				this.lastx = x;
+				this.lasty = y;
+			}
+			if (Math.abs(x - this.lastx) < this.DRAG_TRIGGER && Math.abs(y - this.lasty) < this.DRAG_TRIGGER) {
+				return;
+			}
+
 			if (this.dragAndDrop == null && this.dragging == null) {
 				final Node dragElement = this.getDragSourceAt(this.jmeFxContainer.getRootNode(), x, y);
 				if (dragElement != null) {
@@ -73,6 +87,8 @@ public class JmeFxDNDHandler {
 				}
 			}
 		} else {
+			this.lastx = -1;
+			this.lasty = -1;
 			if (this.dragging != null) {
 				this.dragging = null;
 			}
