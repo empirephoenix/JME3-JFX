@@ -191,9 +191,7 @@ public class JmeFxDNDHandler {
 				final Bounds bounds = child.localToScene(child.getBoundsInLocal());
 				if (bounds.contains(x, y)) {
 					final Node found = this.getDragSourceAt(child, x, y);
-					if (found != null) {
-						return found;
-					}
+					return found;
 				}
 			}
 		}
@@ -213,9 +211,7 @@ public class JmeFxDNDHandler {
 				final Bounds bounds = child.localToScene(child.getBoundsInLocal());
 				if (bounds.contains(x, y)) {
 					final Node found = this.getDropTargetAt(child, x, y);
-					if (found != null) {
-						return found;
-					}
+					return found;
 				}
 
 			}
