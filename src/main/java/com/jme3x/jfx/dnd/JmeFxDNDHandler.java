@@ -81,7 +81,7 @@ public class JmeFxDNDHandler {
 					if (dragElement.getOnMouseDragged() != null) {
 						this.dragging = dragElement;
 					} else if (dragElement.getOnDragDetected() != null) {
-						final Point2D local = dragElement.sceneToLocal(x, y);
+						final Point2D local = dragElement.sceneToLocal(sx, sy);
 
 						this.startDragAndDrop(local.getX(), local.getY(), dragElement, sx, sy);
 					}
