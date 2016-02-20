@@ -83,7 +83,6 @@ public class JmeFXInputListener implements RawInputListener {
 		final int sy = JmeFXInputListener.this.jmeFxContainer.getYPosition() + y;
 
 		final boolean covered = JmeFXInputListener.this.jmeFxContainer.isCovered(x, y);
-		System.out.println("Covered " + covered);
 		if (covered) {
 			evt.setConsumed();
 		}

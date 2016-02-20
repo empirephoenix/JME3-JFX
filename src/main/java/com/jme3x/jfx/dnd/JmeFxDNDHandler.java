@@ -105,6 +105,11 @@ public class JmeFxDNDHandler {
 	}
 
 	private void updateDragAndDrop(final int x, final int y, final int sx, final int sy) {
+		if (this.dragAndDrop.isAbort()) {
+			this.lastx = -1;
+			this.lasty = -1;
+			this.dragAndDrop = null;
+		}
 		final Node dragProxy = this.dragAndDrop.getDragProxy();
 		if (dragProxy != null) {
 			dragProxy.setLayoutX(x);
@@ -141,21 +146,28 @@ public class JmeFxDNDHandler {
 	}
 
 	private void startDragAndDrop(final int x, final int y, final Node dragElement, final double sx, final double sy) {
-		this.dragAndDrop = new SyntDragBoard();
-		this.dragAndDrop.getDataTransfer().put("sourceElement", dragElement);
+		final SyntDragBoard dragAndDrop = new SyntDragBoard();
+		dragAndDrop.getDataTransfer().put("sourceElement", dragElement);
 		try {
-			final MouseDragEvent pseudoDrag = new MouseDragEvent(this.dragAndDrop, null, null, x, y, sx, sy, MouseButton.PRIMARY, 1, false, false, false, false, false, false, false, false, false, null, null);
+			final MouseDragEvent pseudoDrag = new MouseDragEvent(dragAndDrop, null, null, x, y, sx, sy, MouseButton.PRIMARY, 1, false, false, false, false, false, false, false, false, false, null, null);
 			dragElement.getOnDragDetected().handle(pseudoDrag);
 		} catch (final Exception e) {
 			this.exception(e);
 		}
-		if (!this.dragAndDrop.hasDragProxy()) {
+		if (!dragAndDrop.hasDragProxy()) {
 			final Node dragProxy = new Label("X");
 			dragProxy.minHeight(64);
 			dragProxy.minWidth(64);
-			this.dragAndDrop.setDragProxy(dragProxy);
+			dragAndDrop.setDragProxy(dragProxy);
 		}
-		this.jmeFxContainer.getRootChildren().add(this.dragAndDrop.getDragProxy());
+		if (dragAndDrop.isAbort()) {
+			this.lastx = -1;
+			this.lasty = -1;
+			return;
+		} else {
+			this.dragAndDrop = dragAndDrop;
+			this.jmeFxContainer.getRootChildren().add(this.dragAndDrop.getDragProxy());
+		}
 	}
 
 	private Node processDragEvents(final Node current, final int x, final int y, final int sx, final int sy) {

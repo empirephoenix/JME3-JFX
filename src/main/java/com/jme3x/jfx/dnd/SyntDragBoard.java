@@ -10,6 +10,7 @@ import javafx.scene.Node;
 public class SyntDragBoard {
 	private Map<String, Object>	dataTransfer	= new HashMap<>();
 	private Node				dragProxy;
+	boolean						abort;
 
 	public void setDragProxy(final Node dragProxy) {
 		dragProxy.setMouseTransparent(true);
@@ -17,6 +18,14 @@ public class SyntDragBoard {
 		dragProxy.setVisible(true);
 
 		this.dragProxy = dragProxy;
+	}
+
+	public void setAbort(final boolean abort) {
+		this.abort = abort;
+	}
+
+	public boolean isAbort() {
+		return this.abort;
 	}
 
 	public Map<String, Object> getDataTransfer() {
