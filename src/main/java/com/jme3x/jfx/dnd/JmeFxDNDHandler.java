@@ -34,7 +34,7 @@ public class JmeFxDNDHandler {
 
 	private int							lastx;
 
-	private int							DRAG_TRIGGER	= 5;
+	private int							DRAG_TRIGGER	= 1;
 
 	public JmeFxDNDHandler(final JmeFxContainer jmeFxContainer) {
 		this.jmeFxContainer = jmeFxContainer;
