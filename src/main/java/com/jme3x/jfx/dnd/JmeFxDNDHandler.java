@@ -6,6 +6,7 @@ import java.util.function.Function;
 import com.jme3x.jfx.JmeFxContainer;
 
 import javafx.geometry.Bounds;
+import javafx.geometry.Point2D;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Label;
@@ -80,7 +81,9 @@ public class JmeFxDNDHandler {
 					if (dragElement.getOnMouseDragged() != null) {
 						this.dragging = dragElement;
 					} else if (dragElement.getOnDragDetected() != null) {
-						this.startDragAndDrop(x, y, dragElement, sx, sy);
+						final Point2D local = dragElement.sceneToLocal(x, y);
+
+						this.startDragAndDrop(local.getX(), local.getY(), dragElement, sx, sy);
 					}
 					// allow one pulse for other event processing
 					return;
@@ -145,11 +148,11 @@ public class JmeFxDNDHandler {
 		this.dragAndDrop = null;
 	}
 
-	private void startDragAndDrop(final int x, final int y, final Node dragElement, final double sx, final double sy) {
+	private void startDragAndDrop(final double d, final double f, final Node dragElement, final double sx, final double sy) {
 		final SyntDragBoard dragAndDrop = new SyntDragBoard();
 		dragAndDrop.getDataTransfer().put("sourceElement", dragElement);
 		try {
-			final MouseDragEvent pseudoDrag = new MouseDragEvent(dragAndDrop, null, null, x, y, sx, sy, MouseButton.PRIMARY, 1, false, false, false, false, false, false, false, false, false, null, null);
+			final MouseDragEvent pseudoDrag = new MouseDragEvent(dragAndDrop, null, null, d, f, sx, sy, MouseButton.PRIMARY, 1, false, false, false, false, false, false, false, false, false, null, null);
 			dragElement.getOnDragDetected().handle(pseudoDrag);
 		} catch (final Exception e) {
 			this.exception(e);
