@@ -300,7 +300,7 @@ public abstract class JmeFxContainer {
 					}
 					JmeFxContainer.this.jmeImage.setData(JmeFxContainer.this.jmeData);
 				} else {
-					System.out.println("Skipping update due to contention");
+					// System.out.println("Skipping update due to contention");
 				}
 				return null;
 			}
