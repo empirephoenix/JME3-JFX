@@ -81,7 +81,8 @@ public class JmeFxDNDHandler {
 					if (dragElement.getOnMouseDragged() != null) {
 						this.dragging = dragElement;
 					} else if (dragElement.getOnDragDetected() != null) {
-						final Point2D local = dragElement.sceneToLocal(sx, sy);
+						dragElement.screenToLocal(sx, sy);
+						final Point2D local = dragElement.sceneToLocal(x, y);
 
 						this.startDragAndDrop(local.getX(), local.getY(), dragElement, sx, sy);
 					}
@@ -100,7 +101,8 @@ public class JmeFxDNDHandler {
 			}
 		}
 		if (this.dragging != null) {
-			this.dragging.getOnMouseDragged().handle(new MouseEvent(this.dragging, null, null, x, y, sx, sy, MouseButton.PRIMARY, 1, false, false, false, false, true, false, false, false, false, false, null));
+			final Point2D local = this.dragging.sceneToLocal(x, y);
+			this.dragging.getOnMouseDragged().handle(new MouseEvent(this.dragging, null, null, local.getX(), local.getY(), sx, sy, MouseButton.PRIMARY, 1, false, false, false, false, true, false, false, false, false, false, null));
 		}
 		if (this.dragAndDrop != null) {
 			this.updateDragAndDrop(x, y, sx, sy);
