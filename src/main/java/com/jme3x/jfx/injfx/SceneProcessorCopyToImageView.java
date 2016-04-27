@@ -8,6 +8,8 @@ import javafx.beans.value.ChangeListener;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.PixelFormat;
 import javafx.scene.image.WritableImage;
+import javafx.scene.image.WritablePixelFormat;
+import javafx.scene.image.PixelFormat.Type;
 
 import com.jme3.app.Application;
 import com.jme3.post.SceneProcessor;
@@ -18,6 +20,7 @@ import com.jme3.texture.FrameBuffer;
 import com.jme3.texture.Image.Format;
 import com.jme3.util.BufferUtils;
 import com.jme3x.jfx.FxPlatformExecutor;
+import com.jme3x.jfx.util.FormatUtils;
 
 //https://github.com/caprica/vlcj-javafx/blob/master/src/test/java/uk/co/caprica/vlcj/javafx/test/JavaFXDirectRenderingTest.java
 //http://stackoverflow.com/questions/15951284/javafx-image-resizing
@@ -171,7 +174,7 @@ public class SceneProcessorCopyToImageView implements SceneProcessor {
 
 			fb = new FrameBuffer(width, height, 1);
 			fb.setDepthBuffer(Format.Depth);
-			fb.setColorBuffer(Format.RGB8);
+			fb.setColorBuffer(Format.BGRA8);
 
 			byteBuf = BufferUtils.createByteBuffer(width * height * 4);
 
@@ -191,6 +194,7 @@ public class SceneProcessorCopyToImageView implements SceneProcessor {
 						lastIv = iv;
 						lastIv.setImage(img);
 					}
+					FormatUtils.reorder_RGBA82BGRA8(byteBuf);
 					img.getPixelWriter().setPixels(0, 0, width, height, PixelFormat.getByteBgraInstance(), byteBuf, width * 4);
 				}
 			});
