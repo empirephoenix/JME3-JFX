@@ -4,13 +4,6 @@ import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import javafx.beans.value.ChangeListener;
-import javafx.scene.image.ImageView;
-import javafx.scene.image.PixelFormat;
-import javafx.scene.image.WritableImage;
-import javafx.scene.image.WritablePixelFormat;
-import javafx.scene.image.PixelFormat.Type;
-
 import com.jme3.app.Application;
 import com.jme3.post.SceneProcessor;
 import com.jme3.renderer.RenderManager;
@@ -21,6 +14,11 @@ import com.jme3.texture.Image.Format;
 import com.jme3.util.BufferUtils;
 import com.jme3x.jfx.FxPlatformExecutor;
 import com.jme3x.jfx.util.FormatUtils;
+
+import javafx.beans.value.ChangeListener;
+import javafx.scene.image.ImageView;
+import javafx.scene.image.PixelFormat;
+import javafx.scene.image.WritableImage;
 
 //https://github.com/caprica/vlcj-javafx/blob/master/src/test/java/uk/co/caprica/vlcj/javafx/test/JavaFXDirectRenderingTest.java
 //http://stackoverflow.com/questions/15951284/javafx-image-resizing

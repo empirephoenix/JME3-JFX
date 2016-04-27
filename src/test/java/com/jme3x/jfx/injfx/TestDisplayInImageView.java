@@ -52,28 +52,29 @@ public class TestDisplayInImageView extends Application {
 		Controller controller = fxmlLoader.getController();
 
 		JmeForImageView jme = new JmeForImageView();
-		jme.bind(controller.image);
-
 		stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
-		      public void handle(WindowEvent e){
+			public void handle(WindowEvent e){
 				jme.stop(true);
-		      }
+			}
 		});
-
-		bindOtherControls(jme, controller);
-		jme.enqueue(TestDisplayInImageView::createScene);
-		jme.enqueue((jmeApp)->{
-			jmeApp.getStateManager().attach(new HelloPicking(controller.image));
-			
-			jmeApp.getStateManager().attach(new CameraDriverAppState());
-
-			//imagePanel.setFocusable(true);
-			//imagePanel.requestFocusInWindow();
-			CameraDriverInput driver = new CameraDriverInput();
-			driver.jme = jmeApp;
-			driver.speed = 1.0f;
-			CameraDriverInput.bindDefaults(controller.image, driver);
-			return true;
+		Platform.runLater(() -> {
+			//To work on macosx, jme should be launch later
+			jme.bind(controller.image);
+			bindOtherControls(jme, controller);
+			jme.enqueue(TestDisplayInImageView::createScene);
+			jme.enqueue((jmeApp)->{
+				jmeApp.getStateManager().attach(new HelloPicking(controller.image));
+				
+				jmeApp.getStateManager().attach(new CameraDriverAppState());
+	
+				//imagePanel.setFocusable(true);
+				//imagePanel.requestFocusInWindow();
+				CameraDriverInput driver = new CameraDriverInput();
+				driver.jme = jmeApp;
+				driver.speed = 1.0f;
+				CameraDriverInput.bindDefaults(controller.image, driver);
+				return true;
+			});
 		});
 
 		Scene scene = new Scene(root, 600, 400);
