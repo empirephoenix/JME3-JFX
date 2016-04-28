@@ -10,10 +10,10 @@ import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.texture.FrameBuffer;
+import com.jme3.texture.Image;
 import com.jme3.texture.Image.Format;
 import com.jme3.util.BufferUtils;
 import com.jme3x.jfx.FxPlatformExecutor;
-import com.jme3x.jfx.util.FormatUtils;
 
 import javafx.beans.value.ChangeListener;
 import javafx.scene.image.ImageView;
@@ -184,7 +184,7 @@ public class SceneProcessorCopyToImageView implements SceneProcessor {
 			synchronized (byteBuf) {
 				// Convert screenshot.
 				byteBuf.clear();
-				rm.getRenderer().readFrameBuffer(fb, byteBuf);
+				rm.getRenderer().readFrameBufferWithFormat(fb, byteBuf, Image.Format.BGRA8);
 			}
 			FxPlatformExecutor.runOnFxApplication(() -> {
 				synchronized (byteBuf) {
@@ -192,7 +192,6 @@ public class SceneProcessorCopyToImageView implements SceneProcessor {
 						lastIv = iv;
 						lastIv.setImage(img);
 					}
-					FormatUtils.reorder_RGBA82BGRA8(byteBuf);
 					img.getPixelWriter().setPixels(0, 0, width, height, PixelFormat.getByteBgraInstance(), byteBuf, width * 4);
 				}
 			});
