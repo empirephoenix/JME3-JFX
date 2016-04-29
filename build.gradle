@@ -61,6 +61,7 @@ dependencies {
 	provided "org.jmonkeyengine:jme3-core:${v_jme3}"
 	provided "org.jmonkeyengine:jme3-desktop:${v_jme3}"
 	provided "org.jmonkeyengine:jme3-lwjgl:${v_jme3}"
+	provided "org.jmonkeyengine:jme3-jogl:${v_jme3}"
 	testRuntime "org.slf4j:slf4j-jdk14:${v_slf4j}"
 }
 
