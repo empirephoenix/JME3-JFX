@@ -21,7 +21,7 @@ SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd_HHmmss")
 String gitTimestamp = format.format(new Date(Long.parseLong(gitInfos[0])*1000));
 
 def env = System.getenv()
-def mainBuildVersion = "1";
+def mainBuildVersion = "2";
 //jenkins part
 def buildVersion = (env.BUILD_NUMBER) ?
 		mainBuildVersion+"."+env.BUILD_NUMBER+"."+gitTimestamp+"-"+gitRevision
@@ -34,7 +34,7 @@ sourceCompatibility=JavaVersion.VERSION_1_8
 compileJava.options.encoding = 'UTF-8'
 
 if(snapshot.equals("true")){
-	version = "1.0.0-Snapshot";
+	version = "2.0.0-Snapshot";
 }else{
 	version = buildVersion;
 }
@@ -42,8 +42,7 @@ group = "com.jme3x"
 
 
 repositories {
-	mavenCentral()
-	maven { url "http://updates.jmonkeyengine.org/maven/"}
+	jcenter()
 }
 
 configurations { provided }
@@ -55,13 +54,13 @@ sourceSets {
 sourceSets.main.resources.srcDir 'src/main/java'
 
 def v_slf4j = '1.7.7'
-def v_jme3 = '3.0.10'
+def v_jme3 = '3.1.0-beta1'
 dependencies {
 	compile "org.slf4j:slf4j-api:${v_slf4j}"
 	provided "org.lwjgl.lwjgl:lwjgl:2.9.0"
-	provided "com.jme3:jme3-core:${v_jme3}"
-	provided "com.jme3:jme3-desktop:${v_jme3}"
-	provided "com.jme3:jme3-lwjgl:${v_jme3}"
+	provided "org.jmonkeyengine:jme3-core:${v_jme3}"
+	provided "org.jmonkeyengine:jme3-desktop:${v_jme3}"
+	provided "org.jmonkeyengine:jme3-lwjgl:${v_jme3}"
 	testRuntime "org.slf4j:slf4j-jdk14:${v_slf4j}"
 }
 
