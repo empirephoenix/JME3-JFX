@@ -15,7 +15,12 @@ also it can be used as maven repository (see 'set me up' button).
 
 ## Notes
 
-* JME3-JFX is compatible with jme-3.0.10 .
+* For jme 3.1:
+  * version: 2.+
+  * branch: master
+* For jme 3.0 (compatible with jme-3.0.10):
+  * version: 1.+
+  * branch: jme_3.0
 * JME3-JFX require java 8, but it is possible to draw video on textures using java 7.
   For jME SDK, you should create a java 8 platform, but the java8 support is very bad (because it's based on netbeans 7). As alternative you can try to install jME netbeans plugins into netbeans 8+ (use update center url copied from jME SDK).
 
