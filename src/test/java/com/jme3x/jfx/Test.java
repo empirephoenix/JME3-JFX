@@ -10,7 +10,7 @@ import com.jme3x.jfx.window.FXMLWindow;
 
 public class Test extends SimpleApplication {
 	private static boolean assertionsEnabled;
-	private static boolean useJogl = true;
+	private static boolean useJogl = false;
 
 	public static void main(final String[] args) {
 		assert Test.enabled();
