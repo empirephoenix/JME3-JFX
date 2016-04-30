@@ -57,7 +57,7 @@ public class TestMovie extends SimpleApplication {
 
 		final Material s1mat = new Material(this.assetManager, "com/jme3x/jfx/media/MovieShader.j3md");
 		s1mat.setTexture("ColorMap", this.textureMovie.getTexture());
-		s1mat.setInt("SwizzleMode", this.textureMovie.useShaderSwizzle());
+		//s1mat.setInt("SwizzleMode", this.textureMovie.useShaderSwizzle());
 		screen1.setMaterial(s1mat);
 		this.rootNode.attachChild(screen1);
 
