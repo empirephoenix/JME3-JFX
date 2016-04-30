@@ -1,13 +1,6 @@
 package com.jme3x.jfx;
 
-import java.awt.Point;
-import java.lang.reflect.Method;
 import java.util.concurrent.Callable;
-
-import javafx.application.Platform;
-import javafx.scene.Scene;
-
-import org.lwjgl.opengl.Display;
 
 import com.jme3.app.Application;
 import com.jme3.app.state.AbstractAppState;
@@ -15,32 +8,27 @@ import com.jme3.asset.AssetManager;
 import com.jme3.scene.Spatial.CullHint;
 import com.jme3.texture.Image;
 import com.jme3.texture.Texture2D;
+import com.jme3.texture.image.ColorSpace;
 import com.jme3.ui.Picture;
 import com.jme3.util.BufferUtils;
 import com.jme3x.jfx.cursor.ICursorDisplayProvider;
-import com.jme3x.jfx.util.JFXUtils;
 import com.sun.javafx.embed.EmbeddedStageInterface;
+
+import javafx.application.Platform;
+import javafx.scene.Scene;
 
 public class JmeFxScreenContainer extends JmeFxContainer {
 
-    
-
-    /** Indent the window position to account for window decoration by Ronn */
-    protected int windowOffsetX;
-    protected int windowOffsetY;
-    
     private final Picture picture;
-    
+    private final DisplayInfo displayInfo;
+
     public JmeFxScreenContainer(AssetManager assetManager, Application app, boolean fullScreenSupport, ICursorDisplayProvider cursorDisplayProvider) {
         super();
-        
-        final Point decorationSize = JFXUtils.getWindowDecorationSize();
 
-        this.windowOffsetX = (int) decorationSize.getX();
-        this.windowOffsetY = (int) decorationSize.getY();
         this.cursorDisplayProvider = cursorDisplayProvider;
         this.app = app;
         this.fullScreenSuppport = fullScreenSupport;
+        this.displayInfo = DisplayInfoProvider.find(app);
 
         app.getStateManager().attach(new AbstractAppState() {
 
@@ -63,27 +51,27 @@ public class JmeFxScreenContainer extends JmeFxContainer {
                     if(currentStage == null) {
                         return;
                     }
-                    
-                    if (stage != null && Display.isFullscreen() ) {
+
+                    if (stage != null && displayInfo.isFullscreen() ) {
                         sceneContainerMap.put(stage, JmeFxScreenContainer.this);
                     } else {
                         sceneContainerMap.remove(stage);
                     }
 
-                    final int currentWidth = Display.getWidth();
-                    final int currentHeight = Display.getHeight();
+                    final int currentWidth = displayInfo.getWidth();
+                    final int currentHeight = displayInfo.getHeight();
 
-                    if(currentWidth != getpWidth() || currentHeight != getpHeight()) {
+                    if(currentWidth != pWidth || currentHeight != pHeight) {
                         handleResize();
                     }
 
-                    final int x = Display.getX() + (Display.isFullscreen() ? 0 : getWindowOffsetX());
-                    final int y = Display.getY() + (Display.isFullscreen() ? 0 : getWindowOffsetY());
+                    final int x = displayInfo.getX() + (displayInfo.isFullscreen() ? 0 : displayInfo.getInsetX());
+                    final int y = displayInfo.getY() + (displayInfo.isFullscreen() ? 0 : displayInfo.getInsetY());
 
-                    if(getOldX() != x || getOldY() != y) {
+                    if(oldX != x || oldY != y) {
 
-                        setOldX(x);
-                        setOldY(y);
+                        oldX = x;
+                        oldY = y;
 
                         Platform.runLater(() -> currentStage.setLocation(x, y));
                     }
@@ -101,10 +89,10 @@ public class JmeFxScreenContainer extends JmeFxContainer {
 
         this.tex = new Texture2D(this.jmeImage);
         this.picture.setTexture(assetManager, this.tex, true);
-        
+
     }
-    
-    
+
+
     public Picture getJmeNode() {
         return this.picture;
     }
@@ -118,59 +106,6 @@ public class JmeFxScreenContainer extends JmeFxContainer {
     public int getWindowY() {
         return this.oldY;
     }
-    
-    private int getOldX() {
-        return oldX;
-    }
-
-    private int getOldY() {
-        return oldY;
-    }
-
-    private void setOldX(int oldX) {
-        this.oldX = oldX;
-    }
-
-    private void setOldY(int oldY) {
-        this.oldY = oldY;
-    }
-
-    private int getpHeight() {
-        return pHeight;
-    }
-
-    private int getpWidth() {
-        return pWidth;
-    }
-
-    /**
-     * Indent the window position to account for window decoration.
-     */
-    public void setWindowOffsetX(int windowOffsetX) {
-        this.windowOffsetX = windowOffsetX;
-    }
-
-    /**
-     * Indent the window position to account for window decoration.
-     */
-    public void setWindowOffsetY(int windowOffsetY) {
-        this.windowOffsetY = windowOffsetY;
-    }
-
-    /**
-     * Indent the window position to account for window decoration.
-     */
-    public int getWindowOffsetX() {
-        return windowOffsetX;
-    }
-
-    /**
-     * Indent the window position to account for window decoration.
-     */
-    public int getWindowOffsetY() {
-        return windowOffsetY;
-    }
-    
 
     private void handleResize() {
 
@@ -178,8 +113,8 @@ public class JmeFxScreenContainer extends JmeFxContainer {
             this.imageExchange.acquire();
             dispose();
 
-            this.pWidth = Display.getWidth();
-            this.pHeight = Display.getHeight();
+            this.pWidth = displayInfo.getWidth();
+            this.pHeight = displayInfo.getHeight();
             if (this.pWidth < 64) {
                 this.pWidth = 64;
             }
@@ -190,17 +125,7 @@ public class JmeFxScreenContainer extends JmeFxContainer {
             this.picture.setHeight(this.pHeight);
             this.jmeData = BufferUtils.createByteBuffer(this.pWidth * this.pHeight * 4);
             this.fxData = BufferUtils.createByteBuffer(this.pWidth * this.pHeight * 4);
-            //TODO 3.1 : use new Image(this.nativeFormat.get(), this.pWidth, this.pHeight, this.jmeData, com.jme3.texture.image.ColorSpace.sRGB);
-            this.jmeImage = new Image(this.nativeFormat.get(), this.pWidth, this.pHeight, this.jmeData);
-            //HACK pre-3.1 to support gamma correction with jme pre-implementation of ColorSpace
-            try {
-                Class<?> classColorSpace = Class.forName("com.jme3.texture.image.ColorSpace");
-                Method m = Image.class.getMethod("setColorSpace", classColorSpace);
-                m.invoke(this.jmeImage, classColorSpace.getField("sRGB").get(null));
-            } catch(Throwable exc) {
-                // ignore jme 3.1 not available
-            }
-            //HACK pre-3.1 End
+            this.jmeImage = new Image(this.nativeFormat.get(), this.pWidth, this.pHeight, this.jmeData, ColorSpace.sRGB);
             if (this.tex != null) {
                 this.tex.setImage(this.jmeImage);
             }
@@ -224,7 +149,7 @@ public class JmeFxScreenContainer extends JmeFxContainer {
         }
     }
 
-    
+
     @Override
     protected void setSceneImpl(Scene newScene) {
         super.setSceneImpl(newScene);
@@ -237,22 +162,22 @@ public class JmeFxScreenContainer extends JmeFxContainer {
             }
         });
     }
-    
+
     @Override
     public int getXPosition() {
-        if (!Display.isFullscreen()) {
-            return Display.getX();
-        }
-        return 0;
-    }
-    
-    @Override
-    public int getYPosition() {
-        if (!Display.isFullscreen()) {
-            return Display.getY();
+        if (!displayInfo.isFullscreen()) {
+            return displayInfo.getX() + displayInfo.getInsetX();
         }
         return 0;
     }
 
-    
+    @Override
+    public int getYPosition() {
+        if (!displayInfo.isFullscreen()) {
+            return displayInfo.getY() + displayInfo.getInsetY();
+        }
+        return 0;
+    }
+
+
 }

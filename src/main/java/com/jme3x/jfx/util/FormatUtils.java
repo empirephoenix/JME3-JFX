@@ -17,6 +17,18 @@ public class FormatUtils {
 	}
 
 	//TODO benchmark
+	public static Void reorder_RGBA82BGRA8(ByteBuffer data){
+		int limit = data.limit() - 3;
+		byte v;
+		for (int i = 0; i < limit; i += 4) {
+			v = data.get(i);
+			data.put(i + 0, data.get(i+2) );
+			data.put(i + 2, v );
+		}
+		return null;
+	}
+
+	//TODO benchmark
 	public static Void reorder_BGRA82ABGR8(ByteBuffer data) {
 		int limit = data.limit() - 3;
 		byte v0, v1, v2, v3;

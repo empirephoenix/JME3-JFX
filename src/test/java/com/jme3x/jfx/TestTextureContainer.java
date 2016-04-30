@@ -213,7 +213,7 @@ public class TestTextureContainer extends SimpleApplication {
                         new TreeItem<String>("Child Node 7"), new TreeItem<String>("Child Node 8"), new TreeItem<String>("Child Node 9"), new TreeItem<String>(
                                 "Child Node 10"), new TreeItem<String>("Child Node 11"), new TreeItem<String>("Child Node 12")));
 
-        final TreeView treeView = new TreeView();
+        final TreeView<String> treeView = new TreeView<>();
         treeView.setShowRoot(true);
 
         treeView.setRoot(treeRoot);

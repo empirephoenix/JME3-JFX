@@ -1,13 +1,12 @@
 package com.jme3x.jfx;
 
 import javafx.application.Platform;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 
 import com.jme3.app.Application;
 import com.jme3.app.state.AbstractAppState;
 import com.jme3.texture.Image;
 import com.jme3.texture.Texture2D;
+import com.jme3.texture.image.ColorSpace;
 import com.jme3.util.BufferUtils;
 
 public class JmeFxTextureContainer extends JmeFxContainer {
@@ -32,7 +31,7 @@ public class JmeFxTextureContainer extends JmeFxContainer {
         try {
             this.jmeData = BufferUtils.createByteBuffer(this.pWidth * this.pHeight * 4);
             this.fxData = BufferUtils.createByteBuffer(this.pWidth * this.pHeight * 4);
-            this.jmeImage = new Image(nativeFormat.get(), this.pWidth, this.pHeight, this.jmeData);
+            this.jmeImage = new Image(nativeFormat.get(), this.pWidth, this.pHeight, this.jmeData, ColorSpace.Linear);
             this.tex = new Texture2D(this.jmeImage);
         } catch (Exception exc) {
             throw new RuntimeException(exc);

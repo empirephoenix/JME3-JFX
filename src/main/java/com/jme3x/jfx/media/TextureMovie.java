@@ -2,7 +2,6 @@ package com.jme3x.jfx.media;
 
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
-import java.util.function.Function;
 
 import com.jme3.app.Application;
 import com.jme3.math.ColorRGBA;
@@ -10,8 +9,8 @@ import com.jme3.math.Vector2f;
 import com.jme3.texture.Image;
 import com.jme3.texture.Image.Format;
 import com.jme3.texture.Texture2D;
+import com.jme3.texture.image.ColorSpace;
 import com.jme3.util.BufferUtils;
-import com.jme3x.jfx.util.FormatUtils;
 import com.jme3x.jfx.util.ImageExchanger;
 import com.sun.media.jfxmedia.control.VideoDataBuffer;
 import com.sun.media.jfxmedia.control.VideoFormat;
@@ -38,9 +37,6 @@ import com.sun.media.jfxmedia.events.VideoRendererListener;
  */
 public class TextureMovie {
 
-    public static final int NO_SWIZZLE = 0;
-    public static final int SWIZZLE_RB = 1;
-    
     public enum LetterboxMode {
         /**
          * This mode uses entire texture including some garbage data on right
@@ -63,7 +59,7 @@ public class TextureMovie {
         VALID_LETTERBOX
     }
 
-    private static Image emptyImage = new Image(Format.ABGR8, 1, 1, BufferUtils.createByteBuffer(4));
+    private static Image emptyImage = new Image(Format.ABGR8, 1, 1, BufferUtils.createByteBuffer(4), ColorSpace.sRGB);
 
     private final javafx.scene.media.MediaPlayer jPlayer;
     private final com.sun.media.jfxmedia.MediaPlayer cPlayer;
@@ -77,9 +73,7 @@ public class TextureMovie {
     private Texture2D texture;
     private Application app;
     
-    private Function<ByteBuffer, Void> reorderData;
     private Format format;
-    private int swizzleMode = NO_SWIZZLE;
     private ImageExchanger imageExchanger;
 
     public TextureMovie(final Application app, javafx.scene.media.MediaPlayer mediaPlayer) {
@@ -96,14 +90,7 @@ public class TextureMovie {
         this.jPlayer = mediaPlayer;
         this.mode = mode;
 
-        try {
-            format = Format.valueOf("ARGB8");
-            reorderData = null;
-        } catch(Exception exc) {
-            format = Format.ABGR8;
-            swizzleMode = SWIZZLE_RB;
-            reorderData = FormatUtils::reorder_ARGB82ABGR8;
-        }
+        format = Format.ARGB8;
                 
         try {
             Method m1 = jPlayer.getClass().getDeclaredMethod("retrieveJfxPlayer");
@@ -193,11 +180,6 @@ public class TextureMovie {
                     bottomRightCorner.set((xOffset + argbFrame.getWidth()) / (float) expectedWidth, (yOffset + argbFrame.getHeight()) / (float) expectedHeight);
 
                     ByteBuffer src = argbFrame.getBufferForPlane(0);
-                    if (reorderData != null) {
-                        src.position(0);
-                        reorderData.apply(src);
-                        src.position(0);
-                    }
                     Image image = texture.getImage();
 
                     if (image.getWidth() != expectedWidth || image.getHeight() != expectedHeight) {
@@ -303,10 +285,4 @@ public class TextureMovie {
         }
         return texture;
     }
-    
-    public int useShaderSwizzle() {
-        reorderData = null;
-        return swizzleMode;
-    }
-
 }

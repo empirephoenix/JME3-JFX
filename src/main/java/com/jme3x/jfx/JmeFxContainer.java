@@ -14,7 +14,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Semaphore;
-import java.util.function.Function;
 
 import com.jme3.app.Application;
 import com.jme3.input.RawInputListener;
@@ -23,7 +22,6 @@ import com.jme3.texture.Image.Format;
 import com.jme3.texture.Texture2D;
 import com.jme3.util.BufferUtils;
 import com.jme3x.jfx.cursor.ICursorDisplayProvider;
-import com.jme3x.jfx.util.FormatUtils;
 import com.sun.glass.ui.Accessible;
 import com.sun.glass.ui.Pixels;
 import com.sun.javafx.application.PlatformImpl;
@@ -84,12 +82,6 @@ public abstract class JmeFxContainer {
 	ICursorDisplayProvider				cursorDisplayProvider;
 	private Parent						rootNode;
 
-	private Function<ByteBuffer, Void>	reorderData;
-
-	/** Indent the window position to account for window decoration by Ronn */
-	private int							windowOffsetX;
-	private int							windowOffsetY;
-
 	public static JmeFxScreenContainer install(final Application app, final com.jme3.scene.Node guiNode, final boolean fullScreenSupport, final ICursorDisplayProvider cursorDisplayProvider) {
 		final JmeFxScreenContainer ctr = new JmeFxScreenContainer(app.getAssetManager(), app, fullScreenSupport, cursorDisplayProvider);
 		guiNode.attachChild(ctr.getJmeNode());
@@ -141,37 +133,16 @@ public abstract class JmeFxContainer {
 				// TODO 3.1: use Format.ARGB8 and Format.BGRA8 and remove used of exchangeData, fx2jme_ARGB82ABGR8,...
 				switch (Pixels.getNativeFormat()) {
 				case Pixels.Format.BYTE_ARGB:
-					try {
-						JmeFxContainer.this.nativeFormat.complete(Format.valueOf("ARGB8"));
-						JmeFxContainer.this.reorderData = null;
-						JmeFxContainer.this.alphaByteOffset = 0;
-					} catch (final Exception exc) {
-						JmeFxContainer.this.nativeFormat.complete(Format.ABGR8);
-						JmeFxContainer.this.reorderData = FormatUtils::reorder_ARGB82ABGR8;
-						JmeFxContainer.this.alphaByteOffset = 0;
-					}
+					JmeFxContainer.this.nativeFormat.complete(Format.ARGB8);
+					JmeFxContainer.this.alphaByteOffset = 0;
 					break;
 				case Pixels.Format.BYTE_BGRA_PRE:
-					try {
-						JmeFxContainer.this.nativeFormat.complete(Format.valueOf("BGRA8"));
-						JmeFxContainer.this.reorderData = null;
-						JmeFxContainer.this.alphaByteOffset = 3;
-					} catch (final Exception exc) {
-						JmeFxContainer.this.nativeFormat.complete(Format.ABGR8);
-						JmeFxContainer.this.reorderData = FormatUtils::reorder_BGRA82ABGR8;
-						JmeFxContainer.this.alphaByteOffset = 0;
-					}
+					JmeFxContainer.this.nativeFormat.complete(Format.BGRA8);
+					JmeFxContainer.this.alphaByteOffset = 3;
 					break;
 				default:
-					try {
-						JmeFxContainer.this.nativeFormat.complete(Format.valueOf("ARGB8"));
-						JmeFxContainer.this.reorderData = null;
-						JmeFxContainer.this.alphaByteOffset = 0;
-					} catch (final Exception exc) {
-						JmeFxContainer.this.nativeFormat.complete(Format.ABGR8);
-						JmeFxContainer.this.reorderData = FormatUtils::reorder_ARGB82ABGR8;
-						JmeFxContainer.this.alphaByteOffset = 0;
-					}
+					JmeFxContainer.this.nativeFormat.complete(Format.ARGB8);
+					JmeFxContainer.this.alphaByteOffset = 0;
 					break;
 				}
 			}
@@ -267,10 +238,6 @@ public abstract class JmeFxContainer {
 
 			data.flip();
 			data.limit(this.pWidth * this.pHeight * 4);
-			if (this.reorderData != null) {
-				this.reorderData.apply(data);
-				data.position(0);
-			}
 			this.fxDataReady = true;
 
 		} catch (final Exception exc) {
@@ -485,34 +452,6 @@ public abstract class JmeFxContainer {
 
 	public Parent getRootNode() {
 		return this.rootNode;
-	}
-
-	/**
-	 * Indent the window position to account for window decoration.
-	 */
-	public void setWindowOffsetX(final int windowOffsetX) {
-		this.windowOffsetX = windowOffsetX;
-	}
-
-	/**
-	 * Indent the window position to account for window decoration.
-	 */
-	public void setWindowOffsetY(final int windowOffsetY) {
-		this.windowOffsetY = windowOffsetY;
-	}
-
-	/**
-	 * Indent the window position to account for window decoration.
-	 */
-	public int getWindowOffsetX() {
-		return this.windowOffsetX;
-	}
-
-	/**
-	 * Indent the window position to account for window decoration.
-	 */
-	public int getWindowOffsetY() {
-		return this.windowOffsetY;
 	}
 
 	public void dispose() {
