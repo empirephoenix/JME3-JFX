@@ -2,26 +2,18 @@ package com.jme3x.jfx.media;
 
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 import java.util.LinkedList;
-import java.util.function.Function;
 
 import com.jme3.app.Application;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector2f;
-import com.jme3.scene.Geometry;
-import com.jme3.scene.shape.Quad;
 import com.jme3.texture.Image;
 import com.jme3.texture.Image.Format;
-import com.jme3.texture.Texture.MagFilter;
-import com.jme3.texture.Texture.MinFilter;
 import com.jme3.texture.Texture2D;
+import com.jme3.texture.image.ColorSpace;
 import com.jme3.util.BufferUtils;
-import com.jme3x.jfx.util.FormatUtils;
-import com.jme3x.jfx.util.ImageExchanger;
 import com.sun.media.jfxmedia.control.VideoDataBuffer;
-import com.sun.media.jfxmedia.control.VideoFormat;
 import com.sun.media.jfxmedia.events.NewFrameEvent;
 import com.sun.media.jfxmedia.events.VideoRendererListener;
 
@@ -49,7 +41,7 @@ public class MovieMaterial {
     public static final int NO_SWIZZLE = 0;
     public static final int SWIZZLE_RB = 1;
 
-    private static Image emptyImage = new Image(Format.ABGR8, 1, 1, BufferUtils.createByteBuffer(4));
+    private static Image emptyImage = new Image(Format.ABGR8, 1, 1, BufferUtils.createByteBuffer(4), ColorSpace.Linear);
 
     private final javafx.scene.media.MediaPlayer jPlayer;
     private final com.sun.media.jfxmedia.MediaPlayer cPlayer;
@@ -172,7 +164,7 @@ public class MovieMaterial {
             return;
         }
         if (tex.getImage().getData(0).capacity() != buf.capacity()) {
-            Image img = new Image(Format.Luminance8, stride, buf.capacity() / stride, buf);
+            Image img = new Image(Format.Luminance8, stride, buf.capacity() / stride, buf, ColorSpace.Linear);
             tex.setImage(img);
         } else {
             tex.getImage().setData(buf);

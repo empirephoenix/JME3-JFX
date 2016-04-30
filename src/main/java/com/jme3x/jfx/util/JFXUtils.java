@@ -1,9 +1,6 @@
 package com.jme3x.jfx.util;
 
-import java.awt.Point;
 import java.nio.FloatBuffer;
-import java.util.HashMap;
-import java.util.Map;
 
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
@@ -13,7 +10,6 @@ import com.jme3.scene.VertexBuffer.Format;
 import com.jme3.scene.VertexBuffer.Type;
 import com.jme3.scene.mesh.IndexBuffer;
 import com.jme3.util.BufferUtils;
-import com.jme3x.jfx.util.os.OperatingSystem;
 
 /**
  * Set of methods for scrap work JFX.

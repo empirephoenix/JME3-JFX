@@ -48,12 +48,10 @@ public class ResizeAndMoveHelper {
 		protected double	dragDeltax;
 		protected double	dragDeltay;
 
-		private BorderPane	menu;
 		protected boolean	resizing;
 
 		public ResizeListener(final Stage stage, final BorderPane menu) {
 			this.stage = stage;
-			this.menu = menu;
 
 			menu.setOnMouseDragged(new EventHandler<MouseEvent>() {
 				@Override

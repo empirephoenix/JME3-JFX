@@ -38,11 +38,11 @@ public class TestCustomMaterial extends SimpleApplication {
 		 */
 		this.inputManager.addRawInputListener(testguiManager.getInputRedirector());
 
-		final FXMLHud testhud = new FXMLHud("com/jme3x/jfx/loading_screen.fxml");
+		final FXMLHud<Testcontroller> testhud = new FXMLHud<>("com/jme3x/jfx/loading_screen.fxml");
 		testhud.precache();
 		testguiManager.attachHudAsync(testhud);
 
-		final FXMLWindow testwindow = new FXMLWindow("com/jme3x/jfx/loading_screen.fxml");
+		final FXMLWindow<Testcontroller> testwindow = new FXMLWindow<>("com/jme3x/jfx/loading_screen.fxml");
 		testwindow.precache();
 		testwindow.titleProperty().set("TestTitle");
 		testguiManager.attachHudAsync(testwindow);
