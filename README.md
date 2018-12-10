@@ -1,3 +1,5 @@
+There are better maintained and more up to date forks currently, please consider using them.
+
 JME3-JFX
 ========
 
